@@ -1,42 +1,26 @@
-# sv
+# 📦 Inventario con Predicción de Stock
 
-Everything you need to build a Svelte project, powered by [`sv`](https://github.com/sveltejs/cli).
+Sistema web de inventario para pequeñas tiendas que predice cuándo se acabará el stock basándose en el historial de ventas.
 
-## Creating a project
+##  Características
 
-If you're seeing this, you've probably already done this step. Congrats!
+- Gestión completa de productos (CRUD)
+- Registro de entradas y salidas de stock
+- Predicción de días hasta agotamiento
+- Recomendación de fecha de reorden
+- Dashboard con métricas clave
+- Modo oscuro
 
-```sh
-# create a new project
-npx sv create my-app
-```
+## 🛠️ Stack Tecnológico
 
-To recreate this project with the same configuration:
+- **Frontend:** SvelteKit
+- **Backend:** SvelteKit API Routes
+- **Base de datos:** SQLite (better-sqlite3)
+- **Gráficos:** Chart.js
+- **Deploy:** Vercel/Cloudflare Pages
 
-```sh
-# recreate this project
-npx sv@0.17.1 create --template minimal --types ts --install npm inventario-prediccion
-```
+##  Instalación
 
-## Developing
-
-Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
-
-```sh
+```bash
+npm install
 npm run dev
-
-# or start the server and open the app in a new browser tab
-npm run dev -- --open
-```
-
-## Building
-
-To create a production version of your app:
-
-```sh
-npm run build
-```
-
-You can preview the production build with `npm run preview`.
-
-> To deploy your app, you may need to install an [adapter](https://svelte.dev/docs/kit/adapters) for your target environment.
