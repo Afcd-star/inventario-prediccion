@@ -1,0 +1,32 @@
+node_modules
+
+# Output
+.output
+.vercel
+.netlify
+.wrangler
+/.svelte-kit
+/build
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Env
+.env
+.env.*
+!.env.example
+!.env.test
+
+# Vite
+vite.config.js.timestamp-*
+vite.config.ts.timestamp-*
+
+# Base de datos SQLite (CRÍTICO - no subir el archivo .db)
+*.db
+*.sqlite
+*.sqlite3
+database.db
+
+# VS Code (ya que usas esta herramienta)
+.vscode/
