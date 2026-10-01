@@ -17,5 +17,17 @@
 - feat: inicialización del proyecto con SvelteKit, Chart.js y better-sqlite3
 - docs: README inicial con descripción del proyecto
 
-### Próximos pasos
-- Fase 2: Diseño de Base de Datos
+## Fase 2: Diseño de Base de Datos - Completada el [FECHA]
+
+### Métricas cuantitativas
+- Tablas creadas: 3 (productos, movimientos, predicciones)
+- Índices creados: 3
+- Tamaño de database.db inicial: ~20 KB
+- Tiempo de inicialización: <100ms
+
+### Métricas cualitativas
+- SQLite es extremadamente rápido y no consume RAM extra.
+- La inicialización automática es muy conveniente.
+
+### Commits realizados
+- feat: diseño e inicialización de base de datos SQLite
