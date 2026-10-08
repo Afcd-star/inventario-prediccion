@@ -5,20 +5,24 @@
   }
 
   let { productoId, stockActual }: Props = $props();
+  
+  // Estado reactivo para saber qué tipo de movimiento está seleccionado
+  let tipoSeleccionado = $state('entrada');
 </script>
 
 <form method="POST" action="?/registrar">
   <input type="hidden" name="producto_id" value={productoId} />
 
-  <div style:marginBottom="1rem">
-    <label style:display="block" style:marginBottom="0.5rem" style:fontWeight="600">Tipo de Movimiento</label>
+    <div style:marginBottom="1rem">
+    <!-- Cambiamos label por span para evitar el warning de accesibilidad -->
+    <span style:display="block" style:marginBottom="0.5rem" style:fontWeight="600">Tipo de Movimiento</span>
     <div style:display="flex" style:gap="1rem">
       <label style:display="flex" style:alignItems="center" style:gap="0.5rem" style:cursor="pointer">
-        <input type="radio" name="tipo" value="entrada" required />
+        <input type="radio" name="tipo" value="entrada" bind:group={tipoSeleccionado} required />
         Entrada (Aumenta stock)
       </label>
       <label style:display="flex" style:alignItems="center" style:gap="0.5rem" style:cursor="pointer">
-        <input type="radio" name="tipo" value="salida" required />
+        <input type="radio" name="tipo" value="salida" bind:group={tipoSeleccionado} required />
         Salida (Reduce stock)
       </label>
     </div>
@@ -31,14 +35,16 @@
       type="number" 
       name="cantidad" 
       min="1" 
-      max={stockActual} 
+      max={tipoSeleccionado === 'salida' ? stockActual : undefined} 
       required 
       style:width="100%" 
       style:padding="0.5rem" 
       style:border="1px solid #d1d5db" 
       style:borderRadius="6px" 
     />
-    <p style:fontSize="0.8rem" style:color="#6b7280" style:marginTop="0.25rem">Stock actual disponible: {stockActual}</p>
+    <p style:fontSize="0.8rem" style:color="#6b7280" style:marginTop="0.25rem">
+      Stock actual disponible: {stockActual}
+    </p>
   </div>
 
   <div style:marginBottom="1.5rem">
