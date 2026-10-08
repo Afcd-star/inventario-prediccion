@@ -35,6 +35,9 @@
           <td style:padding="1rem" style:borderBottom="1px solid #e5e7eb">${producto.precio.toFixed(2)}</td>
           <td style:padding="1rem" style:borderBottom="1px solid #e5e7eb">{producto.stock_actual} / {producto.stock_minimo}</td>
           <td style:padding="1rem" style:borderBottom="1px solid #e5e7eb" style:display="flex" style:gap="0.5rem">
+            <a href="/productos/{producto.id}/movimientos" style:padding="0.5rem 1rem" style:background="#8b5cf6" style:color="white" style:border="none" style:borderRadius="6px" style:cursor="pointer" style:textDecoration="none" style:fontWeight="600">
+              Movimientos
+            </a>
             <a href="/productos/{producto.id}/editar" style:padding="0.5rem 1rem" style:background="#f59e0b" style:color="white" style:border="none" style:borderRadius="6px" style:cursor="pointer" style:textDecoration="none" style:fontWeight="600">
               Editar
             </a>

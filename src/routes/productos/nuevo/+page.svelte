@@ -3,6 +3,9 @@
 </script>
 
 <svelte:head>
+  <a href="/dashboard" style:padding="0.5rem 1rem" style:background="#10b981" style:color="white" style:border="none" style:borderRadius="6px" style:cursor="pointer" style:textDecoration="none" style:fontWeight="600">
+  Ir al Dashboard
+  </a>
   <title>Nuevo Producto</title>
 </svelte:head>
 

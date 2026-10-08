@@ -28,6 +28,7 @@ CREATE TABLE IF NOT EXISTS predicciones (
   producto_id INTEGER NOT NULL UNIQUE,
   consumo_promedio_diario REAL DEFAULT 0,
   dias_hasta_agotarse INTEGER,
+  dias_hasta_minimo INTEGER,
   fecha_recomendada_reorden DATETIME,
   actualizado_en DATETIME DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (producto_id) REFERENCES productos(id) ON DELETE CASCADE

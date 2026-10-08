@@ -1,14 +1,23 @@
 import db from '$lib/server/database';
 import { fail, redirect } from '@sveltejs/kit';
+import type { PageServerLoad, Actions } from './$types';
 import type { Producto } from '$lib/types';
-import type { PageServerLoad } from './$types';
 
-export type { Producto };
-
-export const load: PageServerLoad<{ productos: Producto[] }> = async () => {
-  const productos = db.prepare('SELECT * FROM productos ORDER BY id DESC').all() as Producto[];
-  return { productos };
-};
+export const load = (async ({ url }) => {
+  const busqueda = url.searchParams.get('q') || '';
+  
+  let productos: Producto[];
+  
+  if (busqueda.trim()) {
+    productos = db
+      .prepare('SELECT * FROM productos WHERE nombre LIKE ? ORDER BY id DESC')
+      .all(`%${busqueda}%`) as Producto[];
+  } else {
+    productos = db.prepare('SELECT * FROM productos ORDER BY id DESC').all() as Producto[];
+  }
+  
+  return { productos, busqueda };
+}) satisfies PageServerLoad;
 
 export const actions = {
   crear: async ({ request }: { request: Request }) => {
@@ -27,7 +36,8 @@ export const actions = {
       VALUES (?, ?, ?, ?)
     `).run(nombre, precio, stock, minimo);
 
-    throw redirect(303, '/productos');
+    // Retornar mensaje de éxito
+    return { success: 'producto_creado' };
   },
 
   eliminar: async ({ request }: { request: Request }) => {
@@ -35,6 +45,8 @@ export const actions = {
     const id = parseInt(data.get('id')?.toString() || '0');
     
     db.prepare('DELETE FROM productos WHERE id = ?').run(id);
-    throw redirect(303, '/productos');
+    
+    // Retornar mensaje de éxito
+    return { success: 'producto_eliminado' };
   }
-};
+} satisfies Actions;
