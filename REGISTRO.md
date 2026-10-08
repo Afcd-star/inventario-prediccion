@@ -31,3 +31,26 @@
 
 ### Commits realizados
 - feat: diseño e inicialización de base de datos SQLite
+
+
+
+## Fase 4: Registro de Movimientos - Completada el 28/09/2026
+
+### Métricas cuantitativas
+- Archivos creados: 5 (movimientos.service.ts, FormularioMovimiento.svelte, HistorialMovimientos.svelte, [id]/movimientos/+page.server.ts, [id]/movimientos/+page.svelte)
+- Transacciones SQLite implementadas: 1
+- Validaciones de stock: 1 (prevención de stock negativo)
+- Tiempo de respuesta del formulario: <500ms
+
+### Métricas cualitativas
+- La arquitectura de servicio aísla la lógica de negocio de las rutas.
+- Las transacciones garantizan integridad de datos.
+- La interfaz es clara y muestra el historial en tiempo real.
+- Se mejoró la UX con validación dinámica en el frontend (entradas sin límite, salidas limitadas al stock).
+
+### Commits realizados
+- feat: registro de movimientos con transacciones y actualización automática de stock
+- feat: correccion de ruta de creacion y mejora de accesibilidad en formulario de movimientos
+
+### Próximos pasos
+- Fase 5: Sistema de Predicción
