@@ -37,6 +37,9 @@
             <td>{producto.stock_actual} / {producto.stock_minimo}</td>
             <td>
               <div class="row-actions">
+                <a href="/productos/{producto.id}/qr" class="btn btn-small btn-secondary">
+                  QR
+                </a>
                 <a href="/productos/{producto.id}/movimientos" class="action-button action-primary">
                   Movimientos
                 </a>

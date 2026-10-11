@@ -41,7 +41,8 @@
 
   const enlaces = [
     { href: '/dashboard', texto: 'Dashboard', icono: '📊' },
-    { href: '/productos', texto: 'Productos', icono: '📦' }
+    { href: '/productos', texto: 'Productos', icono: '📦' },
+    { href: '/escanear', texto: 'Escanear', icono: '📱' }
   ];
 
   const iniciales = $derived(data.usuario?.nombre ? 
