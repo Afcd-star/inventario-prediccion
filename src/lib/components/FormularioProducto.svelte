@@ -1,5 +1,6 @@
 <script lang="ts">
   import type { Producto } from '$lib/types';
+  import { _ } from 'svelte-i18n';
 
   interface Props {
     producto?: Producto;
@@ -14,7 +15,7 @@
 
 <form method="POST" action="?/{accion}" class="product-form">
   <div class="form-field">
-    <label for="nombre">Nombre</label>
+    <label for="nombre">{$_('productos.nombre')}</label>
     <input
       id="nombre"
       type="text"
@@ -25,7 +26,7 @@
   </div>
 
   <div class="form-field">
-    <label for="precio">Precio</label>
+    <label for="precio">{$_('productos.precio')}</label>
     <input
       id="precio"
       type="number"
@@ -39,7 +40,7 @@
 
   <div class="stock-fields">
     <div class="form-field">
-      <label for="stock">Stock Actual</label>
+      <label for="stock">{$_('productos.stockActual')}</label>
       <input
         id="stock"
         type="number"
@@ -50,7 +51,7 @@
       />
     </div>
     <div class="form-field">
-      <label for="minimo">Stock Mínimo</label>
+      <label for="minimo">{$_('productos.stockMinimo')}</label>
       <input
         id="minimo"
         type="number"
@@ -64,10 +65,10 @@
 
   <div class="form-actions">
     <a href="/productos" class="btn btn-secondary">
-      Cancelar
+      {$_('botones.cancelar')}
     </a>
     <button type="submit" class="btn btn-primary">
-      {esEdicion ? 'Guardar Cambios' : 'Crear Producto'}
+      {esEdicion ? $_('productos.guardarCambios') : $_('productos.crearProducto')}
     </button>
   </div>
 </form>

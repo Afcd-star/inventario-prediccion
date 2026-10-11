@@ -1,5 +1,6 @@
 <script lang="ts">
   import type { Producto } from '$lib/types';
+  import { _ } from 'svelte-i18n';
 
   interface Props {
     productos: Producto[];
@@ -8,24 +9,24 @@
   let { productos }: Props = $props();
 
   function confirmarEliminacion(event: Event) {
-    if (!window.confirm('¿Eliminar este producto?')) {
+    if (!window.confirm($_('productos.confirmarEliminar'))) {
       event.preventDefault();
     }
   }
 </script>
 
 {#if productos.length === 0}
-  <p class="empty-state">No hay productos registrados aún.</p>
+  <p class="empty-state">{$_('productos.sinProductos')}</p>
 {:else}
   <div class="table-scroll">
     <table class="products-table">
       <thead>
         <tr>
-          <th>ID</th>
-          <th>Nombre</th>
-          <th>Precio</th>
-          <th>Stock actual / mínimo</th>
-          <th>Acciones</th>
+          <th>{$_('productos.id')}</th>
+          <th>{$_('productos.nombre')}</th>
+          <th>{$_('productos.precio')}</th>
+          <th>{$_('productos.stockActual')} / {$_('productos.stockMinimo')}</th>
+          <th>{$_('productos.acciones')}</th>
         </tr>
       </thead>
       <tbody>
@@ -41,14 +42,14 @@
                   QR
                 </a>
                 <a href="/productos/{producto.id}/movimientos" class="action-button action-primary">
-                  Movimientos
+                  {$_('productos.movimientos')}
                 </a>
                 <a href="/productos/{producto.id}/editar" class="action-button action-secondary">
-                  Editar
+                  {$_('productos.editar')}
                 </a>
                 <form method="POST" action="?/eliminar" onsubmit={confirmarEliminacion}>
                   <input type="hidden" name="id" value={producto.id} />
-                  <button type="submit" class="action-button action-danger">Eliminar</button>
+                  <button type="submit" class="action-button action-danger">{$_('productos.eliminar')}</button>
                 </form>
               </div>
             </td>

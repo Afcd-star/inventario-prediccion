@@ -1,6 +1,7 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import QRCode from 'qrcode';
+  import { _ } from 'svelte-i18n';
 
   interface Props {
     valor: string;
@@ -27,5 +28,5 @@
 
 <div class="card" style:display="flex" style:flexDirection="column" style:alignItems="center" style:gap="1rem">
   {@html svgData}
-  <p class="text-sm text-secondary">ID del producto: {valor}</p>
+  <p class="text-sm text-secondary">{$_('qr.idProducto')}: {valor}</p>
 </div>

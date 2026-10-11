@@ -1,25 +1,30 @@
 <script lang="ts">
+  import type { ActionData } from './$types';
   import type { PageData } from './$types';
   import FormularioProducto from '$lib/components/FormularioProducto.svelte';
+  import { _ } from 'svelte-i18n';
 
   // Tipado explícito para asegurar que TypeScript sepa qué hay dentro de 'data'
-  let { data }: { data: PageData } = $props();
+  let { data, form }: { data: PageData; form?: ActionData } = $props();
 </script>
 
 <svelte:head>
-  <title>Editar Producto</title>
+  <title>{$_('productos.editar')} | StockPredict Pro</title>
 </svelte:head>
 
 <main class="form-page">
-  <a href="/productos" class="btn-back">← Volver a productos</a>
+  <a href="/productos" class="btn-back">← {$_('productos.volver')}</a>
   {#if data.producto}
     <section class="card form-card">
-      <h1>Editar Producto</h1>
-      <p class="text-secondary">Actualiza la información de {data.producto.nombre}.</p>
+      <h1>{$_('productos.editar')}</h1>
+      <p class="text-secondary">{$_('productos.actualizarInfo', { values: { nombre: data.producto.nombre } })}</p>
+      {#if form?.error}
+        <div class="alert alert-danger">{$_(form.error)}</div>
+      {/if}
       <FormularioProducto producto={data.producto} accion="editar" />
     </section>
   {:else}
-    <p class="alert alert-danger">Producto no encontrado.</p>
+    <p class="alert alert-danger">{$_('productos.noEncontrado')}</p>
   {/if}
 </main>
 

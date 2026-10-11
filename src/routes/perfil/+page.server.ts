@@ -32,7 +32,7 @@ export const actions = {
     const nombre = data.get('nombre')?.toString();
 
     if (!nombre || nombre.trim().length < 3) {
-      return fail(400, { error: 'El nombre debe tener al menos 3 caracteres' });
+      return fail(400, { error: 'perfil.errorNombre' });
     }
 
     db.prepare(
@@ -53,15 +53,15 @@ export const actions = {
     const passwordConfirmar = data.get('password_confirmar')?.toString();
 
     if (!passwordActual || !passwordNuevo || !passwordConfirmar) {
-      return fail(400, { error: 'Todos los campos son obligatorios' });
+      return fail(400, { error: 'perfil.errorCampos' });
     }
 
     if (passwordNuevo !== passwordConfirmar) {
-      return fail(400, { error: 'Las contraseñas nuevas no coinciden' });
+      return fail(400, { error: 'perfil.errorCoincidencia' });
     }
 
     if (passwordNuevo.length < 6) {
-      return fail(400, { error: 'La nueva contraseña debe tener al menos 6 caracteres' });
+      return fail(400, { error: 'perfil.errorLongitud' });
     }
 
     // Verificar contraseña actual
@@ -72,7 +72,7 @@ export const actions = {
     const esValida = await bcrypt.compare(passwordActual, usuario.password_hash);
 
     if (!esValida) {
-      return fail(400, { error: 'La contraseña actual es incorrecta' });
+      return fail(400, { error: 'perfil.errorPasswordActual' });
     }
 
     // Hashear y actualizar nueva contraseña

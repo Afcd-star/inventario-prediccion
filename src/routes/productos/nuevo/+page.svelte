@@ -1,16 +1,23 @@
 <script lang="ts">
+  import type { ActionData } from './$types';
   import FormularioProducto from '$lib/components/FormularioProducto.svelte';
+  import { _ } from 'svelte-i18n';
+
+  let { form }: { form?: ActionData } = $props();
 </script>
 
 <svelte:head>
-  <title>Nuevo Producto</title>
+  <title>{$_('productos.nuevo')}</title>
 </svelte:head>
 
 <main class="form-page">
-  <a href="/productos" class="btn-back">← Volver a productos</a>
+  <a href="/productos" class="btn-back">← {$_('productos.volver')}</a>
   <section class="card form-card">
-    <h1>Nuevo Producto</h1>
-    <p class="text-secondary">Completa los datos para agregar un producto al inventario.</p>
+    <h1>{$_('productos.nuevo')}</h1>
+    <p class="text-secondary">{$_('productos.completarDatos')}</p>
+    {#if form?.error}
+      <div class="alert alert-danger">{$_(form.error)}</div>
+    {/if}
     <FormularioProducto accion="crear" />
   </section>
 </main>

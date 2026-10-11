@@ -1,4 +1,8 @@
+<script lang="ts">
+  import { _ } from 'svelte-i18n';
+</script>
+
 <svelte:head>
-  <title>Redirigiendo...</title>
+  <title>{$_('comunes.redirigiendo')}</title>
 </svelte:head>
-<p>Redirigiendo al inventario...</p>
+<p>{$_('comunes.redirigiendoInventario')}</p>

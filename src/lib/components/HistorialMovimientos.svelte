@@ -1,5 +1,6 @@
 <script lang="ts">
   import type { Movimiento } from '$lib/server/movimientos.service';
+  import { _, locale } from 'svelte-i18n';
 
   interface Props {
     movimientos: Movimiento[];
@@ -10,25 +11,25 @@
 
 {#if movimientos.length === 0}
   <p class="text-secondary text-center" style:padding="2rem">
-    No hay movimientos registrados para este producto.
+    {$_('movimientos.sinMovimientos')}
   </p>
 {:else}
   <table class="data-table">
     <thead>
       <tr>
-        <th>Fecha</th>
-        <th>Tipo</th>
-        <th>Cantidad</th>
-        <th>Notas</th>
+        <th>{$_('movimientos.fecha')}</th>
+        <th>{$_('comunes.tipo')}</th>
+        <th>{$_('movimientos.cantidad')}</th>
+        <th>{$_('movimientos.notasTabla')}</th>
       </tr>
     </thead>
     <tbody>
       {#each movimientos as mov}
         <tr>
-          <td>{new Date(mov.fecha).toLocaleString()}</td>
+          <td>{new Date(mov.fecha).toLocaleString($locale === 'en' ? 'en-US' : 'es-ES')}</td>
           <td>
             <span class="badge" class:badge-success={mov.tipo === 'entrada'} class:badge-danger={mov.tipo === 'salida'}>
-              {mov.tipo.toUpperCase()}
+              {mov.tipo === 'entrada' ? $_('movimientos.tipoEntrada') : $_('movimientos.tipoSalida')}
             </span>
           </td>
           <td class="font-semibold">

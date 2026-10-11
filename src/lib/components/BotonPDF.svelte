@@ -1,5 +1,6 @@
 <script lang="ts">
   import { onDestroy } from 'svelte';
+  import { _ } from 'svelte-i18n';
 
   interface Props {
     url: string;
@@ -13,18 +14,18 @@
     url, 
     nombreArchivo, 
     icono = '📄', 
-    texto = 'Exportar PDF',
+    texto,
     variante = 'primario'
   }: Props = $props();
 
   let cargando = $state(false);
-  let error = $state<string | null>(null);
+  let error = $state(false);
   let tooltipVisible = $state(false);
   let timeoutError: ReturnType<typeof setTimeout> | undefined;
 
   async function generarPDF() {
     cargando = true;
-    error = null;
+    error = false;
     clearTimeout(timeoutError);
 
     try {
@@ -47,8 +48,8 @@
       window.setTimeout(() => window.URL.revokeObjectURL(urlBlob), 1000);
     } catch (err) {
       console.error('No se pudo descargar el reporte PDF:', err);
-      error = 'No se pudo generar el PDF. Intenta de nuevo.';
-      timeoutError = setTimeout(() => { error = null; }, 3000);
+      error = true;
+      timeoutError = setTimeout(() => { error = false; }, 3000);
     } finally {
       cargando = false;
     }
@@ -72,22 +73,22 @@
   >
     {#if cargando}
       <span class="spinner"></span>
-      <span>Generando...</span>
+      <span>{$_('pdf.generando')}</span>
     {:else}
       <span class="icono">{icono}</span>
-      <span>{texto}</span>
+      <span>{texto ?? $_('pdf.exportar')}</span>
     {/if}
   </button>
 
   {#if tooltipVisible && !cargando}
     <div class="tooltip" role="tooltip">
-      Haz clic para descargar el reporte en formato PDF
+      {$_('pdf.tooltip')}
     </div>
   {/if}
 
   {#if error}
     <div class="mensaje-error" role="alert">
-      {error}
+      {$_('pdf.error')}
     </div>
   {/if}
 </div>

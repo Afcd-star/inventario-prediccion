@@ -11,7 +11,7 @@ export const actions = {
     const minimo = parseInt(data.get('minimo')?.toString() || '10');
 
     if (!nombre || precio < 0) {
-      return fail(400, { error: 'Nombre y precio valido son obligatorios' });
+      return fail(400, { error: 'productos.errorCampos' });
     }
 
     db.prepare(`

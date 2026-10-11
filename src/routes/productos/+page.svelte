@@ -1,19 +1,20 @@
 <script lang="ts">
   import type { PageData } from './$types';
   import TablaProductos from '$lib/components/TablaProductos.svelte';
+  import { _ } from 'svelte-i18n';
 
-  let { data, form }: { data: PageData; form?: { success?: string } } = $props();
+  let { data, form }: { data: PageData; form?: { success?: string; error?: string } } = $props();
 </script>
 
 <svelte:head>
-  <title>Productos | StockPredict Pro</title>
+  <title>{$_('productos.titulo')} | StockPredict Pro</title>
 </svelte:head>
 
 <main class="page-container">
   <header class="page-header-flex">
-    <h1>Gestión de Productos</h1>
+    <h1>{$_('productos.titulo')}</h1>
     <div class="header-actions">
-      <a href="/productos/nuevo" class="btn btn-primary">Nuevo Producto</a>
+      <a href="/productos/nuevo" class="btn btn-primary">{$_('productos.nuevo')}</a>
     </div>
   </header>
 
@@ -23,13 +24,13 @@
       <input
         type="text"
         name="q"
-        placeholder="Buscar producto por nombre..."
+        placeholder={$_('productos.buscarPlaceholder')}
         value={data.busqueda}
         class="input-field search-input"
       />
-      <button type="submit" class="btn btn-primary">Buscar</button>
+      <button type="submit" class="btn btn-primary">{$_('productos.buscar')}</button>
       {#if data.busqueda}
-        <a href="/productos" class="btn btn-secondary">Limpiar</a>
+        <a href="/productos" class="btn btn-secondary">{$_('productos.limpiar')}</a>
       {/if}
     </form>
   </div>
@@ -37,12 +38,16 @@
   <!-- Mensajes de feedback -->
   {#if form?.success === 'producto_creado'}
     <div class="alert alert-success">
-      ✅ Producto creado exitosamente.
+      ✅ {$_('productos.creado')}
     </div>
   {:else if form?.success === 'producto_eliminado'}
     <div class="alert alert-danger">
-      ️ Producto eliminado.
+      ️ {$_('productos.eliminado')}
     </div>
+  {/if}
+
+  {#if form?.error}
+    <div class="alert alert-danger">{$_(form.error)}</div>
   {/if}
 
   <TablaProductos productos={data.productos} />

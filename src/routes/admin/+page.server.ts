@@ -37,21 +37,21 @@ export const actions = {
     const rol = data.get('rol')?.toString();
 
     if (!nombre || !email || !password) {
-      return fail(400, { error: 'Todos los campos son obligatorios' });
+      return fail(400, { error: 'admin.errorCampos' });
     }
 
     if (password.length < 6) {
-      return fail(400, { error: 'La contraseña debe tener al menos 6 caracteres' });
+      return fail(400, { error: 'admin.errorPassword' });
     }
 
     if (rol !== 'admin' && rol !== 'empleado') {
-      return fail(400, { error: 'Rol inválido' });
+      return fail(400, { error: 'admin.errorRol' });
     }
 
     // Verificar si el email ya existe
     const existe = db.prepare('SELECT id FROM usuarios WHERE email = ?').get(email);
     if (existe) {
-      return fail(400, { error: 'El email ya está registrado' });
+      return fail(400, { error: 'admin.errorEmail' });
     }
 
     const saltos = await bcrypt.genSalt(10);
@@ -74,16 +74,16 @@ export const actions = {
     const nuevoRol = data.get('rol')?.toString();
 
     if (!userId || !nuevoRol) {
-      return fail(400, { error: 'Datos inválidos' });
+      return fail(400, { error: 'admin.errorDatos' });
     }
 
     if (nuevoRol !== 'admin' && nuevoRol !== 'empleado') {
-      return fail(400, { error: 'Rol inválido' });
+      return fail(400, { error: 'admin.errorRol' });
     }
 
     // No permitir que un admin se quite su propio rol
     if (userId === locals.usuario.id && nuevoRol !== 'admin') {
-      return fail(400, { error: 'No puedes cambiar tu propio rol de administrador' });
+      return fail(400, { error: 'admin.errorAutoRol' });
     }
 
     db.prepare('UPDATE usuarios SET rol = ? WHERE id = ?').run(nuevoRol, userId);
@@ -100,12 +100,12 @@ export const actions = {
     const userId = parseInt(data.get('userId')?.toString() || '0');
 
     if (!userId) {
-      return fail(400, { error: 'ID de usuario inválido' });
+      return fail(400, { error: 'admin.errorDatos' });
     }
 
     // No permitir auto-eliminación
     if (userId === locals.usuario.id) {
-      return fail(400, { error: 'No puedes eliminar tu propia cuenta' });
+      return fail(400, { error: 'admin.errorAutoEliminar' });
     }
 
     db.prepare('DELETE FROM usuarios WHERE id = ?').run(userId);

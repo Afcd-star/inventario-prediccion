@@ -2,6 +2,7 @@
   import type { PageData } from './$types';
   import type { Producto } from '$lib/types';
   import CodigoQR from '$lib/components/CodigoQR.svelte';
+  import { _ } from 'svelte-i18n';
 
   let { data }: { data: { producto: Producto } } = $props();
 </script>
@@ -14,10 +15,10 @@
   <header class="page-header">
     <a href="/productos" class="btn-back">
       <span>←</span>
-      <span>Volver a productos</span>
+      <span>{$_('qr.volver')}</span>
     </a>
-    <h1>Código QR: {data.producto.nombre}</h1>
-    <p class="text-secondary">Imprime este código y pégalo en el producto físico.</p>
+    <h1>{$_('qr.titulo')}: {data.producto.nombre}</h1>
+    <p class="text-secondary">{$_('qr.subtitulo')}</p>
   </header>
 
   <div class="qr-display">
@@ -26,7 +27,7 @@
 
   <div class="qr-actions">
     <button class="btn btn-primary" onclick={() => window.print()}>
-      🖨️ Imprimir Etiqueta
+      🖨️ {$_('qr.imprimir')}
     </button>
   </div>
 </main>

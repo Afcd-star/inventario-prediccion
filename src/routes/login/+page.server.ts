@@ -10,7 +10,7 @@ export const actions = {
     const password = data.get('password')?.toString();
 
     if (!email || !password) {
-      return fail(400, { error: 'Email y contraseña son obligatorios' });
+      return fail(400, { error: 'login.errorCampos' });
     }
 
     const usuario = db.prepare(
@@ -18,13 +18,13 @@ export const actions = {
     ).get(email) as { id: number; nombre: string; email: string; password_hash: string; rol: 'admin' | 'empleado' } | undefined;
 
     if (!usuario) {
-      return fail(400, { error: 'Credenciales incorrectas' });
+      return fail(400, { error: 'login.errorCredenciales' });
     }
 
     const esValida = await bcrypt.compare(password, usuario.password_hash);
 
     if (!esValida) {
-      return fail(400, { error: 'Credenciales incorrectas' });
+      return fail(400, { error: 'login.errorCredenciales' });
     }
 
     cookies.set('sesion', usuario.id.toString(), {

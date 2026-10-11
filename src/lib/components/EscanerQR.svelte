@@ -2,14 +2,15 @@
   import { onMount, onDestroy } from 'svelte';
   import { Html5Qrcode } from 'html5-qrcode';
   import { goto } from '$app/navigation';
+  import { _ } from 'svelte-i18n';
 
   let scanner: Html5Qrcode | null = null;
   let escaneando = $state(false);
-  let error = $state('');
+  let error = $state(false);
 
   async function iniciarEscaneo() {
     escaneando = true;
-    error = '';
+    error = false;
     scanner = new Html5Qrcode("lector-qr");
     
     try {
@@ -26,7 +27,7 @@
         }
       );
     } catch (err) {
-      error = 'No se pudo acceder a la cámara. Verifica los permisos del navegador.';
+      error = true;
       escaneando = false;
     }
   }
@@ -46,20 +47,20 @@
 </script>
 
 <div class="card">
-  <h2>Escanear Código QR</h2>
-  <p class="text-secondary text-sm">Apunta la cámara hacia el código QR del producto.</p>
+  <h2>{$_('escanear.tituloComponente')}</h2>
+  <p class="text-secondary text-sm">{$_('escanear.ayudaComponente')}</p>
   
   <div id="lector-qr" style:width="100%" style:maxWidth="300px" style:margin="1rem auto"></div>
   
   {#if error}
-    <div class="alert alert-danger" style:marginTop="1rem">{error}</div>
+    <div class="alert alert-danger" style:marginTop="1rem">{$_('escanear.errorCamara')}</div>
   {/if}
   
   <div style:marginTop="1rem" style:display="flex" style:gap="0.5rem" style:justifyContent="center">
     {#if !escaneando}
-      <button class="btn btn-primary" onclick={iniciarEscaneo}>📷 Iniciar Cámara</button>
+      <button class="btn btn-primary" onclick={iniciarEscaneo}>📷 {$_('escanear.iniciar')}</button>
     {:else}
-      <button class="btn btn-danger" onclick={detenerEscaneo}>Detener Escaneo</button>
+      <button class="btn btn-danger" onclick={detenerEscaneo}>{$_('escanear.detener')}</button>
     {/if}
   </div>
 </div>

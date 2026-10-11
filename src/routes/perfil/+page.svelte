@@ -1,72 +1,73 @@
 <script lang="ts">
   import type { PageData } from './$types';
+  import { _, locale } from 'svelte-i18n';
 
   let { data, form }: { data: PageData; form?: { success?: string; error?: string } } = $props();
 </script>
 
 <svelte:head>
-  <title>Mi Perfil | StockPredict Pro</title>
+  <title>{$_('perfil.titulo')} | StockPredict Pro</title>
 </svelte:head>
 
 <main class="page-container page-container--narrow">
   <header class="page-header">
     <a href="/dashboard" class="btn-back">
       <span>←</span>
-      <span>Volver al Dashboard</span>
+      <span>{$_('perfil.volver')}</span>
     </a>
-    <h1>Mi Perfil</h1>
-    <p class="text-secondary">Gestiona tu información personal y seguridad</p>
+    <h1>{$_('perfil.titulo')}</h1>
+    <p class="text-secondary">{$_('perfil.subtitulo')}</p>
   </header>
 
   <!-- Mensajes de feedback -->
   {#if form?.success === 'perfil_actualizado'}
     <div class="alert alert-success">
-      ✅ Perfil actualizado exitosamente.
+      ✅ {$_('perfil.perfilActualizado')}
     </div>
   {:else if form?.success === 'password_cambiado'}
     <div class="alert alert-success">
-      ✅ Contraseña cambiada exitosamente.
+      ✅ {$_('perfil.passwordCambiado')}
     </div>
   {/if}
 
   {#if form?.error}
     <div class="alert alert-danger">
-      ️ {form.error}
+      ️ {$_(form.error)}
     </div>
   {/if}
 
   <div class="profile-grid">
     <!-- Información del Usuario -->
     <section class="card">
-      <h2>Información Personal</h2>
+      <h2>{$_('perfil.infoPersonal')}</h2>
       <div class="profile-info">
         <div class="info-row">
-          <span class="info-label">Nombre:</span>
+          <span class="info-label">{$_('perfil.nombre')}:</span>
           <span class="info-value">{data.usuario.nombre}</span>
         </div>
         <div class="info-row">
-          <span class="info-label">Email:</span>
+          <span class="info-label">{$_('perfil.email')}:</span>
           <span class="info-value">{data.usuario.email}</span>
         </div>
         <div class="info-row">
-          <span class="info-label">Rol:</span>
+          <span class="info-label">{$_('perfil.rol')}:</span>
           <span class="badge badge-info">
-            {data.usuario.rol === 'admin' ? 'Administrador' : 'Empleado'}
+            {data.usuario.rol === 'admin' ? $_('perfil.admin') : $_('perfil.empleado')}
           </span>
         </div>
         <div class="info-row">
-          <span class="info-label">Miembro desde:</span>
-          <span class="info-value">{new Date(data.usuario.created_at).toLocaleDateString('es-ES')}</span>
+          <span class="info-label">{$_('perfil.miembroDesde')}:</span>
+          <span class="info-value">{new Date(data.usuario.created_at).toLocaleDateString($locale === 'en' ? 'en-US' : 'es-ES')}</span>
         </div>
       </div>
     </section>
 
     <!-- Actualizar Nombre -->
     <section class="card">
-      <h2>Actualizar Nombre</h2>
+      <h2>{$_('perfil.actualizarNombre')}</h2>
       <form method="POST" action="?/actualizarPerfil" class="form-stack">
         <div class="input-group">
-          <label for="nombre" class="label">Nombre completo</label>
+          <label for="nombre" class="label">{$_('perfil.nombreCompleto')}</label>
           <input
             id="nombre"
             type="text"
@@ -77,17 +78,17 @@
           />
         </div>
         <button type="submit" class="btn btn-primary">
-          Guardar Cambios
+          {$_('perfil.guardarCambios')}
         </button>
       </form>
     </section>
 
     <!-- Cambiar Contraseña -->
     <section class="card">
-      <h2>Cambiar Contraseña</h2>
+      <h2>{$_('perfil.cambiarPassword')}</h2>
       <form method="POST" action="?/cambiarPassword" class="form-stack">
         <div class="input-group">
-          <label for="password_actual" class="label">Contraseña actual</label>
+          <label for="password_actual" class="label">{$_('perfil.passwordActual')}</label>
           <input
             id="password_actual"
             type="password"
@@ -98,7 +99,7 @@
           />
         </div>
         <div class="input-group">
-          <label for="password_nuevo" class="label">Nueva contraseña</label>
+          <label for="password_nuevo" class="label">{$_('perfil.passwordNuevo')}</label>
           <input
             id="password_nuevo"
             type="password"
@@ -106,11 +107,11 @@
             required
             minlength="6"
             class="input-field"
-            placeholder="Mínimo 6 caracteres"
+            placeholder={$_('perfil.minimoCaracteres')}
           />
         </div>
         <div class="input-group">
-          <label for="password_confirmar" class="label">Confirmar nueva contraseña</label>
+          <label for="password_confirmar" class="label">{$_('perfil.passwordConfirmar')}</label>
           <input
             id="password_confirmar"
             type="password"
@@ -118,11 +119,11 @@
             required
             minlength="6"
             class="input-field"
-            placeholder="Repite la nueva contraseña"
+            placeholder={$_('perfil.repetirPassword')}
           />
         </div>
         <button type="submit" class="btn btn-primary">
-          Cambiar Contraseña
+          {$_('perfil.cambiarPassword')}
         </button>
       </form>
     </section>

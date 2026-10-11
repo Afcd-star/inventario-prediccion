@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { _ } from 'svelte-i18n';
+
   interface Props {
     productoId: number;
     stockActual: number;
@@ -14,21 +16,21 @@
   <input type="hidden" name="producto_id" value={productoId} />
 
   <fieldset class="type-field">
-    <legend>Tipo de Movimiento</legend>
+    <legend>{$_('movimientos.tipo')}</legend>
     <div class="type-options">
       <label class="type-option">
         <input type="radio" name="tipo" value="entrada" bind:group={tipoSeleccionado} required />
-        <span>Entrada (Aumenta stock)</span>
+        <span>{$_('movimientos.entrada')}</span>
       </label>
       <label class="type-option">
         <input type="radio" name="tipo" value="salida" bind:group={tipoSeleccionado} required />
-        <span>Salida (Reduce stock)</span>
+        <span>{$_('movimientos.salida')}</span>
       </label>
     </div>
   </fieldset>
 
   <div class="form-field">
-    <label for="cantidad">Cantidad</label>
+    <label for="cantidad">{$_('movimientos.cantidad')}</label>
     <input 
       id="cantidad" 
       type="number" 
@@ -38,12 +40,12 @@
       required 
     />
     <p class="stock-hint">
-      Stock actual disponible: {stockActual}
+      {$_('movimientos.stockDisponible')}: {stockActual}
     </p>
   </div>
 
   <div class="form-field">
-    <label for="notas">Notas (Opcional)</label>
+    <label for="notas">{$_('movimientos.notas')}</label>
     <textarea 
       id="notas" 
       name="notas" 
@@ -52,7 +54,7 @@
   </div>
 
   <button type="submit" class="btn btn-success">
-    Registrar Movimiento
+    {$_('movimientos.registrar')}
   </button>
 </form>
 

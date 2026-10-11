@@ -1,11 +1,14 @@
 <script lang="ts">
   import { page } from '$app/stores';
   import { onMount } from 'svelte';
+  import { _, locale } from 'svelte-i18n';
+  import { cambiarIdioma } from '$lib/i18n';
 
   let { data }: { data: { usuario?: { nombre: string; email: string; rol: string } } } = $props();
   
   let temaActual = $state<'light' | 'dark'>('light');
   let menuAbierto = $state(false);
+  let idiomasAbiertos = $state(false);
 
   onMount(() => {
     const guardado = localStorage.getItem('tema');
@@ -22,17 +25,28 @@
 
   function toggleMenu() {
     menuAbierto = !menuAbierto;
+    idiomasAbiertos = false;
   }
 
   function cerrarMenu() {
     menuAbierto = false;
+    idiomasAbiertos = false;
+  }
+
+  function toggleIdiomas() {
+    idiomasAbiertos = !idiomasAbiertos;
+  }
+
+  function seleccionarIdioma(idioma: 'es' | 'en') {
+    cambiarIdioma(idioma);
+    idiomasAbiertos = false;
   }
 
   onMount(() => {
     function handleClickOutside(event: MouseEvent) {
       const target = event.target as HTMLElement;
       if (!target.closest('.profile-menu')) {
-        menuAbierto = false;
+        cerrarMenu();
       }
     }
     document.addEventListener('click', handleClickOutside);
@@ -40,10 +54,20 @@
   });
 
   const enlaces = [
-    { href: '/dashboard', texto: 'Dashboard', icono: '📊' },
-    { href: '/productos', texto: 'Productos', icono: '📦' },
-    { href: '/escanear', texto: 'Escanear', icono: '📱' }
+    { href: '/dashboard', texto: 'nav.dashboard', icono: '📊' },
+    { href: '/productos', texto: 'nav.productos', icono: '📦' },
+    { href: '/escanear', texto: 'nav.escanear', icono: '📱' }
   ];
+
+  const idiomasDisponibles = [
+    { codigo: 'es', nombre: 'Español', bandera: '🇪🇸' },
+    { codigo: 'en', nombre: 'English', bandera: '🇺🇸' }
+  ] as const;
+
+  const idiomaActual = $derived($locale === 'en' ? 'en' : 'es');
+  const nombreIdiomaActual = $derived(
+    idiomasDisponibles.find((idioma) => idioma.codigo === idiomaActual)?.nombre ?? 'Español'
+  );
 
   const iniciales = $derived(data.usuario?.nombre ? 
     data.usuario.nombre.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) : 
@@ -55,8 +79,8 @@
   <div class="brand">
     <span class="logo-icon">📦</span>
     <div class="brand-text">
-      <div class="brand-title">StockPredict Pro</div>
-      <div class="brand-subtitle">Gestión Inteligente</div>
+      <div class="brand-title">{$_('app.nombre')}</div>
+      <div class="brand-subtitle">{$_('app.subtitulo')}</div>
     </div>
   </div>
 
@@ -68,7 +92,7 @@
         class:active={$page.url.pathname.startsWith(enlace.href)}
       >
         <span class="link-icon">{enlace.icono}</span>
-        <span>{enlace.texto}</span>
+        <span>{$_(enlace.texto)}</span>
       </a>
     {/each}
   </div>
@@ -77,13 +101,13 @@
     <!-- Botón de tema con el estilo original de gradiente y texto -->
     <button onclick={alternarTema} class="btn btn-gradient theme-btn">
       <span>{temaActual === 'light' ? '🌙' : '☀️'}</span>
-      <span>{temaActual === 'light' ? 'Modo Oscuro' : 'Modo Claro'}</span>
+      <span>{temaActual === 'light' ? $_('nav.modoOscuro') : $_('nav.modoClaro')}</span>
     </button>
 
     {#if data.usuario}
       <!-- Menú desplegable de perfil -->
       <div class="profile-menu" class:open={menuAbierto}>
-        <button onclick={toggleMenu} class="profile-button" aria-label="Menú de usuario">
+        <button onclick={toggleMenu} class="profile-button" aria-label="Menú de usuario" aria-expanded={menuAbierto}>
           <div class="avatar">
             {iniciales}
           </div>
@@ -102,14 +126,46 @@
 
           <a href="/perfil" class="menu-item">
             <span class="menu-icon">👤</span>
-            <span>Mi Perfil</span>
+            <span>{$_('nav.perfil')}</span>
           </a>
 
           {#if data.usuario.rol === 'admin'}
             <a href="/admin" class="menu-item">
               <span class="menu-icon">⚙️</span>
-              <span>Panel de Administración</span>
+              <span>{$_('nav.admin')}</span>
             </a>
+          {/if}
+
+          <div class="menu-divider"></div>
+
+          <button
+            type="button"
+            class="menu-item language-toggle"
+            aria-label={$_('nav.seleccionarIdioma')}
+            aria-expanded={idiomasAbiertos}
+            aria-controls="language-options"
+            onclick={toggleIdiomas}
+          >
+            <span class="menu-icon">🌐</span>
+            <span class="language-label">{$_('nav.idioma')}: {nombreIdiomaActual}</span>
+            <span class="menu-chevron" class:expanded={idiomasAbiertos} aria-hidden="true">›</span>
+          </button>
+
+          {#if idiomasAbiertos}
+            <div id="language-options" class="language-options">
+              {#each idiomasDisponibles as idioma}
+                <button
+                  type="button"
+                  class="menu-item language-option"
+                  class:active-language={idioma.codigo === idiomaActual}
+                  aria-pressed={idioma.codigo === idiomaActual}
+                  onclick={() => seleccionarIdioma(idioma.codigo)}
+                >
+                  <span class="menu-icon">{idioma.bandera}</span>
+                  <span>{idioma.nombre}</span>
+                </button>
+              {/each}
+            </div>
           {/if}
 
           <div class="menu-divider"></div>
@@ -117,7 +173,7 @@
           <form action="/logout" method="POST" onsubmit={cerrarMenu}>
             <button type="submit" class="menu-item logout">
               <span class="menu-icon">🚪</span>
-              <span>Cerrar Sesión</span>
+              <span>{$_('nav.cerrarSesion')}</span>
             </button>
           </form>
         </div>
@@ -285,12 +341,14 @@
     border: none;
     width: 100%;
     font-size: var(--font-size-sm);
-    transition: background 0.2s;
+    transition: background-color 0.2s, color 0.2s;
     text-align: left;
   }
 
-  .menu-item:hover {
-    background: var(--bg-secondary);
+  .menu-item:hover:not(.logout),
+  .menu-item.active-language {
+    background: var(--status-info-bg);
+    color: var(--status-info-text);
   }
 
   .menu-item.logout {
@@ -299,10 +357,40 @@
 
   .menu-item.logout:hover {
     background: var(--status-danger-bg);
+    color: var(--status-danger-text);
   }
 
   .menu-icon {
     font-size: var(--font-size-lg);
     width: 20px;
+    flex: 0 0 20px;
+  }
+
+  .language-toggle {
+    font-family: inherit;
+  }
+
+  .language-label {
+    flex: 1;
+  }
+
+  .menu-chevron {
+    font-size: var(--font-size-xl);
+    line-height: 1;
+    transition: transform 0.2s ease;
+  }
+
+  .menu-chevron.expanded {
+    transform: rotate(90deg);
+  }
+
+  .language-options {
+    max-height: 220px;
+    overflow-y: auto;
+    padding: 0.25rem 0;
+  }
+
+  .language-option {
+    padding-left: 2.5rem;
   }
 </style>

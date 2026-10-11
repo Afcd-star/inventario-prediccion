@@ -27,16 +27,19 @@ export const actions = {
     const notas = data.get('notas')?.toString();
 
     if (!producto_id || !tipo || cantidad <= 0) {
-      return fail(400, { error: 'Datos inválidos' });
+      return fail(400, { error: 'movimientos.errorDatos' });
     }
 
     if (tipo !== 'entrada' && tipo !== 'salida') {
-      return fail(400, { error: 'Tipo de movimiento inválido' });
+      return fail(400, { error: 'movimientos.errorTipo' });
     }
 
     try {
       movimientosService.registrar({ producto_id, tipo: tipo as 'entrada' | 'salida', cantidad, notas });
     } catch (error) {
+      if (error instanceof Error && error.message === 'No hay suficiente stock para realizar esta salida.') {
+        return fail(400, { error: 'movimientos.errorStock' });
+      }
       return fail(400, { error: (error as Error).message });
     }
 

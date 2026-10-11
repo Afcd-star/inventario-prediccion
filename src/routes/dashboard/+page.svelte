@@ -3,6 +3,7 @@
   import { onMount, onDestroy } from 'svelte';
   import Chart from 'chart.js/auto';
   import BotonPDF from '$lib/components/BotonPDF.svelte';
+  import { _ } from 'svelte-i18n';
 
   let { data }: { data: PageData } = $props();
   
@@ -98,20 +99,20 @@
 </script>
 
 <svelte:head>
-  <title>Dashboard | StockPredict Pro</title>
+  <title>{$_('dashboard.titulo')} | StockPredict Pro</title>
 </svelte:head>
 
 <main class="page-container dashboard-container">
   <header class="page-header">
     <div class="page-heading">
       <div>
-        <h1>Dashboard de StockPredict Pro</h1>
-        <p class="text-secondary">Resumen inteligente de tu inventario</p>
+        <h1>{$_('dashboard.titulo')}</h1>
+        <p class="text-secondary">{$_('dashboard.subtitulo')}</p>
       </div>
       <BotonPDF
         url="/api/reportes?tipo=inventario"
         nombreArchivo="inventario-stockpredict.pdf"
-        texto="Exportar Inventario"
+        texto={$_('dashboard.exportarPDF')}
         variante="primario"
       />
     </div>
@@ -120,15 +121,15 @@
   <!-- Tarjetas de Métricas -->
   <section class="metrics-grid">
     <div class="metric-card metric-total">
-      <h3 class="text-secondary text-sm">Total Productos</h3>
+      <h3 class="text-secondary text-sm">{$_('dashboard.totalProductos')}</h3>
       <p class="metric-value">{data.metricas.totalProductos}</p>
     </div>
     <div class="metric-card metric-danger">
-      <h3 class="text-sm">Stock Bajo</h3>
+      <h3 class="text-sm">{$_('dashboard.stockBajo')}</h3>
       <p class="metric-value">{data.metricas.stockBajo}</p>
     </div>
     <div class="metric-card metric-warning">
-      <h3 class="text-sm">Reorden Urgente (3 días o menos)</h3>
+      <h3 class="text-sm">{$_('dashboard.reordenUrgente')}</h3>
       <p class="metric-value">{data.metricas.reordenUrgente}</p>
     </div>
   </section>
@@ -136,17 +137,17 @@
   <div class="dashboard-grid">
     <!-- Tabla de Predicciones -->
     <section class="card">
-      <h2>Estado de Predicciones</h2>
+      <h2>{$_('dashboard.estadoPredicciones')}</h2>
       {#if data.productos.length === 0}
-        <p class="text-secondary">No hay productos registrados.</p>
+        <p class="text-secondary">{$_('dashboard.sinProductos')}</p>
       {:else}
         <table class="data-table">
           <thead>
             <tr>
-              <th>Producto</th>
-              <th>Stock</th>
-              <th>Días hasta agotar</th>
-              <th>Reorden</th>
+              <th>{$_('dashboard.producto')}</th>
+              <th>{$_('dashboard.stock')}</th>
+              <th>{$_('dashboard.diasAgotar')}</th>
+              <th>{$_('dashboard.reorden')}</th>
             </tr>
           </thead>
           <tbody>
@@ -158,9 +159,9 @@
                 </td>
                 <td>
                   {#if p.prediccion && p.prediccion.dias_hasta_agotarse !== null}
-                    {p.prediccion.dias_hasta_agotarse} días
+                    {p.prediccion.dias_hasta_agotarse} {$_('comunes.dias')}
                   {:else}
-                    <span class="text-muted">Sin datos</span>
+                    <span class="text-muted">{$_('dashboard.sinDatos')}</span>
                   {/if}
                 </td>
                 <td>
@@ -181,14 +182,14 @@
 
     <!-- Gráfico de Top Consumidos -->
     <section class="card chart-card">
-      <h2>Top 5 Más Vendidos</h2>
+      <h2>{$_('dashboard.topVendidos')}</h2>
       {#if data.topConsumidos.length > 0}
         <div class="chart-container">
           <canvas bind:this={canvas}></canvas>
         </div>
       {:else}
         <p class="text-secondary text-center" style:padding="2rem">
-          Registra salidas para ver el gráfico.
+          {$_('dashboard.registrarSalidas')}
         </p>
       {/if}
     </section>
