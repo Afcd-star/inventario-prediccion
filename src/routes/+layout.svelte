@@ -1,11 +1,17 @@
 <script lang="ts">
-	import favicon from '$lib/assets/favicon.svg';
-
-	let { children } = $props();
+  import Navbar from '$lib/components/Navbar.svelte';
+  import { page } from '$app/stores';
+  
+  let { children, data } = $props();
+  
+  // Hacerlo reactivo con $derived
+  const esLogin = $derived($page.url.pathname === '/login');
 </script>
 
-<svelte:head>
-	<link rel="icon" href={favicon} />
-</svelte:head>
+{#if !esLogin}
+  <Navbar {data} />
+{/if}
 
-{@render children()}
+<main style:padding="1rem">
+  {@render children()}
+</main>

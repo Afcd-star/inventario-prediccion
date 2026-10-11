@@ -10,13 +10,23 @@
   <title>Editar Producto</title>
 </svelte:head>
 
-<main style:maxWidth="500px" style:margin="2rem auto" style:padding="0 1rem" style:fontFamily="sans-serif">
-  <h1 style:marginBottom="1.5rem">Editar Producto</h1>
-
+<main class="form-page">
+  <a href="/productos" class="btn-back">← Volver a productos</a>
   {#if data.producto}
-    <FormularioProducto producto={data.producto} accion="editar" />
+    <section class="card form-card">
+      <h1>Editar Producto</h1>
+      <p class="text-secondary">Actualiza la información de {data.producto.nombre}.</p>
+      <FormularioProducto producto={data.producto} accion="editar" />
+    </section>
   {:else}
-    <p style:color="#ef4444">Producto no encontrado.</p>
-    <a href="/productos" style:color="#3b82f6" style:textDecoration="none">Volver a la lista</a>
+    <p class="alert alert-danger">Producto no encontrado.</p>
   {/if}
 </main>
+
+<style>
+  .form-page {
+    width: min(100% - 2rem, 640px);
+    margin: 2rem auto;
+  }
+
+</style>

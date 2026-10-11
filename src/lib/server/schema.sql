@@ -34,6 +34,16 @@ CREATE TABLE IF NOT EXISTS predicciones (
   FOREIGN KEY (producto_id) REFERENCES productos(id) ON DELETE CASCADE
 );
 
+-- Tabla de usuarios y roles
+CREATE TABLE IF NOT EXISTS usuarios (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  nombre TEXT NOT NULL,
+  email TEXT NOT NULL UNIQUE,
+  password_hash TEXT NOT NULL,
+  rol TEXT NOT NULL DEFAULT 'empleado' CHECK(rol IN ('admin', 'empleado')),
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
 -- Índices para mejorar el rendimiento de las consultas
 CREATE INDEX IF NOT EXISTS idx_movimientos_producto_fecha ON movimientos(producto_id, fecha);
 CREATE INDEX IF NOT EXISTS idx_productos_nombre ON productos(nombre);

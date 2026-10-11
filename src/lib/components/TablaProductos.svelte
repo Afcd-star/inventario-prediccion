@@ -15,41 +15,186 @@
 </script>
 
 {#if productos.length === 0}
-  <p style:textAlign="center" style:color="#666" style:padding="2rem">No hay productos registrados aún.</p>
+  <p class="empty-state">No hay productos registrados aún.</p>
 {:else}
-  <table style:width="100%" style:borderCollapse="collapse" style:background="#ffffff" style:borderRadius="8px" style:overflow="hidden">
-    <thead>
-      <tr style:background="#f3f4f6">
-        <th style:padding="1rem" style:textAlign="left" style:borderBottom="1px solid #e5e7eb">ID</th>
-        <th style:padding="1rem" style:textAlign="left" style:borderBottom="1px solid #e5e7eb">Nombre</th>
-        <th style:padding="1rem" style:textAlign="left" style:borderBottom="1px solid #e5e7eb">Precio</th>
-        <th style:padding="1rem" style:textAlign="left" style:borderBottom="1px solid #e5e7eb">Stock</th>
-        <th style:padding="1rem" style:textAlign="left" style:borderBottom="1px solid #e5e7eb">Acciones</th>
-      </tr>
-    </thead>
-    <tbody>
-      {#each productos as producto}
-        <tr style:backgroundColor={producto.stock_actual < producto.stock_minimo ? '#fee2e2' : 'transparent'} style:color={producto.stock_actual < producto.stock_minimo ? '#991b1b' : 'inherit'}>
-          <td style:padding="1rem" style:borderBottom="1px solid #e5e7eb">{producto.id}</td>
-          <td style:padding="1rem" style:borderBottom="1px solid #e5e7eb">{producto.nombre}</td>
-          <td style:padding="1rem" style:borderBottom="1px solid #e5e7eb">${producto.precio.toFixed(2)}</td>
-          <td style:padding="1rem" style:borderBottom="1px solid #e5e7eb">{producto.stock_actual} / {producto.stock_minimo}</td>
-          <td style:padding="1rem" style:borderBottom="1px solid #e5e7eb" style:display="flex" style:gap="0.5rem">
-            <a href="/productos/{producto.id}/movimientos" style:padding="0.5rem 1rem" style:background="#8b5cf6" style:color="white" style:border="none" style:borderRadius="6px" style:cursor="pointer" style:textDecoration="none" style:fontWeight="600">
-              Movimientos
-            </a>
-            <a href="/productos/{producto.id}/editar" style:padding="0.5rem 1rem" style:background="#f59e0b" style:color="white" style:border="none" style:borderRadius="6px" style:cursor="pointer" style:textDecoration="none" style:fontWeight="600">
-              Editar
-            </a>
-            <form method="POST" action="?/eliminar" onsubmit={confirmarEliminacion}>
-              <input type="hidden" name="id" value={producto.id} />
-              <button type="submit" style:padding="0.5rem 1rem" style:background="#ef4444" style:color="white" style:border="none" style:borderRadius="6px" style:cursor="pointer" style:fontWeight="600">
-                Eliminar
-              </button>
-            </form>
-          </td>
+  <div class="table-scroll">
+    <table class="products-table">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Nombre</th>
+          <th>Precio</th>
+          <th>Stock actual / mínimo</th>
+          <th>Acciones</th>
         </tr>
-      {/each}
-    </tbody>
-  </table>
+      </thead>
+      <tbody>
+        {#each productos as producto}
+          <tr class:low-stock={producto.stock_actual < producto.stock_minimo}>
+            <td>{producto.id}</td>
+            <td class="product-name">{producto.nombre}</td>
+            <td>${producto.precio.toFixed(2)}</td>
+            <td>{producto.stock_actual} / {producto.stock_minimo}</td>
+            <td>
+              <div class="row-actions">
+                <a href="/productos/{producto.id}/movimientos" class="action-button action-primary">
+                  Movimientos
+                </a>
+                <a href="/productos/{producto.id}/editar" class="action-button action-secondary">
+                  Editar
+                </a>
+                <form method="POST" action="?/eliminar" onsubmit={confirmarEliminacion}>
+                  <input type="hidden" name="id" value={producto.id} />
+                  <button type="submit" class="action-button action-danger">Eliminar</button>
+                </form>
+              </div>
+            </td>
+          </tr>
+        {/each}
+      </tbody>
+    </table>
+  </div>
 {/if}
+
+<style>
+  .empty-state {
+    padding: 2rem;
+    text-align: center;
+    color: var(--text-secondary);
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+  }
+
+  .table-scroll {
+    width: 100%;
+    overflow-x: auto;
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+  }
+
+  .products-table {
+    width: 100%;
+    min-width: 720px;
+    border-collapse: collapse;
+  }
+
+  .products-table th,
+  .products-table td {
+    padding: 0.9rem 1rem;
+    text-align: left;
+    border-bottom: 1px solid var(--border-color);
+    color: var(--text-primary);
+    white-space: nowrap;
+  }
+
+  .products-table th {
+    background: var(--bg-secondary);
+    color: var(--text-secondary);
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-semibold);
+  }
+
+  .products-table tbody tr:last-child td {
+    border-bottom: 0;
+  }
+
+  .products-table tbody tr:hover {
+    background: var(--bg-secondary);
+  }
+
+  .products-table tbody tr.low-stock,
+  .products-table tbody tr.low-stock td {
+    background: var(--status-danger-bg);
+    color: var(--status-danger-text);
+  }
+
+  .products-table tbody tr.low-stock:hover,
+  .products-table tbody tr.low-stock:hover td {
+    background: color-mix(in srgb, var(--status-danger-bg) 82%, var(--accent-danger));
+  }
+
+  .product-name {
+    font-weight: var(--font-weight-semibold);
+  }
+
+  .row-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .row-actions form {
+    margin: 0;
+  }
+
+  .action-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 2.25rem;
+    padding: 0.45rem 0.7rem;
+    border: 1px solid transparent;
+    border-radius: 8px;
+    font: inherit;
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-semibold);
+    line-height: 1.2;
+    text-decoration: none;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: background-color 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+  }
+
+  .action-button:hover {
+    transform: translateY(-1px);
+  }
+
+  .action-primary {
+    background: var(--accent-primary);
+    color: var(--text-on-accent);
+  }
+
+  .action-primary:hover {
+    background: var(--accent-purple);
+    color: var(--text-on-accent);
+  }
+
+  .action-secondary {
+    background: var(--bg-secondary);
+    border-color: var(--border-color);
+    color: var(--text-primary);
+  }
+
+  .action-secondary:hover {
+    border-color: var(--accent-primary);
+    color: var(--accent-primary);
+  }
+
+  .action-danger {
+    background: var(--accent-danger);
+    color: var(--text-on-accent);
+  }
+
+  .action-danger:hover {
+    filter: brightness(0.9);
+  }
+
+  .action-button:focus-visible {
+    outline: 3px solid var(--accent-primary);
+    outline-offset: 2px;
+  }
+
+  @media (max-width: 600px) {
+    .products-table th,
+    .products-table td {
+      padding: 0.75rem;
+    }
+
+    .action-button {
+      padding: 0.4rem 0.55rem;
+      font-size: var(--font-size-xs);
+    }
+  }
+</style>

@@ -1,6 +1,7 @@
 import db from '$lib/server/database';
 import type { PageServerLoad } from './$types';
 import type { Producto } from '$lib/types';
+import { redirect } from '@sveltejs/kit';
 
 interface PrediccionData {
   producto_id: number;
@@ -14,7 +15,11 @@ interface ProductoConPrediccion extends Producto {
   prediccion: PrediccionData | null;
 }
 
-export const load = (async () => {
+export const load = (async ({ locals }) => {
+  if (!locals.usuario) {
+    throw redirect(303, '/login');
+  }
+  
   // 1. Obtener todos los productos
   const productos = db.prepare('SELECT * FROM productos ORDER BY nombre').all() as Producto[];
   

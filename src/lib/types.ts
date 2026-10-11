@@ -9,3 +9,12 @@ export interface Producto {
   created_at: string;
   updated_at: string;
 }
+
+export interface Usuario {
+  id: number;
+  nombre: string;
+  email: string;
+  password_hash: string;
+  rol: 'admin' | 'empleado';
+  created_at: string;
+}

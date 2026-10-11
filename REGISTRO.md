@@ -1,56 +1,49 @@
-# Registro de Avances
+## 📋 Resumen Completo para Git
 
-## Fase 1: Configuración Inicial - Completada el 23/09/2026
+### **Fases Completadas:**
 
-### Métricas cuantitativas
-- Tamaño del proyecto (sin node_modules): ~50 KB
-- node_modules: ~180 MB
-- RAM consumida durante `npm run dev`: ~350 MB
-- Tiempo de inicio del servidor: ~800 ms
+#### **Fase 1-3: Configuración Inicial y CRUD Básico**
+- Configuración de SvelteKit con TypeScript
+- Base de datos SQLite con esquema completo
+- CRUD de productos (crear, leer, actualizar, eliminar)
+- Sistema de tipos TypeScript
 
-### Métricas cualitativas
-- Instalación clara y sin errores
-- Cortafuegos fue el único obstáculo inicial
-- El servidor arranca rápido
+#### **Fase 4: Registro de Movimientos**
+- Sistema de entradas y salidas de stock
+- Actualización automática de inventario
+- Historial completo de movimientos
+- Validación de stock negativo
+- Transacciones de base de datos
 
-### Commits realizados
-- feat: inicialización del proyecto con SvelteKit, Chart.js y better-sqlite3
-- docs: README inicial con descripción del proyecto
+#### **Fase 5: Sistema de Predicción**
+- Cálculo de consumo promedio diario
+- Predicción de días hasta agotarse
+- Fecha recomendada de reorden
+- Recálculo automático tras cada venta
+- Dashboard con métricas y gráficos
 
-## Fase 2: Diseño de Base de Datos - Completada el [FECHA]
+#### **Fase 6: Seguridad y Autenticación**
+- Sistema de usuarios con roles (admin/empleado)
+- Encriptación de contraseñas con bcrypt
+- Sesiones con cookies seguras
+- Protección de rutas por rol
+- Página de login profesional
 
-### Métricas cuantitativas
-- Tablas creadas: 3 (productos, movimientos, predicciones)
-- Índices creados: 3
-- Tamaño de database.db inicial: ~20 KB
-- Tiempo de inicialización: <100ms
+#### **Fase 7: Mejoras de UX/UI**
+- Modo oscuro/claro con persistencia
+- Navbar global con menú de perfil
+- Búsqueda de productos
+- Sistema de diseño con variables CSS
+- Tipografía profesional (Inter)
+- Mensajes de feedback
 
-### Métricas cualitativas
-- SQLite es extremadamente rápido y no consume RAM extra.
-- La inicialización automática es muy conveniente.
+#### **Fase 8: Panel de Administración**
+- Gestión de usuarios (crear, editar rol, eliminar)
+- Herramientas de mantenimiento
+- Recálculo manual de predicciones
+- Protección estricta de rutas admin
 
-### Commits realizados
-- feat: diseño e inicialización de base de datos SQLite
-
-
-
-## Fase 4: Registro de Movimientos - Completada el 28/09/2026
-
-### Métricas cuantitativas
-- Archivos creados: 5 (movimientos.service.ts, FormularioMovimiento.svelte, HistorialMovimientos.svelte, [id]/movimientos/+page.server.ts, [id]/movimientos/+page.svelte)
-- Transacciones SQLite implementadas: 1
-- Validaciones de stock: 1 (prevención de stock negativo)
-- Tiempo de respuesta del formulario: <500ms
-
-### Métricas cualitativas
-- La arquitectura de servicio aísla la lógica de negocio de las rutas.
-- Las transacciones garantizan integridad de datos.
-- La interfaz es clara y muestra el historial en tiempo real.
-- Se mejoró la UX con validación dinámica en el frontend (entradas sin límite, salidas limitadas al stock).
-
-### Commits realizados
-- feat: registro de movimientos con transacciones y actualización automática de stock
-- feat: correccion de ruta de creacion y mejora de accesibilidad en formulario de movimientos
-
-### Próximos pasos
-- Fase 5: Sistema de Predicción
+#### **Fase 9: Página de Perfil**
+- Ver información del usuario
+- Actualizar nombre
+- Cambiar contraseña de forma segura

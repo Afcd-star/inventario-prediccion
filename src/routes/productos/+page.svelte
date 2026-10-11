@@ -6,58 +6,93 @@
 </script>
 
 <svelte:head>
-  <title>Productos</title>
+  <title>Productos | StockPredict Pro</title>
 </svelte:head>
 
-<main style:maxWidth="900px" style:margin="2rem auto" style:padding="0 1rem" style:fontFamily="sans-serif">
-  <header style:display="flex" style:justifyContent="space-between" style:alignItems="center" style:marginBottom="1.5rem">
-    <h1 style:margin="0" style:color="var(--text-primary)">Gestión de Productos</h1>
-    <div style:display="flex" style:gap="0.5rem">
-      <a href="/dashboard" style:padding="0.5rem 1rem" style:background="var(--accent-success)" style:color="white" style:border="none" style:borderRadius="6px" style:cursor="pointer" style:textDecoration="none" style:fontWeight="600">
-        Dashboard
-      </a>
-      <a href="/productos/nuevo" style:padding="0.5rem 1rem" style:background="var(--accent-primary)" style:color="white" style:border="none" style:borderRadius="6px" style:cursor="pointer" style:textDecoration="none" style:fontWeight="600">
-        Nuevo Producto
-      </a>
+<main class="page-container">
+  <header class="page-header-flex">
+    <h1>Gestión de Productos</h1>
+    <div class="header-actions">
+      <a href="/productos/nuevo" class="btn btn-primary">Nuevo Producto</a>
     </div>
   </header>
 
   <!-- Buscador -->
-  <div style:marginBottom="1.5rem">
-    <form method="GET" action="/productos" style:display="flex" style:gap="0.5rem">
-      <input 
-        type="text" 
-        name="q" 
-        placeholder="Buscar producto por nombre..." 
+  <div class="search-container">
+    <form method="GET" action="/productos" class="search-form">
+      <input
+        type="text"
+        name="q"
+        placeholder="Buscar producto por nombre..."
         value={data.busqueda}
-        style:flex="1" 
-        style:padding="0.75rem" 
-        style:border="1px solid var(--border-color)" 
-        style:borderRadius="6px"
-        style:background="var(--bg-card)"
-        style:color="var(--text-primary)"
+        class="input-field search-input"
       />
-      <button type="submit" style:padding="0.75rem 1.5rem" style:background="var(--accent-primary)" style:color="white" style:border="none" style:borderRadius="6px" style:cursor="pointer" style:fontWeight="600">
-        Buscar
-      </button>
+      <button type="submit" class="btn btn-primary">Buscar</button>
       {#if data.busqueda}
-        <a href="/productos" style:padding="0.75rem 1rem" style:background="var(--bg-secondary)" style:color="var(--text-secondary)" style:border="1px solid var(--border-color)" style:borderRadius="6px" style:textDecoration="none">
-          Limpiar
-        </a>
+        <a href="/productos" class="btn btn-secondary">Limpiar</a>
       {/if}
     </form>
   </div>
 
-  <!-- Mensajes de feedback usando la propiedad 'form' -->
+  <!-- Mensajes de feedback -->
   {#if form?.success === 'producto_creado'}
-    <div style:padding="1rem" style:background="#d1fae5" style:color="#065f46" style:borderRadius="6px" style:marginBottom="1rem">
+    <div class="alert alert-success">
       ✅ Producto creado exitosamente.
     </div>
   {:else if form?.success === 'producto_eliminado'}
-    <div style:padding="1rem" style:background="#fee2e2" style:color="#991b1b" style:borderRadius="6px" style:marginBottom="1rem">
-      🗑️ Producto eliminado.
+    <div class="alert alert-danger">
+      ️ Producto eliminado.
     </div>
   {/if}
 
   <TablaProductos productos={data.productos} />
 </main>
+
+<style>
+  .page-header-flex {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+  }
+
+  .header-actions {
+    display: flex;
+    gap: 0.5rem;
+  }
+
+  .search-container {
+    margin-bottom: 1.5rem;
+  }
+
+  .search-form {
+    display: flex;
+    gap: 0.5rem;
+  }
+
+  .search-input {
+    flex: 1;
+    min-width: 0;
+  }
+
+  @media (max-width: 600px) {
+    .page-header-flex {
+      align-items: flex-start;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+
+    .search-form {
+      flex-wrap: wrap;
+    }
+
+    .search-input {
+      flex-basis: 100%;
+    }
+
+    :global(.btn) {
+      padding: 0.65rem 1rem;
+      font-size: var(--font-size-sm);
+    }
+  }
+</style>

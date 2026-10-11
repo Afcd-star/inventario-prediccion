@@ -2,105 +2,174 @@
   import type { PageData } from './$types';
   import { onMount, onDestroy } from 'svelte';
   import Chart from 'chart.js/auto';
+  import BotonPDF from '$lib/components/BotonPDF.svelte';
 
   let { data }: { data: PageData } = $props();
   
-  // Corregido para Svelte 5: usar $state para variables vinculadas con bind:this
   let canvas = $state<HTMLCanvasElement | null>(null);
   let chart: Chart | null = null;
 
   onMount(() => {
     if (canvas && data.topConsumidos.length > 0) {
+      const estilos = getComputedStyle(document.documentElement);
+      const colorTexto = estilos.getPropertyValue('--text-primary').trim();
+      const colorGrid = estilos.getPropertyValue('--border-color').trim();
+      const coloresGrafico = Array.from({ length: 5 }, (_, index) =>
+        estilos.getPropertyValue(`--chart-color-${index + 1}`).trim()
+      );
+      
       chart = new Chart(canvas, {
         type: 'bar',
         data: {
           labels: data.topConsumidos.map(p => p.nombre),
           datasets: [{
-            label: 'Unidades Vendidas',
             data: data.topConsumidos.map(p => p.total_vendido),
-            backgroundColor: '#8b5cf6',
-            borderRadius: 6
+            backgroundColor: coloresGrafico,
+            borderRadius: 6,
+            borderSkipped: false
           }]
         },
         options: {
           responsive: true,
-          plugins: { legend: { display: false } },
-          scales: { y: { beginAtZero: true } }
+          maintainAspectRatio: false,
+          indexAxis: 'y',
+          plugins: {
+            legend: {
+              display: false
+            }
+          },
+          scales: {
+            x: {
+              beginAtZero: true,
+              ticks: {
+                color: colorTexto,
+                precision: 0
+              },
+              grid: {
+                color: colorGrid
+              }
+            },
+            y: {
+              ticks: {
+                color: colorTexto,
+                font: {
+                  size: 14
+                }
+              },
+              grid: {
+                display: false
+              }
+            }
+          }
         }
       });
+
+      const observer = new MutationObserver(() => {
+        if (!chart) return;
+
+        const computedStyles = getComputedStyle(document.documentElement);
+        const colorEtiquetas = computedStyles.getPropertyValue('--text-primary').trim();
+        const scales = chart.options.scales;
+        if (scales?.x && scales.y) {
+          scales.x.ticks = { ...scales.x.ticks, color: colorEtiquetas };
+          scales.x.grid = {
+            ...scales.x.grid,
+            color: computedStyles.getPropertyValue('--border-color').trim()
+          };
+          scales.y.ticks = { ...scales.y.ticks, color: colorEtiquetas };
+          chart.data.datasets[0].backgroundColor = Array.from({ length: 5 }, (_, index) =>
+            computedStyles.getPropertyValue(`--chart-color-${index + 1}`).trim()
+          );
+          chart.update('none');
+        }
+      });
+      observer.observe(document.documentElement, {
+        attributes: true,
+        attributeFilter: ['data-theme']
+      });
+
+      return () => observer.disconnect();
     }
   });
 
   onDestroy(() => {
-    if (chart) {
-      chart.destroy(); // Liberar memoria RAM
-    }
+    if (chart) chart.destroy();
   });
 </script>
 
 <svelte:head>
-  <title>Dashboard de Inventario</title>
+  <title>Dashboard | StockPredict Pro</title>
 </svelte:head>
 
-<main style:maxWidth="1200px" style:margin="2rem auto" style:padding="0 1rem" style:fontFamily="sans-serif">
-  <header style:marginBottom="2rem">
-    <h1 style:margin="0">Dashboard de Predicción</h1>
-    <p style:color="#6b7280" style:margin="0.5rem 0 0 0">Resumen inteligente de tu inventario</p>
+<main class="page-container dashboard-container">
+  <header class="page-header">
+    <div class="page-heading">
+      <div>
+        <h1>Dashboard de StockPredict Pro</h1>
+        <p class="text-secondary">Resumen inteligente de tu inventario</p>
+      </div>
+      <BotonPDF
+        url="/api/reportes?tipo=inventario"
+        nombreArchivo="inventario-stockpredict.pdf"
+        texto="Exportar Inventario"
+        variante="primario"
+      />
+    </div>
   </header>
 
   <!-- Tarjetas de Métricas -->
-  <section style:display="grid" style:gridTemplateColumns="repeat(auto-fit, minmax(250px, 1fr))" style:gap="1.5rem" style:marginBottom="2rem">
-    <div style:background="#ffffff" style:padding="1.5rem" style:borderRadius="8px" style:border="1px solid #e5e7eb">
-      <h3 style:margin="0 0 0.5rem 0" style:fontSize="0.9rem" style:color="#6b7280">Total Productos</h3>
-      <p style:margin="0" style:fontSize="2rem" style:fontWeight="700">{data.metricas.totalProductos}</p>
+  <section class="metrics-grid">
+    <div class="metric-card metric-total">
+      <h3 class="text-secondary text-sm">Total Productos</h3>
+      <p class="metric-value">{data.metricas.totalProductos}</p>
     </div>
-    <div style:background="#fee2e2" style:padding="1.5rem" style:borderRadius="8px" style:border="1px solid #fca5a5">
-      <h3 style:margin="0 0 0.5rem 0" style:fontSize="0.9rem" style:color="#991b1b">Stock Bajo</h3>
-      <p style:margin="0" style:fontSize="2rem" style:fontWeight="700" style:color="#991b1b">{data.metricas.stockBajo}</p>
+    <div class="metric-card metric-danger">
+      <h3 class="text-sm">Stock Bajo</h3>
+      <p class="metric-value">{data.metricas.stockBajo}</p>
     </div>
-    <div style:background="#fef3c7" style:padding="1.5rem" style:borderRadius="8px" style:border="1px solid #fcd34d">
-      <h3 style:margin="0 0 0.5rem 0" style:fontSize="0.9rem" style:color="#92400e">Reorden Urgente (3 días o menos)</h3>
-      <p style:margin="0" style:fontSize="2rem" style:fontWeight="700" style:color="#92400e">{data.metricas.reordenUrgente}</p>
+    <div class="metric-card metric-warning">
+      <h3 class="text-sm">Reorden Urgente (3 días o menos)</h3>
+      <p class="metric-value">{data.metricas.reordenUrgente}</p>
     </div>
   </section>
 
-  <div style:display="grid" style:gridTemplateColumns="2fr 1fr" style:gap="2rem">
+  <div class="dashboard-grid">
     <!-- Tabla de Predicciones -->
-    <section style:background="#ffffff" style:padding="1.5rem" style:borderRadius="8px" style:border="1px solid #e5e7eb">
-      <h2 style:marginTop="0" style:fontSize="1.2rem">Estado de Predicciones</h2>
+    <section class="card">
+      <h2>Estado de Predicciones</h2>
       {#if data.productos.length === 0}
-        <p style:color="#6b7280">No hay productos registrados.</p>
+        <p class="text-secondary">No hay productos registrados.</p>
       {:else}
-        <table style:width="100%" style:borderCollapse="collapse">
+        <table class="data-table">
           <thead>
-            <tr style:background="#f9fafb">
-              <th style:padding="0.75rem" style:textAlign="left" style:borderBottom="1px solid #e5e7eb">Producto</th>
-              <th style:padding="0.75rem" style:textAlign="left" style:borderBottom="1px solid #e5e7eb">Stock</th>
-              <th style:padding="0.75rem" style:textAlign="left" style:borderBottom="1px solid #e5e7eb">Días hasta agotar</th>
-              <th style:padding="0.75rem" style:textAlign="left" style:borderBottom="1px solid #e5e7eb">Reorden</th>
+            <tr>
+              <th>Producto</th>
+              <th>Stock</th>
+              <th>Días hasta agotar</th>
+              <th>Reorden</th>
             </tr>
           </thead>
           <tbody>
             {#each data.productos as p}
               <tr>
-                <td style:padding="0.75rem" style:borderBottom="1px solid #e5e7eb">{p.nombre}</td>
-                <td style:padding="0.75rem" style:borderBottom="1px solid #e5e7eb" style:color={p.stock_actual < p.stock_minimo ? '#ef4444' : 'inherit'} style:fontWeight="600">
+                <td>{p.nombre}</td>
+                <td class={p.stock_actual < p.stock_minimo ? 'text-danger font-semibold' : ''}>
                   {p.stock_actual}
                 </td>
-                <td style:padding="0.75rem" style:borderBottom="1px solid #e5e7eb">
+                <td>
                   {#if p.prediccion && p.prediccion.dias_hasta_agotarse !== null}
                     {p.prediccion.dias_hasta_agotarse} días
                   {:else}
-                    <span style:color="#9ca3af">Sin datos</span>
+                    <span class="text-muted">Sin datos</span>
                   {/if}
                 </td>
-                <td style:padding="0.75rem" style:borderBottom="1px solid #e5e7eb">
+                <td>
                   {#if p.prediccion?.fecha_recomendada_reorden}
-                    <span style:padding="0.25rem 0.5rem" style:background="#e0e7ff" style:color="#3730a3" style:borderRadius="4px" style:fontSize="0.85rem">
+                    <span class="badge badge-info">
                       {p.prediccion.fecha_recomendada_reorden}
                     </span>
                   {:else}
-                    <span style:color="#9ca3af">-</span>
+                    <span class="text-muted">-</span>
                   {/if}
                 </td>
               </tr>
@@ -111,13 +180,69 @@
     </section>
 
     <!-- Gráfico de Top Consumidos -->
-    <section style:background="#ffffff" style:padding="1.5rem" style:borderRadius="8px" style:border="1px solid #e5e7eb">
-      <h2 style:marginTop="0" style:fontSize="1.2rem">Top 5 Más Vendidos</h2>
+    <section class="card chart-card">
+      <h2>Top 5 Más Vendidos</h2>
       {#if data.topConsumidos.length > 0}
-        <canvas bind:this={canvas}></canvas>
+        <div class="chart-container">
+          <canvas bind:this={canvas}></canvas>
+        </div>
       {:else}
-        <p style:color="#6b7280" style:textAlign="center" style:padding="2rem">Registra salidas para ver el gráfico.</p>
+        <p class="text-secondary text-center" style:padding="2rem">
+          Registra salidas para ver el gráfico.
+        </p>
       {/if}
     </section>
   </div>
 </main>
+
+<style>
+  .page-header {
+    margin-bottom: 2rem;
+  }
+
+  .page-heading {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+  }
+
+  .metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+  }
+
+  .metric-value {
+    margin: 0;
+    font-size: var(--font-size-4xl);
+    font-weight: var(--font-weight-bold);
+  }
+
+  .dashboard-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+    gap: 2rem;
+  }
+
+  .chart-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 0;
+  }
+
+  .chart-container {
+    width: 100%;
+    height: 300px;
+    margin: 1rem auto 0;
+    position: relative;
+  }
+
+  @media (max-width: 600px) {
+    .page-heading {
+      flex-direction: column;
+    }
+  }
+</style>

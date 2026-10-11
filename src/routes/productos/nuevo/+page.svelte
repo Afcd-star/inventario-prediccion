@@ -3,13 +3,22 @@
 </script>
 
 <svelte:head>
-  <a href="/dashboard" style:padding="0.5rem 1rem" style:background="#10b981" style:color="white" style:border="none" style:borderRadius="6px" style:cursor="pointer" style:textDecoration="none" style:fontWeight="600">
-  Ir al Dashboard
-  </a>
   <title>Nuevo Producto</title>
 </svelte:head>
 
-<main style:maxWidth="500px" style:margin="2rem auto" style:padding="0 1rem" style:fontFamily="sans-serif">
-  <h1 style:marginBottom="1.5rem">Nuevo Producto</h1>
-  <FormularioProducto accion="crear" />
+<main class="form-page">
+  <a href="/productos" class="btn-back">← Volver a productos</a>
+  <section class="card form-card">
+    <h1>Nuevo Producto</h1>
+    <p class="text-secondary">Completa los datos para agregar un producto al inventario.</p>
+    <FormularioProducto accion="crear" />
+  </section>
 </main>
+
+<style>
+  .form-page {
+    width: min(100% - 2rem, 640px);
+    margin: 2rem auto;
+  }
+
+</style>

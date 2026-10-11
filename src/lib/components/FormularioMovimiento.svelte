@@ -10,26 +10,25 @@
   let tipoSeleccionado = $state('entrada');
 </script>
 
-<form method="POST" action="?/registrar">
+<form method="POST" action="?/registrar" class="movement-form">
   <input type="hidden" name="producto_id" value={productoId} />
 
-    <div style:marginBottom="1rem">
-    <!-- Cambiamos label por span para evitar el warning de accesibilidad -->
-    <span style:display="block" style:marginBottom="0.5rem" style:fontWeight="600">Tipo de Movimiento</span>
-    <div style:display="flex" style:gap="1rem">
-      <label style:display="flex" style:alignItems="center" style:gap="0.5rem" style:cursor="pointer">
+  <fieldset class="type-field">
+    <legend>Tipo de Movimiento</legend>
+    <div class="type-options">
+      <label class="type-option">
         <input type="radio" name="tipo" value="entrada" bind:group={tipoSeleccionado} required />
-        Entrada (Aumenta stock)
+        <span>Entrada (Aumenta stock)</span>
       </label>
-      <label style:display="flex" style:alignItems="center" style:gap="0.5rem" style:cursor="pointer">
+      <label class="type-option">
         <input type="radio" name="tipo" value="salida" bind:group={tipoSeleccionado} required />
-        Salida (Reduce stock)
+        <span>Salida (Reduce stock)</span>
       </label>
     </div>
-  </div>
+  </fieldset>
 
-  <div style:marginBottom="1rem">
-    <label for="cantidad" style:display="block" style:marginBottom="0.5rem" style:fontWeight="600">Cantidad</label>
+  <div class="form-field">
+    <label for="cantidad">Cantidad</label>
     <input 
       id="cantidad" 
       type="number" 
@@ -37,30 +36,93 @@
       min="1" 
       max={tipoSeleccionado === 'salida' ? stockActual : undefined} 
       required 
-      style:width="100%" 
-      style:padding="0.5rem" 
-      style:border="1px solid #d1d5db" 
-      style:borderRadius="6px" 
     />
-    <p style:fontSize="0.8rem" style:color="#6b7280" style:marginTop="0.25rem">
+    <p class="stock-hint">
       Stock actual disponible: {stockActual}
     </p>
   </div>
 
-  <div style:marginBottom="1.5rem">
-    <label for="notas" style:display="block" style:marginBottom="0.5rem" style:fontWeight="600">Notas (Opcional)</label>
+  <div class="form-field">
+    <label for="notas">Notas (Opcional)</label>
     <textarea 
       id="notas" 
       name="notas" 
       rows="3" 
-      style:width="100%" 
-      style:padding="0.5rem" 
-      style:border="1px solid #d1d5db" 
-      style:borderRadius="6px" 
     ></textarea>
   </div>
 
-  <button type="submit" style:width="100%" style:padding="0.75rem" style:background="#10b981" style:color="white" style:border="none" style:borderRadius="6px" style:cursor="pointer" style:fontWeight="600">
+  <button type="submit" class="btn btn-success">
     Registrar Movimiento
   </button>
 </form>
+
+<style>
+  .movement-form {
+    display: grid;
+    gap: 1.25rem;
+  }
+
+  .type-field {
+    min-width: 0;
+    padding: 1rem;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    background: var(--bg-secondary);
+  }
+
+  .type-field legend {
+    padding: 0 0.35rem;
+    color: var(--text-primary);
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-semibold);
+  }
+
+  .type-options {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.75rem;
+  }
+
+  .type-option {
+    display: flex;
+    min-width: 0;
+    align-items: flex-start;
+    gap: 0.6rem;
+    padding: 0.8rem;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    background: var(--bg-card);
+    color: var(--text-primary);
+    cursor: pointer;
+  }
+
+  .type-option input {
+    flex: 0 0 auto;
+    width: 1rem;
+    height: 1rem;
+    margin-top: 0.15rem;
+    accent-color: var(--accent-primary);
+  }
+
+  .type-option:has(input:checked) {
+    border-color: var(--accent-primary);
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent-primary) 18%, transparent);
+  }
+
+  .stock-hint {
+    margin: 0;
+    color: var(--text-secondary);
+    font-size: var(--font-size-sm);
+  }
+
+  .type-option:has(input:focus-visible) {
+    outline: 3px solid var(--accent-primary);
+    outline-offset: 2px;
+  }
+
+  @media (max-width: 480px) {
+    .type-options {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

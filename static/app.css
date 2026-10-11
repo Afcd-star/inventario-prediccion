@@ -1,33 +1,508 @@
+/* =========================================
+   1. Variables Globales y Temas
+   ========================================= */
 :root {
+  /* Tipografía */
+  --font-family-base: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --font-size-xs: 0.75rem;    /* 12px */
+  --font-size-2xs: 0.7rem;
+  --font-size-sm: 0.875rem;   /* 14px */
+  --font-size-base: 1rem;     /* 16px */
+  --font-size-lg: 1.125rem;   /* 18px */
+  --font-size-xl: 1.25rem;    /* 20px */
+  --font-size-2xl: 1.5rem;    /* 24px */
+  --font-size-3xl: 1.875rem;  /* 30px */
+  --font-size-4xl: 2rem;      /* 32px */
+  --font-size-logo: 4rem;
+  
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+  --font-weight-extrabold: 800;
+  --text-on-accent: #ffffff;
+
+  /* Colores - Modo Claro (Default) */
   --bg-primary: #ffffff;
   --bg-secondary: #f9fafb;
   --bg-card: #ffffff;
   --text-primary: #111827;
   --text-secondary: #6b7280;
+  --text-muted: #9ca3af;
   --border-color: #e5e7eb;
+  
+  /* Acentos */
   --accent-primary: #3b82f6;
   --accent-success: #10b981;
   --accent-warning: #f59e0b;
   --accent-danger: #ef4444;
   --accent-purple: #8b5cf6;
+  --status-success-bg: #d1fae5;
+  --status-success-text: #065f46;
+  --status-danger-bg: #fee2e2;
+  --status-danger-text: #991b1b;
+  --status-danger-border: #fca5a5;
+  --status-warning-bg: #fef3c7;
+  --status-warning-text: #92400e;
+  --status-warning-border: #fcd34d;
+  --status-info-bg: #e0e7ff;
+  --status-info-text: #3730a3;
+  --chart-color-1: #8b5cf6;
+  --chart-color-2: #3b82f6;
+  --chart-color-3: #10b981;
+  --chart-color-4: #f59e0b;
+  --chart-color-5: #ef4444;
+  --shadow-card: 0 8px 24px rgb(15 23 42 / 8%);
+  --shadow-popover: 0 10px 40px rgb(0 0 0 / 15%);
+  --shadow-subtle: 0 2px 8px rgb(0 0 0 / 10%);
+  --shadow-hover: 0 4px 8px rgb(0 0 0 / 10%);
+  --shadow-tooltip: 0 4px 12px rgb(0 0 0 / 15%);
+  --shadow-danger: 0 4px 12px rgb(239 68 68 / 30%);
+  --shadow-logo: drop-shadow(0 4px 8px rgb(0 0 0 / 20%));
+  --focus-ring: 0 0 0 3px rgb(59 130 246 / 10%);
 }
 
 [data-theme="dark"] {
+  /* Colores - Modo Oscuro */
   --bg-primary: #0f172a;
   --bg-secondary: #1e293b;
   --bg-card: #1e293b;
   --text-primary: #f1f5f9;
   --text-secondary: #94a3b8;
+  --text-muted: #64748b;
   --border-color: #334155;
+  
+  /* Acentos (ajustados para mejor contraste en oscuro) */
   --accent-primary: #60a5fa;
   --accent-success: #34d399;
   --accent-warning: #fbbf24;
   --accent-danger: #f87171;
   --accent-purple: #a78bfa;
+  --status-success-bg: #064e3b;
+  --status-success-text: #a7f3d0;
+  --status-danger-bg: #7f1d1d;
+  --status-danger-text: #fecaca;
+  --status-danger-border: #991b1b;
+  --status-warning-bg: #78350f;
+  --status-warning-text: #fde68a;
+  --status-warning-border: #92400e;
+  --status-info-bg: #312e81;
+  --status-info-text: #c7d2fe;
+  --chart-color-1: #a78bfa;
+  --chart-color-2: #60a5fa;
+  --chart-color-3: #34d399;
+  --chart-color-4: #fbbf24;
+  --chart-color-5: #f87171;
+  --focus-ring: 0 0 0 3px rgb(96 165 250 / 18%);
+}
+
+/* =========================================
+   2. Estilos Base Globales (Reset y Herencia)
+   ========================================= */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
 }
 
 body {
+  font-family: var(--font-family-base);
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-normal);
+  line-height: 1.5;
   background-color: var(--bg-primary);
   color: var(--text-primary);
-  transition: background-color 0.2s ease, color 0.2s ease;
+  transition: background-color 0.3s ease, color 0.3s ease;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Tipografía semántica: ya heredan color y fuente del body */
+h1, h2, h3, h4, h5, h6 {
+  font-weight: var(--font-weight-bold);
+  line-height: 1.2;
+  color: var(--text-primary);
+  margin-bottom: 0.5rem;
+}
+
+h1 { font-size: var(--font-size-3xl); }
+h2 { font-size: var(--font-size-2xl); }
+h3 { font-size: var(--font-size-xl); }
+
+p {
+  margin-bottom: 1rem;
+  color: var(--text-secondary);
+}
+
+/* Enlaces */
+a {
+  color: var(--accent-primary);
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+a:hover {
+  color: var(--accent-purple);
+}
+
+/* =========================================
+   3. Clases de Utilidad (Para usar en lugar de estilos en línea)
+   ========================================= */
+.text-primary { color: var(--text-primary); }
+.text-secondary { color: var(--text-secondary); }
+.text-muted { color: var(--text-muted); }
+.text-danger { color: var(--accent-danger); }
+.text-success { color: var(--accent-success); }
+.text-center { text-align: center; }
+
+.font-medium { font-weight: var(--font-weight-medium); }
+.font-semibold { font-weight: var(--font-weight-semibold); }
+.font-bold { font-weight: var(--font-weight-bold); }
+
+.text-sm { font-size: var(--font-size-sm); }
+.text-lg { font-size: var(--font-size-lg); }
+.text-xl { font-size: var(--font-size-xl); }
+
+/* =========================================
+4. Estilos Globales de Componentes
+========================================= */
+button, .btn {
+  border-radius: 8px;
+  font-family: var(--font-family-base);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.25rem;
+  border: 1px solid transparent;
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-semibold);
+  line-height: 1.2;
+  text-decoration: none;
+}
+
+.btn-gradient {
+  background: linear-gradient(135deg, var(--accent-primary), var(--accent-purple));
+  color: var(--text-on-accent);
+  box-shadow: 0 2px 8px rgb(59 130 246 / 30%);
+}
+
+.btn-gradient:hover:not(:disabled) {
+  box-shadow: 0 4px 12px rgb(59 130 246 / 40%);
+}
+
+.btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+}
+
+.btn:focus-visible,
+button:focus-visible,
+a:focus-visible {
+  outline: 3px solid var(--accent-primary);
+  outline-offset: 2px;
+}
+
+.btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.btn-primary {
+  background: var(--accent-primary);
+  color: var(--text-on-accent);
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: var(--accent-purple);
+}
+
+.btn-secondary {
+  border-color: var(--border-color);
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+}
+
+.btn-secondary:hover:not(:disabled) {
+  border-color: var(--accent-primary);
+  color: var(--accent-primary);
+}
+
+.btn-success {
+  background: var(--accent-success);
+  color: var(--text-on-accent);
+}
+
+.btn-danger {
+  background: var(--accent-danger);
+  color: var(--text-on-accent);
+}
+
+.btn-danger:hover:not(:disabled) {
+  filter: brightness(0.9);
+}
+
+.btn-warning {
+  background: var(--accent-warning);
+  color: var(--text-on-accent);
+}
+
+.btn-warning:hover:not(:disabled) {
+  filter: brightness(0.9);
+}
+
+.btn-small {
+  padding: 0.5rem 1rem;
+  font-size: var(--font-size-sm);
+}
+
+.btn-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+  padding: 0.5rem 1rem;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+
+.btn-back:hover {
+  transform: translateX(-2px);
+  border-color: var(--accent-primary);
+  background: var(--accent-primary);
+  color: var(--text-on-accent);
+}
+
+.card {
+  padding: 1.5rem;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  background: var(--bg-card);
+}
+
+.page-container {
+  max-width: 1200px;
+  margin: 2rem auto;
+  padding: 0 1rem;
+}
+
+.page-container--narrow {
+  max-width: 900px;
+}
+
+.card h2 {
+  margin-top: 0;
+  margin-bottom: 1.5rem;
+  font-size: var(--font-size-xl);
+}
+
+.form-card {
+  padding: clamp(1.25rem, 4vw, 2rem);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  background: var(--bg-card);
+  box-shadow: var(--shadow-card);
+}
+
+.form-card h1 {
+  margin-bottom: 0.5rem;
+}
+
+.form-card > p {
+  margin-bottom: 1.5rem;
+}
+
+.input-field {
+  width: 100%;
+  min-width: 0;
+  padding: 0.75rem;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font: inherit;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.input-field:focus-visible {
+  outline: none;
+  border-color: var(--accent-primary);
+  box-shadow: var(--focus-ring);
+}
+
+.input-field::placeholder {
+  color: var(--text-secondary);
+  opacity: 0.7;
+}
+
+.form-stack,
+.input-group,
+.form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.form-stack {
+  gap: 1rem;
+}
+
+.form-field {
+  min-width: 0;
+}
+
+.label,
+.form-field label {
+  color: var(--text-primary);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+}
+
+.form-field input,
+.form-field textarea {
+  width: 100%;
+  min-width: 0;
+  padding: 0.75rem 0.875rem;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font: inherit;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.form-field textarea {
+  resize: vertical;
+}
+
+.form-field input:focus-visible,
+.form-field textarea:focus-visible {
+  outline: none;
+  border-color: var(--accent-primary);
+  box-shadow: var(--focus-ring);
+}
+
+.alert {
+  margin-bottom: 1rem;
+  padding: 1rem;
+  border-radius: 8px;
+  font-weight: var(--font-weight-medium);
+}
+
+.alert-success {
+  background: var(--status-success-bg);
+  color: var(--status-success-text);
+}
+
+.alert-danger {
+  background: var(--status-danger-bg);
+  color: var(--status-danger-text);
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.65rem;
+  border-radius: 4px;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+}
+
+.badge-success,
+.badge-empleado {
+  background: var(--status-success-bg);
+  color: var(--status-success-text);
+}
+
+.badge-danger {
+  background: var(--status-danger-bg);
+  color: var(--status-danger-text);
+}
+
+.badge-info,
+.badge-admin {
+  background: var(--status-info-bg);
+  color: var(--status-info-text);
+}
+
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--bg-card);
+}
+
+.data-table th,
+.data-table td {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--border-color);
+  text-align: left;
+  color: var(--text-primary);
+}
+
+.data-table th {
+  background: var(--bg-secondary);
+  color: var(--text-secondary);
+  font-weight: var(--font-weight-semibold);
+}
+
+.data-table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+table {
+  background: var(--bg-card);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+table:not(.data-table) thead tr {
+  background: var(--bg-secondary);
+}
+
+table:not(.data-table) th, table:not(.data-table) td {
+  border-bottom: 1px solid var(--border-color);
+  color: var(--text-primary);
+}
+
+table:not(.data-table) th {
+  color: var(--text-secondary);
+  font-weight: var(--font-weight-semibold);
+}
+
+/* Semantic statuses stay consistent across components and themes. */
+.metric-card {
+  padding: 1.5rem;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  background: var(--bg-card);
+}
+
+.metric-danger {
+  background: var(--status-danger-bg);
+  border-color: var(--status-danger-border);
+}
+
+.metric-danger h3,
+.metric-danger p {
+  color: var(--status-danger-text);
+}
+
+.metric-warning {
+  background: var(--status-warning-bg);
+  border-color: var(--status-warning-border);
+}
+
+.metric-warning h3,
+.metric-warning p {
+  color: var(--status-warning-text);
 }

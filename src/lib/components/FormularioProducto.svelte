@@ -12,24 +12,20 @@
   const esEdicion = $derived(accion === 'editar');
 </script>
 
-<form method="POST" action="?/{accion}">
-  <div style:marginBottom="1rem">
-    <label for="nombre" style:display="block" style:marginBottom="0.5rem" style:fontWeight="600">Nombre</label>
+<form method="POST" action="?/{accion}" class="product-form">
+  <div class="form-field">
+    <label for="nombre">Nombre</label>
     <input
       id="nombre"
       type="text"
       name="nombre"
       value={producto?.nombre ?? ''}
       required
-      style:width="100%"
-      style:padding="0.5rem"
-      style:border="1px solid #d1d5db"
-      style:borderRadius="6px"
     />
   </div>
 
-  <div style:marginBottom="1rem">
-    <label for="precio" style:display="block" style:marginBottom="0.5rem" style:fontWeight="600">Precio</label>
+  <div class="form-field">
+    <label for="precio">Precio</label>
     <input
       id="precio"
       type="number"
@@ -38,16 +34,12 @@
       min="0"
       value={producto?.precio ?? 0}
       required
-      style:width="100%"
-      style:padding="0.5rem"
-      style:border="1px solid #d1d5db"
-      style:borderRadius="6px"
     />
   </div>
 
-  <div style:display="flex" style:gap="1rem" style:marginBottom="1.5rem">
-    <div style:flex="1">
-      <label for="stock" style:display="block" style:marginBottom="0.5rem" style:fontWeight="600">Stock Actual</label>
+  <div class="stock-fields">
+    <div class="form-field">
+      <label for="stock">Stock Actual</label>
       <input
         id="stock"
         type="number"
@@ -55,14 +47,10 @@
         min="0"
         value={producto?.stock_actual ?? 0}
         required
-        style:width="100%"
-        style:padding="0.5rem"
-        style:border="1px solid #d1d5db"
-        style:borderRadius="6px"
       />
     </div>
-    <div style:flex="1">
-      <label for="minimo" style:display="block" style:marginBottom="0.5rem" style:fontWeight="600">Stock Mínimo</label>
+    <div class="form-field">
+      <label for="minimo">Stock Mínimo</label>
       <input
         id="minimo"
         type="number"
@@ -70,20 +58,51 @@
         min="0"
         value={producto?.stock_minimo ?? 10}
         required
-        style:width="100%"
-        style:padding="0.5rem"
-        style:border="1px solid #d1d5db"
-        style:borderRadius="6px"
       />
     </div>
   </div>
 
-  <div style:display="flex" style:gap="1rem">
-    <a href="/productos" style:padding="0.5rem 1rem" style:background="#e5e7eb" style:color="#374151" style:border="none" style:borderRadius="6px" style:cursor="pointer" style:textDecoration="none" style:fontWeight="600">
+  <div class="form-actions">
+    <a href="/productos" class="btn btn-secondary">
       Cancelar
     </a>
-    <button type="submit" style:padding="0.5rem 1rem" style:background="#3b82f6" style:color="white" style:border="none" style:borderRadius="6px" style:cursor="pointer" style:fontWeight="600">
+    <button type="submit" class="btn btn-primary">
       {esEdicion ? 'Guardar Cambios' : 'Crear Producto'}
     </button>
   </div>
 </form>
+
+<style>
+  .product-form {
+    display: grid;
+    gap: 1.25rem;
+  }
+
+  .stock-fields {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1rem;
+  }
+
+  .form-actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 0.75rem;
+    padding-top: 0.25rem;
+  }
+
+  @media (max-width: 480px) {
+    .stock-fields {
+      grid-template-columns: 1fr;
+    }
+
+    .form-actions {
+      flex-direction: column-reverse;
+    }
+
+    .form-actions :global(.btn) {
+      width: 100%;
+    }
+  }
+</style>

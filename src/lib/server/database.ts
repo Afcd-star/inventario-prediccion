@@ -29,6 +29,28 @@ function migrarPredicciones() {
 
 migrarPredicciones();
 
+// 🌟 NUEVA MIGRACIÓN: Crear tabla de usuarios si no existe
+function migrarUsuarios() {
+  const tablaExiste = db.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name='usuarios'").get();
+  
+  if (!tablaExiste) {
+    console.log('🔄 Ejecutando migración: creando tabla usuarios...');
+    db.exec(`
+      CREATE TABLE usuarios (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        nombre TEXT NOT NULL,
+        email TEXT NOT NULL UNIQUE,
+        password_hash TEXT NOT NULL,
+        rol TEXT NOT NULL DEFAULT 'empleado' CHECK(rol IN ('admin', 'empleado')),
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+    console.log('✅ Tabla usuarios creada');
+  }
+}
+
+migrarUsuarios();
+
 console.log('✅ Base de datos conectada y tablas inicializadas en:', DB_PATH);
 
 export default db;
