@@ -7,94 +7,137 @@
 
   let { data }: { data: PageData } = $props();
   
-  let canvas = $state<HTMLCanvasElement | null>(null);
-  let chart: Chart | null = null;
+  let canvasTopConsumidos = $state<HTMLCanvasElement | null>(null);
+  let canvasTendencia = $state<HTMLCanvasElement | null>(null);
+  let chartTopConsumidos: Chart | null = null;
+  let chartTendencia: Chart | null = null;
+
+  $effect(() => {
+    const stockActualLabel = $_('dashboard.stockActual');
+    const stockMinimoLabel = $_('dashboard.stockMinimo');
+
+    if (chartTendencia) {
+      chartTendencia.data.datasets[0].label = stockActualLabel;
+      chartTendencia.data.datasets[1].label = stockMinimoLabel;
+      chartTendencia.update('none');
+    }
+  });
 
   onMount(() => {
-    if (canvas && data.topConsumidos.length > 0) {
-      const estilos = getComputedStyle(document.documentElement);
-      const colorTexto = estilos.getPropertyValue('--text-primary').trim();
-      const colorGrid = estilos.getPropertyValue('--border-color').trim();
-      const coloresGrafico = Array.from({ length: 5 }, (_, index) =>
-        estilos.getPropertyValue(`--chart-color-${index + 1}`).trim()
-      );
-      
-      chart = new Chart(canvas, {
-        type: 'bar',
+    const estilos = getComputedStyle(document.documentElement);
+    const colorTexto = estilos.getPropertyValue('--text-primary').trim();
+    const colorGrid = estilos.getPropertyValue('--border-color').trim();
+
+    if (canvasTopConsumidos && data.topConsumidos.length > 0) {
+      chartTopConsumidos = new Chart(canvasTopConsumidos, {
+        type: 'doughnut',
         data: {
           labels: data.topConsumidos.map(p => p.nombre),
           datasets: [{
             data: data.topConsumidos.map(p => p.total_vendido),
-            backgroundColor: coloresGrafico,
-            borderRadius: 6,
-            borderSkipped: false
+            backgroundColor: ['#8b5cf6', '#3b82f6', '#10b981', '#f59e0b', '#ef4444'],
+            borderWidth: 0,
+            hoverOffset: 10
           }]
         },
         options: {
           responsive: true,
-          maintainAspectRatio: false,
-          indexAxis: 'y',
+          maintainAspectRatio: true,
+          aspectRatio: 1.5,
           plugins: {
             legend: {
-              display: false
-            }
-          },
-          scales: {
-            x: {
-              beginAtZero: true,
-              ticks: {
+              position: 'bottom',
+              labels: {
+                padding: 15,
+                usePointStyle: true,
                 color: colorTexto,
-                precision: 0
-              },
-              grid: {
-                color: colorGrid
-              }
-            },
-            y: {
-              ticks: {
-                color: colorTexto,
-                font: {
-                  size: 14
-                }
-              },
-              grid: {
-                display: false
+                font: { size: 12 }
               }
             }
           }
         }
       });
+    }
 
-      const observer = new MutationObserver(() => {
-        if (!chart) return;
-
-        const computedStyles = getComputedStyle(document.documentElement);
-        const colorEtiquetas = computedStyles.getPropertyValue('--text-primary').trim();
-        const scales = chart.options.scales;
-        if (scales?.x && scales.y) {
-          scales.x.ticks = { ...scales.x.ticks, color: colorEtiquetas };
-          scales.x.grid = {
-            ...scales.x.grid,
-            color: computedStyles.getPropertyValue('--border-color').trim()
-          };
-          scales.y.ticks = { ...scales.y.ticks, color: colorEtiquetas };
-          chart.data.datasets[0].backgroundColor = Array.from({ length: 5 }, (_, index) =>
-            computedStyles.getPropertyValue(`--chart-color-${index + 1}`).trim()
-          );
-          chart.update('none');
+    if (canvasTendencia && data.productos.length > 0) {
+      chartTendencia = new Chart(canvasTendencia, {
+        type: 'line',
+        data: {
+          labels: data.productos.map(p => p.nombre),
+          datasets: [
+            {
+              label: $_('dashboard.stockActual'),
+              data: data.productos.map(p => p.stock_actual),
+              borderColor: '#3b82f6',
+              backgroundColor: 'rgba(59, 130, 246, 0.1)',
+              fill: true,
+              tension: 0.4
+            },
+            {
+              label: $_('dashboard.stockMinimo'),
+              data: data.productos.map(p => p.stock_minimo),
+              borderColor: '#ef4444',
+              borderDash: [5, 5],
+              fill: false,
+              tension: 0.4
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              labels: { color: colorTexto }
+            }
+          },
+          scales: {
+            y: {
+              beginAtZero: true,
+              grid: { color: colorGrid },
+              ticks: { color: colorTexto }
+            },
+            x: {
+              grid: { color: colorGrid },
+              ticks: { color: colorTexto }
+            }
+          }
         }
       });
-      observer.observe(document.documentElement, {
-        attributes: true,
-        attributeFilter: ['data-theme']
-      });
-
-      return () => observer.disconnect();
     }
+
+    const observer = new MutationObserver(() => {
+        const computedStyles = getComputedStyle(document.documentElement);
+        const labelColor = computedStyles.getPropertyValue('--text-primary').trim();
+        const gridColor = computedStyles.getPropertyValue('--border-color').trim();
+
+        for (const currentChart of [chartTopConsumidos, chartTendencia]) {
+          if (!currentChart) continue;
+          const scales = currentChart.options.scales;
+          if (scales?.x && scales.y) {
+            scales.x.ticks = { ...scales.x.ticks, color: labelColor };
+            scales.x.grid = { ...scales.x.grid, color: gridColor };
+            scales.y.ticks = { ...scales.y.ticks, color: labelColor };
+            scales.y.grid = { ...scales.y.grid, color: gridColor };
+          }
+          const legend = currentChart.options.plugins?.legend;
+          if (legend && legend.labels) {
+            legend.labels.color = labelColor;
+          }
+          currentChart.update('none');
+        }
+      });
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['data-theme']
+    });
+
+    return () => observer.disconnect();
   });
 
   onDestroy(() => {
-    if (chart) chart.destroy();
+    chartTopConsumidos?.destroy();
+    chartTendencia?.destroy();
   });
 </script>
 
@@ -102,19 +145,21 @@
   <title>{$_('dashboard.titulo')} | StockPredict Pro</title>
 </svelte:head>
 
-<main class="page-container dashboard-container">
+<main class="dashboard-container">
   <header class="page-header">
-    <div class="page-heading">
+    <div class="header-content">
       <div>
         <h1>{$_('dashboard.titulo')}</h1>
         <p class="text-secondary">{$_('dashboard.subtitulo')}</p>
       </div>
-      <BotonPDF
-        url="/api/reportes?tipo=inventario"
-        nombreArchivo="inventario-stockpredict.pdf"
-        texto={$_('dashboard.exportarPDF')}
-        variante="primario"
-      />
+      <div class="header-actions">
+        <BotonPDF
+          url="/api/reportes?tipo=inventario"
+          nombreArchivo="inventario-stockpredict.pdf"
+          texto={$_('dashboard.exportarPDF')}
+          variante="primario"
+        />
+      </div>
     </div>
   </header>
 
@@ -148,6 +193,7 @@
               <th>{$_('dashboard.stock')}</th>
               <th>{$_('dashboard.diasAgotar')}</th>
               <th>{$_('dashboard.reorden')}</th>
+              <th>{$_('dashboard.tendencia')}</th>
             </tr>
           </thead>
           <tbody>
@@ -173,6 +219,17 @@
                     <span class="text-muted">-</span>
                   {/if}
                 </td>
+                <td>
+                  {#if p.prediccion?.tendencia === 'creciente'}
+                    <span class="badge badge-success">{$_('dashboard.tendenciaCreciente')}</span>
+                  {:else if p.prediccion?.tendencia === 'decreciente'}
+                    <span class="badge badge-danger">{$_('dashboard.tendenciaDecreciente')}</span>
+                  {:else if p.prediccion?.tendencia === 'estable'}
+                    <span class="badge badge-info">{$_('dashboard.tendenciaEstable')}</span>
+                  {:else}
+                    <span class="text-muted">-</span>
+                  {/if}
+                </td>
               </tr>
             {/each}
           </tbody>
@@ -180,32 +237,65 @@
       {/if}
     </section>
 
-    <!-- Gráfico de Top Consumidos -->
-    <section class="card chart-card">
-      <h2>{$_('dashboard.topVendidos')}</h2>
-      {#if data.topConsumidos.length > 0}
-        <div class="chart-container">
-          <canvas bind:this={canvas}></canvas>
-        </div>
-      {:else}
-        <p class="text-secondary text-center" style:padding="2rem">
-          {$_('dashboard.registrarSalidas')}
-        </p>
-      {/if}
-    </section>
+    <div class="charts-column">
+      <section class="card chart-card">
+        <h2>{$_('dashboard.topVendidos')}</h2>
+        {#if data.topConsumidos.length > 0}
+          <div class="chart-container">
+            <canvas bind:this={canvasTopConsumidos}></canvas>
+          </div>
+        {:else}
+          <p class="text-secondary text-center" style:padding="2rem">
+            {$_('dashboard.registrarSalidas')}
+          </p>
+        {/if}
+      </section>
+
+    </div>
   </div>
+
+  <section class="card chart-card trend-card">
+    <h2>{$_('dashboard.tendenciaStock')}</h2>
+    {#if data.productos.length > 0}
+      <div class="trend-chart-container">
+        <canvas bind:this={canvasTendencia}></canvas>
+      </div>
+    {:else}
+      <p class="text-secondary text-center" style:padding="2rem">
+        {$_('dashboard.sinProductos')}
+      </p>
+    {/if}
+  </section>
 </main>
 
 <style>
+  .dashboard-container {
+    max-width: 1400px;
+    margin: 2rem auto;
+    padding: 0 1rem;
+  }
+
   .page-header {
     margin-bottom: 2rem;
   }
 
-  .page-heading {
+  .header-content {
     display: flex;
-    align-items: flex-start;
     justify-content: space-between;
-    gap: 1rem;
+    align-items: flex-start;
+    gap: 2rem;
+  }
+
+  .header-content h1 {
+    margin: 0 0 0.5rem;
+  }
+
+  .header-content p {
+    margin: 0;
+  }
+
+  .header-actions {
+    flex-shrink: 0;
   }
 
   .metrics-grid {
@@ -217,32 +307,106 @@
 
   .metric-value {
     margin: 0;
-    font-size: var(--font-size-4xl);
+    font-size: 2rem;
     font-weight: var(--font-weight-bold);
   }
 
   .dashboard-grid {
     display: grid;
-    grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+    grid-template-columns: 2fr 1fr;
     gap: 2rem;
+  }
+
+  .charts-column {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+  }
+
+  .card {
+    padding: 1.5rem;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    background: var(--bg-card);
   }
 
   .chart-card {
     display: flex;
     flex-direction: column;
     align-items: center;
-    min-width: 0;
   }
 
   .chart-container {
     width: 100%;
-    height: 300px;
+    max-width: 300px;
     margin: 1rem auto 0;
     position: relative;
   }
 
+  .trend-card {
+    margin-top: 2rem;
+    align-items: stretch;
+  }
+
+  .trend-chart-container {
+    position: relative;
+    width: 100%;
+    height: 360px;
+    margin-top: 1rem;
+  }
+
+  .data-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  .data-table th,
+  .data-table td {
+    padding: 0.75rem;
+    text-align: left;
+    border-bottom: 1px solid var(--border-color);
+    color: var(--text-primary);
+  }
+
+  .data-table th {
+    background: var(--bg-secondary);
+    font-weight: var(--font-weight-semibold);
+  }
+
+  .badge {
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-semibold);
+  }
+
+  .badge-info {
+    background: var(--status-info-bg);
+    color: var(--status-info-text);
+  }
+
+  .badge-success {
+    background: var(--status-success-bg);
+    color: var(--status-success-text);
+  }
+
+  .badge-danger {
+    background: var(--status-danger-bg);
+    color: var(--status-danger-text);
+  }
+
+  .text-center {
+    text-align: center;
+  }
+
+  @media (max-width: 800px) {
+    .dashboard-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
   @media (max-width: 600px) {
-    .page-heading {
+    .header-content {
       flex-direction: column;
     }
   }
