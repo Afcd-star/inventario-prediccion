@@ -9,6 +9,7 @@ interface PrediccionData {
   dias_hasta_agotarse: number | null;
   dias_hasta_minimo: number | null;
   fecha_recomendada_reorden: string | null;
+  tendencia?: string | null;
 }
 
 interface ProductoConPrediccion extends Producto {

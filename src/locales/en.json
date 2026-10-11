@@ -40,7 +40,14 @@
     "sinDatos": "No data",
     "topVendidos": "Top 5 Best Sellers",
     "registrarSalidas": "Register sales to see the chart.",
-    "exportarPDF": "Export Inventory"
+    "exportarPDF": "Export Inventory",
+    "tendencia": "Trend",
+    "tendenciaStock": "Stock Trend",
+    "stockActual": "Current Stock",
+    "stockMinimo": "Minimum Stock",
+    "tendenciaCreciente": "Increasing",
+    "tendenciaDecreciente": "Decreasing",
+    "tendenciaEstable": "Stable"
   },
   "productos": {
     "titulo": "Product Management",

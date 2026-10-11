@@ -4,6 +4,7 @@ import type { Actions } from './$types';
 export const actions = {
   default: ({ cookies }) => {
     cookies.delete('sesion', { path: '/' });
+    cookies.delete('sesion_servidor', { path: '/' });
     throw redirect(303, '/login');
   }
 } satisfies Actions;

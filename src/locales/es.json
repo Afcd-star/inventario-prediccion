@@ -40,7 +40,14 @@
     "sinDatos": "Sin datos",
     "topVendidos": "Top 5 Más Vendidos",
     "registrarSalidas": "Registra salidas para ver el gráfico.",
-    "exportarPDF": "Exportar Inventario"
+    "exportarPDF": "Exportar Inventario",
+    "tendencia": "Tendencia",
+    "tendenciaStock": "Tendencia de Stock",
+    "stockActual": "Stock Actual",
+    "stockMinimo": "Stock Mínimo",
+    "tendenciaCreciente": "Creciente",
+    "tendenciaDecreciente": "Decreciente",
+    "tendenciaEstable": "Estable"
   },
   "productos": {
     "titulo": "Gestión de Productos",

@@ -1,6 +1,7 @@
 import { fail, redirect } from '@sveltejs/kit';
 import bcrypt from 'bcryptjs';
 import db from '$lib/server/database';
+import { serverInstanceId } from '$lib/server/session';
 import type { Actions } from './$types';
 
 export const actions = {
@@ -33,6 +34,13 @@ export const actions = {
       sameSite: 'strict',
       secure: process.env.NODE_ENV === 'production',
       maxAge: 60 * 60 * 24 * 7 
+    });
+    cookies.set('sesion_servidor', serverInstanceId, {
+      path: '/',
+      httpOnly: true,
+      sameSite: 'strict',
+      secure: process.env.NODE_ENV === 'production',
+      maxAge: 60 * 60 * 24 * 7
     });
 
     throw redirect(303, '/dashboard');
