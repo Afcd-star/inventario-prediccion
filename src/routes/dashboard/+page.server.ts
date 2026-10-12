@@ -2,6 +2,7 @@ import db from '$lib/server/database';
 import type { PageServerLoad } from './$types';
 import type { Producto } from '$lib/types';
 import { redirect } from '@sveltejs/kit';
+import { lotesService } from '$lib/server/lotes.service';
 
 interface PrediccionData {
   producto_id: number;
@@ -39,6 +40,10 @@ export const load = (async ({ locals }) => {
   const reordenUrgente = productosConPrediccion.filter(p => 
     p.prediccion && p.prediccion.dias_hasta_minimo !== null && p.prediccion.dias_hasta_minimo <= 3
   ).length;
+  const lotesProximos = lotesService.obtenerLotesProximosAVencer(30).map(lote => ({
+    ...lote,
+    dias_restantes: lotesService.calcularDiasRestantes(lote.fecha_caducidad)
+  }));
 
   // 5. Obtener Top 5 productos más consumidos (para el gráfico)
   const topConsumidos = db.prepare(`
@@ -53,7 +58,13 @@ export const load = (async ({ locals }) => {
 
   return { 
     productos: productosConPrediccion,
-    metricas: { totalProductos, stockBajo, reordenUrgente },
-    topConsumidos
+    metricas: {
+      totalProductos,
+      stockBajo,
+      reordenUrgente,
+      lotesProximosAVencer: lotesProximos.length
+    },
+    topConsumidos,
+    lotesProximos
   };
 }) satisfies PageServerLoad;

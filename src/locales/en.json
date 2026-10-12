@@ -47,7 +47,12 @@
     "stockMinimo": "Minimum Stock",
     "tendenciaCreciente": "Increasing",
     "tendenciaDecreciente": "Decreasing",
-    "tendenciaEstable": "Stable"
+    "tendenciaEstable": "Stable",
+    "lotesProximosAVencer": "Batches nearing expiration",
+    "sinLotesProximos": "There are no batches with stock expiring in the next 30 days.",
+    "estadoVencimiento": "Status",
+    "vencimientoCritico": "Expiring soon",
+    "diasParaVencer": "Expires in {dias} days"
   },
   "productos": {
     "titulo": "Product Management",
@@ -62,7 +67,24 @@
     "precio": "Price",
     "stock": "Stock",
     "stockActual": "Current Stock",
+    "agregarStock": "Quantity to add to inventory",
     "stockMinimo": "Minimum Stock",
+    "numeroLote": "Batch number",
+    "fechaCaducidad": "Expiration date",
+    "loteApertura": "Opening batch",
+    "caducidadDesconocida": "Unknown",
+    "verLotes": "Batches",
+    "lotesTitulo": "Product batches",
+    "lotesDescripcion": "Available quantities and expiration dates for each batch.",
+    "sinLotes": "No batches have been registered for this product yet.",
+    "stockInicialLote": "Initial quantity",
+    "stockActualLote": "Available quantity",
+    "estadoLote": "Status",
+    "loteAgotado": "Depleted",
+    "loteVencido": "Expired",
+    "loteVigente": "Valid",
+    "loteVenceEn": "Expires in {dias} days",
+    "otrosLotes": "+{cantidad} more",
     "acciones": "Actions",
     "movimientos": "Movements",
     "editar": "Edit",
@@ -75,7 +97,9 @@
     "noEncontrado": "Product not found.",
     "crearProducto": "Create Product",
     "guardarCambios": "Save Changes",
-    "errorCampos": "A name and valid price are required."
+    "errorCampos": "A name and valid price are required.",
+    "errorInventario": "Stock and minimum stock must be whole numbers greater than or equal to zero.",
+    "errorLote": "Provide a valid batch number and expiration date for the stock being added."
   },
   "movimientos": {
     "titulo": "Movements",
@@ -87,6 +111,10 @@
     "entrada": "Entry (Increases stock)",
     "salida": "Exit (Decreases stock)",
     "cantidad": "Quantity",
+    "numeroLote": "Batch number",
+    "fechaCaducidad": "Expiration date",
+    "loteApertura": "Opening batch",
+    "caducidadDesconocida": "Unknown",
     "stockDisponible": "Current available stock",
     "notas": "Notes (Optional)",
     "registrar": "Register Movement",
@@ -100,7 +128,9 @@
     "tipoSalida": "OUTGOING",
     "errorDatos": "The movement data is invalid.",
     "errorTipo": "The movement type is invalid.",
-    "errorStock": "There is not enough stock to complete this outgoing movement."
+    "errorStock": "There is not enough stock to complete this outgoing movement.",
+    "errorLotes": "There are no batches available for this product.",
+    "errorLote": "The batch number and expiration date are required."
   },
   "perfil": {
     "titulo": "My Profile",

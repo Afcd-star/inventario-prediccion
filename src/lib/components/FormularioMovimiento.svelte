@@ -44,6 +44,18 @@
     </p>
   </div>
 
+  {#if tipoSeleccionado === 'entrada'}
+    <div class="form-field">
+      <label for="numero_lote">{$_('movimientos.numeroLote')}</label>
+      <input id="numero_lote" type="text" name="numero_lote" required />
+    </div>
+
+    <div class="form-field">
+      <label for="fecha_caducidad">{$_('movimientos.fechaCaducidad')}</label>
+      <input id="fecha_caducidad" type="date" name="fecha_caducidad" required />
+    </div>
+  {/if}
+
   <div class="form-field">
     <label for="notas">{$_('movimientos.notas')}</label>
     <textarea 

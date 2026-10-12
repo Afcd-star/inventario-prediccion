@@ -47,7 +47,12 @@
     "stockMinimo": "Stock Mínimo",
     "tendenciaCreciente": "Creciente",
     "tendenciaDecreciente": "Decreciente",
-    "tendenciaEstable": "Estable"
+    "tendenciaEstable": "Estable",
+    "lotesProximosAVencer": "Lotes próximos a vencer",
+    "sinLotesProximos": "No hay lotes con stock que venzan en los próximos 30 días.",
+    "estadoVencimiento": "Estado",
+    "vencimientoCritico": "Vence pronto",
+    "diasParaVencer": "Vence en {dias} días"
   },
   "productos": {
     "titulo": "Gestión de Productos",
@@ -62,7 +67,24 @@
     "precio": "Precio",
     "stock": "Stock",
     "stockActual": "Stock Actual",
+    "agregarStock": "Cantidad que se agrega al inventario",
     "stockMinimo": "Stock Mínimo",
+    "numeroLote": "Número de lote",
+    "fechaCaducidad": "Fecha de caducidad",
+    "loteApertura": "Lote de apertura",
+    "caducidadDesconocida": "Desconocida",
+    "verLotes": "Lotes",
+    "lotesTitulo": "Lotes del producto",
+    "lotesDescripcion": "Cantidades disponibles y fechas de caducidad de cada lote.",
+    "sinLotes": "Este producto todavía no tiene lotes registrados.",
+    "stockInicialLote": "Cantidad inicial",
+    "stockActualLote": "Cantidad disponible",
+    "estadoLote": "Estado",
+    "loteAgotado": "Agotado",
+    "loteVencido": "Vencido",
+    "loteVigente": "Vigente",
+    "loteVenceEn": "Vence en {dias} días",
+    "otrosLotes": "+{cantidad} más",
     "acciones": "Acciones",
     "movimientos": "Movimientos",
     "editar": "Editar",
@@ -75,7 +97,9 @@
     "noEncontrado": "Producto no encontrado.",
     "crearProducto": "Crear Producto",
     "guardarCambios": "Guardar Cambios",
-    "errorCampos": "El nombre y un precio válido son obligatorios."
+    "errorCampos": "El nombre y un precio válido son obligatorios.",
+    "errorInventario": "El stock y el mínimo deben ser números enteros iguales o mayores que cero.",
+    "errorLote": "Indica un número de lote y una fecha de caducidad válidos para el stock agregado."
   },
   "movimientos": {
     "titulo": "Movimientos",
@@ -87,6 +111,10 @@
     "entrada": "Entrada (Aumenta stock)",
     "salida": "Salida (Reduce stock)",
     "cantidad": "Cantidad",
+    "numeroLote": "Número de lote",
+    "fechaCaducidad": "Fecha de caducidad",
+    "loteApertura": "Lote de apertura",
+    "caducidadDesconocida": "Desconocida",
     "stockDisponible": "Stock actual disponible",
     "notas": "Notas (Opcional)",
     "registrar": "Registrar Movimiento",
@@ -100,7 +128,9 @@
     "tipoSalida": "SALIDA",
     "errorDatos": "Los datos del movimiento no son válidos.",
     "errorTipo": "El tipo de movimiento no es válido.",
-    "errorStock": "No hay suficiente stock para realizar esta salida."
+    "errorStock": "No hay suficiente stock para realizar esta salida.",
+    "errorLotes": "No hay lotes disponibles para este producto.",
+    "errorLote": "El número de lote y la fecha de caducidad son obligatorios."
   },
   "perfil": {
     "titulo": "Mi Perfil",

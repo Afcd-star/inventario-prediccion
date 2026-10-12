@@ -21,12 +21,15 @@ export const load = (async ({ params }) => {
 export const actions = {
   registrar: async ({ request }) => {
     const data = await request.formData();
-    const producto_id = parseInt(data.get('producto_id')?.toString() || '0');
+    const producto_id = Number(data.get('producto_id')?.toString() || '0');
     const tipo = data.get('tipo')?.toString();
-    const cantidad = parseInt(data.get('cantidad')?.toString() || '0');
-    const notas = data.get('notas')?.toString();
+    const cantidad = Number(data.get('cantidad')?.toString() || '0');
+    const notas = data.get('notas')?.toString() || null;
+    const numero_lote = data.get('numero_lote')?.toString();
+    const fecha_caducidad = data.get('fecha_caducidad')?.toString();
 
-    if (!producto_id || !tipo || cantidad <= 0) {
+    if (!Number.isSafeInteger(producto_id) || producto_id <= 0 ||
+      !Number.isSafeInteger(cantidad) || cantidad <= 0 || !tipo) {
       return fail(400, { error: 'movimientos.errorDatos' });
     }
 
@@ -35,12 +38,29 @@ export const actions = {
     }
 
     try {
-      movimientosService.registrar({ producto_id, tipo: tipo as 'entrada' | 'salida', cantidad, notas });
+      movimientosService.registrar({
+        producto_id,
+        tipo,
+        cantidad,
+        notas,
+        numero_lote,
+        fecha_caducidad
+      });
     } catch (error) {
-      if (error instanceof Error && error.message === 'No hay suficiente stock para realizar esta salida.') {
-        return fail(400, { error: 'movimientos.errorStock' });
+      if (error instanceof Error) {
+        if (error.message.startsWith('Stock insuficiente.') ||
+          error.message.startsWith('No hay suficiente cantidad')) {
+          return fail(400, { error: 'movimientos.errorStock' });
+        }
+        if (error.message.startsWith('No hay lotes disponibles')) {
+          return fail(400, { error: 'movimientos.errorLotes' });
+        }
+        if (error.message.includes('lote') || error.message.includes('caducidad')) {
+          return fail(400, { error: 'movimientos.errorLote' });
+        }
+        return fail(400, { error: error.message });
       }
-      return fail(400, { error: (error as Error).message });
+      throw error;
     }
 
     throw redirect(303, `/productos/${producto_id}/movimientos`);
