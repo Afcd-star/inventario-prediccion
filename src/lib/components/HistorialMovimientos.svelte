@@ -20,6 +20,8 @@
         <th>{$_('movimientos.fecha')}</th>
         <th>{$_('comunes.tipo')}</th>
         <th>{$_('movimientos.cantidad')}</th>
+        <th>{$_('movimientos.numeroLote')}</th>
+        <th>{$_('movimientos.fechaCaducidad')}</th>
         <th>{$_('movimientos.notasTabla')}</th>
       </tr>
     </thead>
@@ -34,6 +36,18 @@
           </td>
           <td class="font-semibold">
             {mov.tipo === 'entrada' ? '+' : '-'}{mov.cantidad}
+          </td>
+          <td>
+            {mov.numero_lote?.startsWith('APERTURA-')
+              ? $_('movimientos.loteApertura')
+              : mov.numero_lote || '-'}
+          </td>
+          <td>
+            {mov.numero_lote?.startsWith('APERTURA-')
+              ? $_('movimientos.caducidadDesconocida')
+              : mov.fecha_caducidad
+              ? new Date(`${mov.fecha_caducidad}T00:00:00`).toLocaleDateString($locale === 'en' ? 'en-US' : 'es-ES')
+              : '-'}
           </td>
           <td class="text-secondary">{mov.notas || '-'}</td>
         </tr>

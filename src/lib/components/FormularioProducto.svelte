@@ -11,6 +11,7 @@
 
   // $derived le dice a Svelte que esto se recalcula si 'accion' cambia
   const esEdicion = $derived(accion === 'editar');
+  let stock = $state(0);
 </script>
 
 <form method="POST" action="?/{accion}" class="product-form">
@@ -40,15 +41,13 @@
 
   <div class="stock-fields">
     <div class="form-field">
-      <label for="stock">{$_('productos.stockActual')}</label>
-      <input
-        id="stock"
-        type="number"
-        name="stock"
-        min="0"
-        value={producto?.stock_actual ?? 0}
-        required
-      />
+      {#if esEdicion}
+        <label for="stockActual">{$_('productos.stockActual')}</label>
+        <output id="stockActual" class="stock-value">{producto?.stock_actual ?? 0}</output>
+      {:else}
+        <label for="stock">{$_('productos.stockActual')}</label>
+        <input id="stock" type="number" name="stock" min="0" bind:value={stock} required />
+      {/if}
     </div>
     <div class="form-field">
       <label for="minimo">{$_('productos.stockMinimo')}</label>
@@ -62,6 +61,24 @@
       />
     </div>
   </div>
+
+  {#if esEdicion}
+    <div class="form-field">
+      <label for="stock">{$_('productos.agregarStock')}</label>
+      <input id="stock" type="number" name="stock" min="0" bind:value={stock} required />
+    </div>
+  {/if}
+
+  {#if stock > 0}
+    <div class="form-field">
+      <label for="numero_lote">{$_('productos.numeroLote')}</label>
+      <input id="numero_lote" type="text" name="numero_lote" required />
+    </div>
+    <div class="form-field">
+      <label for="fecha_caducidad">{$_('productos.fechaCaducidad')}</label>
+      <input id="fecha_caducidad" type="date" name="fecha_caducidad" required />
+    </div>
+  {/if}
 
   <div class="form-actions">
     <a href="/productos" class="btn btn-secondary">
@@ -83,6 +100,16 @@
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 1rem;
+  }
+
+  .stock-value {
+    display: block;
+    min-height: 2.75rem;
+    padding: 0.7rem 0.9rem;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    background: var(--bg-secondary);
+    color: var(--text-primary);
   }
 
   .form-actions {

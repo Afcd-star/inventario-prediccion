@@ -10,7 +10,7 @@
   <title>{$_('productos.titulo')} | StockPredict Pro</title>
 </svelte:head>
 
-<main class="page-container">
+<main class="page-container products-page">
   <header class="page-header-flex">
     <h1>{$_('productos.titulo')}</h1>
     <div class="header-actions">
@@ -54,6 +54,10 @@
 </main>
 
 <style>
+  .products-page {
+    max-width: 1600px;
+  }
+
   .page-header-flex {
     display: flex;
     justify-content: space-between;

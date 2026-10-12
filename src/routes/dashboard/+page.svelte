@@ -3,7 +3,7 @@
   import { onMount, onDestroy } from 'svelte';
   import Chart from 'chart.js/auto';
   import BotonPDF from '$lib/components/BotonPDF.svelte';
-  import { _ } from 'svelte-i18n';
+  import { _, locale } from 'svelte-i18n';
 
   let { data }: { data: PageData } = $props();
   
@@ -177,6 +177,52 @@
       <h3 class="text-sm">{$_('dashboard.reordenUrgente')}</h3>
       <p class="metric-value">{data.metricas.reordenUrgente}</p>
     </div>
+    <a class="metric-card metric-warning metric-link" href="#lotes-proximos">
+      <h3 class="text-sm">{$_('dashboard.lotesProximosAVencer')}</h3>
+      <p class="metric-value">{data.metricas.lotesProximosAVencer}</p>
+    </a>
+  </section>
+
+  <section class="card expiry-card" id="lotes-proximos">
+    <h2>{$_('dashboard.lotesProximosAVencer')}</h2>
+    {#if data.lotesProximos.length === 0}
+      <p class="text-secondary">{$_('dashboard.sinLotesProximos')}</p>
+    {:else}
+      <div class="table-scroll">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>{$_('dashboard.producto')}</th>
+              <th>{$_('productos.numeroLote')}</th>
+              <th>{$_('productos.fechaCaducidad')}</th>
+              <th>{$_('movimientos.cantidad')}</th>
+              <th>{$_('dashboard.estadoVencimiento')}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {#each data.lotesProximos as lote}
+              <tr class:expiry-critical={lote.dias_restantes <= 7}>
+                <td>
+                  <a href="/productos/{lote.producto_id}/lotes">{lote.producto_nombre}</a>
+                </td>
+                <td>{lote.numero_lote}</td>
+                <td>
+                  {new Date(`${lote.fecha_caducidad}T00:00:00`).toLocaleDateString($locale === 'en' ? 'en-US' : 'es-ES')}
+                </td>
+                <td>{lote.cantidad_actual}</td>
+                <td>
+                  <span class:badge-danger={lote.dias_restantes <= 7} class:badge-warning={lote.dias_restantes > 7} class="badge">
+                    {lote.dias_restantes <= 7
+                      ? $_('dashboard.vencimientoCritico')
+                      : $_('dashboard.diasParaVencer', { values: { dias: lote.dias_restantes } })}
+                  </span>
+                </td>
+              </tr>
+            {/each}
+          </tbody>
+        </table>
+      </div>
+    {/if}
   </section>
 
   <div class="dashboard-grid">
@@ -311,6 +357,35 @@
     font-weight: var(--font-weight-bold);
   }
 
+  .metric-link {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  .metric-link:hover {
+    border-color: var(--accent-warning);
+    transform: translateY(-2px);
+  }
+
+  .expiry-card {
+    margin-bottom: 2rem;
+  }
+
+  .expiry-card h2 {
+    margin-bottom: 1rem;
+  }
+
+  .table-scroll {
+    width: 100%;
+    overflow-x: auto;
+  }
+
+  .expiry-critical,
+  .expiry-critical td {
+    background: var(--status-danger-bg);
+    color: var(--status-danger-text);
+  }
+
   .dashboard-grid {
     display: grid;
     grid-template-columns: 2fr 1fr;
@@ -393,6 +468,11 @@
   .badge-danger {
     background: var(--status-danger-bg);
     color: var(--status-danger-text);
+  }
+
+  .badge-warning {
+    background: var(--status-warning-bg);
+    color: var(--status-warning-text);
   }
 
   .text-center {

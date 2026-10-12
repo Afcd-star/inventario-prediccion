@@ -299,6 +299,20 @@
       padding: 1rem;
     }
 
+    :global([data-theme='dark']) .login-form .input-field:focus,
+    :global([data-theme='dark']) .login-form .input-field:-webkit-autofill {
+      background-color: #fff;
+      color: #111827;
+      caret-color: #111827;
+      -webkit-text-fill-color: #111827;
+    }
+
+    :global([data-theme='dark']) .login-form .input-field:-webkit-autofill,
+    :global([data-theme='dark']) .login-form .input-field:-webkit-autofill:hover,
+    :global([data-theme='dark']) .login-form .input-field:-webkit-autofill:focus {
+      box-shadow: 0 0 0 1000px #fff inset;
+    }
+
     .credentials-hint {
       margin-top: 2rem;
       text-align: center;

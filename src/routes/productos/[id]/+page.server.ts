@@ -2,6 +2,7 @@ import db from '$lib/server/database';
 import { fail, redirect } from '@sveltejs/kit';
 import type { PageServerLoad, Actions } from './$types';
 import type { Producto } from '$lib/types';
+import { esFechaCaducidadValida, movimientosService } from '$lib/server/movimientos.service';
 
 // 'satisfies' asegura que el retorno coincida con PageServerLoad y genera los tipos correctos
 export const load = (async ({ params }) => {
@@ -15,20 +16,49 @@ export const load = (async ({ params }) => {
 export const actions = {
   editar: async ({ request, params }) => {
     const data = await request.formData();
-    const nombre = data.get('nombre')?.toString();
-    const precio = parseFloat(data.get('precio')?.toString() || '0');
-    const stock = parseInt(data.get('stock')?.toString() || '0');
-    const minimo = parseInt(data.get('minimo')?.toString() || '10');
+    const nombre = data.get('nombre')?.toString().trim();
+    const precio = Number(data.get('precio')?.toString() || '0');
+    const stock = Number(data.get('stock')?.toString() || '0');
+    const minimo = Number(data.get('minimo')?.toString() || '10');
+    const numeroLote = data.get('numero_lote')?.toString().trim();
+    const fechaCaducidad = data.get('fecha_caducidad')?.toString();
+    const productoId = Number(params.id);
 
-    if (!nombre || precio < 0) {
+    if (!nombre || !Number.isFinite(precio) || precio < 0) {
       return fail(400, { error: 'productos.errorCampos' });
     }
+    if (!Number.isSafeInteger(productoId) || productoId <= 0 ||
+      !Number.isSafeInteger(stock) || stock < 0 ||
+      !Number.isSafeInteger(minimo) || minimo < 0) {
+      return fail(400, { error: 'productos.errorInventario' });
+    }
+    if (stock > 0 && (!numeroLote || !fechaCaducidad || !esFechaCaducidadValida(fechaCaducidad))) {
+      return fail(400, { error: 'productos.errorLote' });
+    }
 
-    db.prepare(`
-      UPDATE productos 
-      SET nombre = ?, precio = ?, stock_actual = ?, stock_minimo = ?, updated_at = CURRENT_TIMESTAMP
-      WHERE id = ?
-    `).run(nombre, precio, stock, minimo, Number(params.id));
+    const actualizar = db.transaction(() => {
+      const result = db.prepare(`
+        UPDATE productos
+        SET nombre = ?, precio = ?, stock_minimo = ?, updated_at = CURRENT_TIMESTAMP
+        WHERE id = ?
+      `).run(nombre, precio, minimo, productoId);
+
+      if (result.changes === 0) return false;
+      if (stock > 0 && numeroLote && fechaCaducidad) {
+        movimientosService.registrarEntrada(
+          productoId,
+          stock,
+          null,
+          numeroLote,
+          fechaCaducidad
+        );
+      }
+      return true;
+    });
+
+    if (!actualizar()) {
+      return fail(404, { error: 'productos.noEncontrado' });
+    }
 
     throw redirect(303, '/productos');
   }

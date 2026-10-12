@@ -1,9 +1,19 @@
 <script lang="ts">
-  import type { Producto } from '$lib/types';
-  import { _ } from 'svelte-i18n';
+  import { _, locale } from 'svelte-i18n';
+
+  type ProductoListado = {
+    id: number;
+    nombre: string;
+    precio: number;
+    stock_actual: number;
+    stock_minimo: number;
+    lotes_activos: number;
+    numero_lote: string | null;
+    fecha_caducidad: string | null;
+  };
 
   interface Props {
-    productos: Producto[];
+    productos: ProductoListado[];
   }
 
   let { productos }: Props = $props();
@@ -26,6 +36,8 @@
           <th>{$_('productos.nombre')}</th>
           <th>{$_('productos.precio')}</th>
           <th>{$_('productos.stockActual')} / {$_('productos.stockMinimo')}</th>
+          <th>{$_('productos.numeroLote')}</th>
+          <th>{$_('productos.fechaCaducidad')}</th>
           <th>{$_('productos.acciones')}</th>
         </tr>
       </thead>
@@ -37,12 +49,40 @@
             <td>${producto.precio.toFixed(2)}</td>
             <td>{producto.stock_actual} / {producto.stock_minimo}</td>
             <td>
+              {#if producto.numero_lote}
+                {#if producto.numero_lote.startsWith('APERTURA-')}
+                  {$_('productos.loteApertura')}
+                {:else}
+                  {producto.numero_lote}
+                {/if}
+                {#if producto.lotes_activos > 1}
+                  <span class="text-secondary">
+                    {$_('productos.otrosLotes', { values: { cantidad: producto.lotes_activos - 1 } })}
+                  </span>
+                {/if}
+              {:else}
+                -
+              {/if}
+            </td>
+            <td>
+              {#if producto.numero_lote?.startsWith('APERTURA-')}
+                {$_('productos.caducidadDesconocida')}
+              {:else if producto.fecha_caducidad}
+                {new Date(`${producto.fecha_caducidad}T00:00:00`).toLocaleDateString($locale === 'en' ? 'en-US' : 'es-ES')}
+              {:else}
+                -
+              {/if}
+            </td>
+            <td>
               <div class="row-actions">
                 <a href="/productos/{producto.id}/qr" class="btn btn-small btn-secondary">
                   QR
                 </a>
                 <a href="/productos/{producto.id}/movimientos" class="action-button action-primary">
                   {$_('productos.movimientos')}
+                </a>
+                <a href="/productos/{producto.id}/lotes" class="action-button action-secondary">
+                  {$_('productos.verLotes')}
                 </a>
                 <a href="/productos/{producto.id}/editar" class="action-button action-secondary">
                   {$_('productos.editar')}
@@ -80,7 +120,7 @@
 
   .products-table {
     width: 100%;
-    min-width: 720px;
+    min-width: 1250px;
     border-collapse: collapse;
   }
 
@@ -125,7 +165,9 @@
 
   .row-actions {
     display: flex;
+    max-width: 520px;
     align-items: center;
+    flex-wrap: wrap;
     gap: 0.5rem;
   }
 
