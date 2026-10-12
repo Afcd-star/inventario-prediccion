@@ -11,6 +11,18 @@ CREATE TABLE IF NOT EXISTS productos (
   updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
+-- Tabla de lotes (trazabilidad y caducidad, lógica FEFO)
+CREATE TABLE IF NOT EXISTS lotes (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  producto_id INTEGER NOT NULL,
+  numero_lote TEXT NOT NULL,
+  fecha_caducidad DATE NOT NULL,
+  cantidad_inicial INTEGER NOT NULL,
+  cantidad_actual INTEGER NOT NULL,
+  fecha_creacion DATETIME DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (producto_id) REFERENCES productos(id) ON DELETE CASCADE
+);
+
 -- Tabla de movimientos (entradas y salidas)
 CREATE TABLE IF NOT EXISTS movimientos (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -19,6 +31,7 @@ CREATE TABLE IF NOT EXISTS movimientos (
   cantidad INTEGER NOT NULL CHECK(cantidad > 0),
   fecha DATETIME DEFAULT CURRENT_TIMESTAMP,
   notas TEXT,
+  lote_id INTEGER REFERENCES lotes(id),
   FOREIGN KEY (producto_id) REFERENCES productos(id) ON DELETE CASCADE
 );
 
@@ -30,6 +43,10 @@ CREATE TABLE IF NOT EXISTS predicciones (
   dias_hasta_agotarse INTEGER,
   dias_hasta_minimo INTEGER,
   fecha_recomendada_reorden DATETIME,
+  tendencia TEXT DEFAULT 'estable',
+  volatilidad REAL DEFAULT 0,
+  patrones TEXT DEFAULT '[]',
+  prediccion_30_dias TEXT DEFAULT '[]',
   actualizado_en DATETIME DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (producto_id) REFERENCES productos(id) ON DELETE CASCADE
 );
@@ -48,3 +65,5 @@ CREATE TABLE IF NOT EXISTS usuarios (
 CREATE INDEX IF NOT EXISTS idx_movimientos_producto_fecha ON movimientos(producto_id, fecha);
 CREATE INDEX IF NOT EXISTS idx_productos_nombre ON productos(nombre);
 CREATE INDEX IF NOT EXISTS idx_productos_stock ON productos(stock_actual);
+CREATE INDEX IF NOT EXISTS idx_lotes_producto ON lotes(producto_id);
+CREATE INDEX IF NOT EXISTS idx_lotes_caducidad ON lotes(fecha_caducidad);
