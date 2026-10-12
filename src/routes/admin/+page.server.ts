@@ -21,7 +21,26 @@ export const load = (async ({ locals }) => {
     created_at: string;
   }>;
 
-  return { usuarios };
+  const tablas = db.prepare(`
+    SELECT name
+    FROM sqlite_master
+    WHERE type = 'table' AND name NOT LIKE 'sqlite_%'
+    ORDER BY name
+  `).all() as Array<{ name: string }>;
+  const obtenerColumnas = (nombre: string) =>
+    db.prepare(`PRAGMA table_info("${nombre.replaceAll('"', '""')}")`)
+      .all() as Array<{ name: string }>;
+  const obtenerConteo = (nombre: string) =>
+    db.prepare(`SELECT COUNT(*) AS total FROM "${nombre.replaceAll('"', '""')}"`)
+      .get() as { total: number };
+
+  const tablasSistema = tablas.map(({ name }) => ({
+    nombre: name,
+    columnas: obtenerColumnas(name).length,
+    registros: obtenerConteo(name).total
+  }));
+
+  return { usuarios, tablas: tablasSistema, usuarioActualId: locals.usuario.id };
 }) satisfies PageServerLoad;
 
 export const actions = {
