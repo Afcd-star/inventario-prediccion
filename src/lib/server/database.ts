@@ -1,18 +1,14 @@
 import Database from 'better-sqlite3';
-import { readFileSync } from 'fs';
-import { fileURLToPath } from 'url';
-import { dirname, join } from 'path';
+import { join } from 'path';
+import { migrarLotes } from './migrations/002_lotes.ts';
+import { migrarSeriesTiempo } from './migrations/001_series_tiempo';
+import schema from './schema.sql?raw';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
-
-const DB_PATH = join(__dirname, '../../../database.db');
+const DB_PATH = join(process.cwd(), 'database.db');
 
 const db = new Database(DB_PATH);
 db.pragma('foreign_keys = ON');
 
-const schemaPath = join(__dirname, 'schema.sql');
-const schema = readFileSync(schemaPath, 'utf-8');
 db.exec(schema);
 
 // 🌟 MIGRACIÓN: Agregar columna 'dias_hasta_minimo' si no existe
@@ -50,6 +46,8 @@ function migrarUsuarios() {
 }
 
 migrarUsuarios();
+migrarLotes(db);
+migrarSeriesTiempo(db);
 
 console.log('✅ Base de datos conectada y tablas inicializadas en:', DB_PATH);
 

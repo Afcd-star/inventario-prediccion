@@ -1,3 +1,8 @@
+// MIGRACIÓN 002 (ARCHIVADA): tabla lotes y campo lote_id en movimientos.
+// Ya aplicada en la base de datos principal. Se conserva como historial del esquema.
+// Las instalaciones nuevas NO la necesitan: schema.sql ya incluye tabla y campo.
+// Para aplicarla en una base de datos antigua:
+//   npx tsx src/lib/server/migrations/002_lotes.ts
 import type Database from 'better-sqlite3';
 
 export function migrarLotes(db: Database.Database) {
