@@ -3,6 +3,7 @@
   import { page } from '$app/stores';
   import { onMount } from 'svelte';
   import { inicializarI18n, waitLocale } from '$lib/i18n';
+  import { VERSION } from '$lib/version';
 
   let { children, data } = $props();
 
@@ -23,3 +24,10 @@
 <main style:padding="1rem">
   {@render children()}
 </main>
+
+{#if !esLogin}
+  <footer class="app-footer">
+  <span>StockPredict Pro · Gestión inteligente de inventario</span>
+  <span class="footer-version">v{VERSION}</span>
+</footer>
+{/if}

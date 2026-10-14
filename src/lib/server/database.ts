@@ -1,13 +1,15 @@
-import Database from 'better-sqlite3';
-import { join } from 'path';
-import { migrarLotes } from './migrations/002_lotes.ts';
+import { readFileSync } from 'node:fs';
+import { join, dirname } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { migrarLotes } from './migrations/002_lotes';
 import { migrarSeriesTiempo } from './migrations/001_series_tiempo';
-import schema from './schema.sql?raw';
+import { migrarUnidadMedida } from './migrations/004_eliminar_unidad_medida';
+import db from './sqlite';
 
-const DB_PATH = join(process.cwd(), 'database.db');
-
-const db = new Database(DB_PATH);
-db.pragma('foreign_keys = ON');
+// Cargar el schema con readFileSync: funciona igual en Vite y en Node puro,
+// a diferencia del import './schema.sql?raw' que solo entiende Vite.
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const schema = readFileSync(join(__dirname, 'schema.sql'), 'utf-8');
 
 db.exec(schema);
 
@@ -48,7 +50,8 @@ function migrarUsuarios() {
 migrarUsuarios();
 migrarLotes(db);
 migrarSeriesTiempo(db);
+migrarUnidadMedida(db);
 
-console.log('✅ Base de datos conectada y tablas inicializadas en:', DB_PATH);
+console.log('✅ Base de datos conectada y tablas inicializadas en:', db.name);
 
 export default db;

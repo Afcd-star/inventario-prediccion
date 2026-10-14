@@ -2,6 +2,7 @@ import { fail, redirect } from '@sveltejs/kit';
 import bcrypt from 'bcryptjs';
 import db from '$lib/server/database';
 import { prediccionService } from '$lib/server/prediccion.service';
+import { esFechaCaducidadValida, movimientosService } from '$lib/server/movimientos.service';
 import type { PageServerLoad, Actions } from './$types';
 
 export const load = (async ({ locals }) => {
@@ -130,6 +131,88 @@ export const actions = {
     db.prepare('DELETE FROM usuarios WHERE id = ?').run(userId);
 
     return { success: 'usuario_eliminado' };
+  },
+
+  editarProducto: async ({ request, locals }) => {
+    if (!locals.usuario || locals.usuario.rol !== 'admin') {
+      throw redirect(303, '/login');
+    }
+
+    const data = await request.formData();
+    const productoId = Number(data.get('producto_id')?.toString());
+    const nombre = data.get('nombre')?.toString().trim();
+    const descripcion = data.get('descripcion')?.toString().trim() ?? '';
+    const precio = Number(data.get('precio')?.toString());
+    const stockObjetivo = Number(data.get('stock_actual')?.toString());
+    const stockMinimo = Number(data.get('stock_minimo')?.toString());
+    const numeroLote = data.get('numero_lote')?.toString().trim() ?? '';
+    const fechaCaducidad = data.get('fecha_caducidad')?.toString() ?? '';
+
+    if (!Number.isSafeInteger(productoId) || productoId <= 0 ||
+      !nombre || !Number.isFinite(precio) || precio < 0) {
+      return fail(400, { error: 'productos.errorCampos' });
+    }
+    if (!Number.isSafeInteger(stockObjetivo) || stockObjetivo < 0 ||
+      !Number.isSafeInteger(stockMinimo) || stockMinimo < 0) {
+      return fail(400, { error: 'productos.errorInventario' });
+    }
+
+    const productoActual = db.prepare(
+      'SELECT id, stock_actual FROM productos WHERE id = ?'
+    ).get(productoId) as { id: number; stock_actual: number } | undefined;
+    if (!productoActual) {
+      return fail(404, { error: 'productos.noEncontrado' });
+    }
+
+    const nombreDuplicado = db.prepare(
+      'SELECT id FROM productos WHERE nombre = ? AND id != ?'
+    ).get(nombre, productoId);
+    if (nombreDuplicado) {
+      return fail(400, { error: 'productos.errorNombreDuplicado' });
+    }
+
+    const diferenciaStock = stockObjetivo - productoActual.stock_actual;
+    if (diferenciaStock > 0 &&
+      (!numeroLote || !esFechaCaducidadValida(fechaCaducidad))) {
+      return fail(400, { error: 'productos.errorLote' });
+    }
+
+    if (diferenciaStock < 0) {
+      const lotesDisponibles = db.prepare(`
+        SELECT COALESCE(SUM(cantidad_actual), 0) AS total
+        FROM lotes
+        WHERE producto_id = ? AND cantidad_actual > 0
+      `).get(productoId) as { total: number };
+      if (productoActual.stock_actual - stockObjetivo > lotesDisponibles.total) {
+        return fail(400, { error: 'admin.errorStockSinLotes' });
+      }
+    }
+
+    db.transaction(() => {
+      db.prepare(`
+        UPDATE productos
+        SET nombre = ?, descripcion = ?, precio = ?, stock_minimo = ?, updated_at = CURRENT_TIMESTAMP
+        WHERE id = ?
+      `).run(nombre, descripcion, precio, stockMinimo, productoId);
+
+      if (diferenciaStock > 0) {
+        movimientosService.registrarEntrada(
+          productoId,
+          diferenciaStock,
+          'Ajuste de stock desde administración',
+          numeroLote,
+          fechaCaducidad
+        );
+      } else if (diferenciaStock < 0) {
+        movimientosService.registrarSalidaFEFO(
+          productoId,
+          -diferenciaStock,
+          'Ajuste de stock desde administración'
+        );
+      }
+    })();
+
+    return { success: 'producto_actualizado' };
   },
 
   recalcularPredicciones: async ({ locals }) => {

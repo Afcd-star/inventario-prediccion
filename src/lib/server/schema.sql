@@ -6,7 +6,6 @@ CREATE TABLE IF NOT EXISTS productos (
   precio REAL NOT NULL CHECK(precio >= 0),
   stock_actual INTEGER NOT NULL DEFAULT 0 CHECK(stock_actual >= 0),
   stock_minimo INTEGER NOT NULL DEFAULT 10 CHECK(stock_minimo >= 0),
-  unidad_medida TEXT DEFAULT 'unidad',
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
   updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
@@ -59,6 +58,19 @@ CREATE TABLE IF NOT EXISTS usuarios (
   password_hash TEXT NOT NULL,
   rol TEXT NOT NULL DEFAULT 'empleado' CHECK(rol IN ('admin', 'empleado')),
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Tabla de escenarios simulados (What-if, Fase 4)
+CREATE TABLE IF NOT EXISTS escenarios (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  nombre TEXT NOT NULL,
+  producto_id INTEGER NOT NULL,
+  parametros TEXT NOT NULL,
+  resultados TEXT NOT NULL,
+  creado_por INTEGER NOT NULL,
+  creado_en DATETIME DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (producto_id) REFERENCES productos(id) ON DELETE CASCADE,
+  FOREIGN KEY (creado_por) REFERENCES usuarios(id) ON DELETE CASCADE
 );
 
 -- Índices para mejorar el rendimiento de las consultas

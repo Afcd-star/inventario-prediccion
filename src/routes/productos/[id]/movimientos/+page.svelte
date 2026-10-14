@@ -26,7 +26,6 @@
       <strong class={data.producto.stock_actual < data.producto.stock_minimo ? 'text-danger' : 'text-success'}>
         {data.producto.stock_actual}
       </strong>
-      {data.producto.unidad_medida}
     </p>
     <BotonPDF
       url="/api/reportes/movimientos?productoId={data.producto.id}"

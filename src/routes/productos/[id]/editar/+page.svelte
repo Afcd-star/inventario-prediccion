@@ -21,7 +21,7 @@
       {#if form?.error}
         <div class="alert alert-danger">{$_(form.error)}</div>
       {/if}
-      <FormularioProducto producto={data.producto} accion="editar" />
+      <FormularioProducto producto={data.producto} lotes={data.lotes} accion="editar" />
     </section>
   {:else}
     <p class="alert alert-danger">{$_('productos.noEncontrado')}</p>

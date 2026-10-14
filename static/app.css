@@ -506,3 +506,27 @@ table:not(.data-table) th {
 .metric-warning p {
   color: var(--status-warning-text);
 }
+
+/* =========================================
+   5. Pie de página global
+   ========================================= */
+.app-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  max-width: 1200px;
+  margin: 3rem auto 0;
+  padding: 1.25rem 1rem;
+  border-top: 1px solid var(--border-color);
+  color: var(--text-muted);
+  font-size: var(--font-size-xs);
+}
+
+.app-footer .footer-version {
+  font-family: 'Courier New', monospace;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  padding: 0.15rem 0.5rem;
+  border-radius: 6px;
+}

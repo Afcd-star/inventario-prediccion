@@ -4,6 +4,7 @@
     import { _ } from 'svelte-i18n';
     import { locale } from 'svelte-i18n';
     import { cambiarIdioma } from '$lib/i18n';
+    import { VERSION } from '$lib/version';
 
     let { form }: { form?: { error?: string } } = $props();
     let temaActual = $state<'light' | 'dark'>('light');
@@ -135,6 +136,7 @@
       <div class="credentials-hint">
         <p class="hint-label">{$_('login.credencialesPrueba')}</p>
         <code class="hint-code">admin@inventario.com / admin123</code>
+        <p class="text-muted text-sm login-version">v{VERSION}</p>
       </div>
     </div>
   </main>
@@ -351,5 +353,10 @@
         min-width: 2.5rem;
         padding: 0.5rem;
       }
+    }
+
+    .login-version {
+      margin: 0.75rem 0 0 0;
+      font-family: 'Courier New', monospace;
     }
   </style>

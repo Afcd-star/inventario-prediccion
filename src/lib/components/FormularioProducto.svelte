@@ -1,17 +1,29 @@
 <script lang="ts">
   import type { Producto } from '$lib/types';
+  import type { Lote } from '$lib/server/lotes.service';
   import { _ } from 'svelte-i18n';
 
   interface Props {
     producto?: Producto;
+    lotes?: Lote[];
     accion: 'crear' | 'editar';
   }
 
-  let { producto, accion }: Props = $props();
+  let { producto, lotes = [], accion }: Props = $props();
 
   // $derived le dice a Svelte que esto se recalcula si 'accion' cambia
   const esEdicion = $derived(accion === 'editar');
   let stock = $state(0);
+  let loteCaducidadId = $state<string | null>(null);
+  let fechaCaducidadLote = $state<string | null>(null);
+  const loteSeleccionado = $derived(
+    lotes.find(lote => lote.id.toString() === loteCaducidadId) ?? lotes[0]
+  );
+
+  function seleccionarLote(id: string) {
+    loteCaducidadId = id;
+    fechaCaducidadLote = lotes.find(lote => lote.id.toString() === id)?.fecha_caducidad ?? '';
+  }
 </script>
 
 <form method="POST" action="?/{accion}" class="product-form">
@@ -39,6 +51,17 @@
     />
   </div>
 
+  <div class="form-field">
+    <label for="descripcion">{$_('productos.descripcion')}</label>
+    <textarea
+      id="descripcion"
+      name="descripcion"
+      rows="3"
+      value={producto?.descripcion ?? ''}
+      placeholder={$_('productos.descripcionPlaceholder')}
+    ></textarea>
+  </div>
+
   <div class="stock-fields">
     <div class="form-field">
       {#if esEdicion}
@@ -63,6 +86,41 @@
   </div>
 
   {#if esEdicion}
+    <div class="form-field">
+      <label for="lote_caducidad_id">{$_('productos.loteFechaCaducidad')}</label>
+      {#if lotes.length > 0}
+        <select
+          id="lote_caducidad_id"
+          name="lote_caducidad_id"
+          class="input-field"
+          value={loteCaducidadId ?? loteSeleccionado?.id.toString() ?? ''}
+          onchange={(event) => seleccionarLote(event.currentTarget.value)}
+        >
+          {#each lotes as lote}
+            <option 
+              value={lote.id}
+              selected={lote.id.toString() === (loteCaducidadId ?? loteSeleccionado?.id.toString())}>
+              {lote.numero_lote} · {lote.cantidad_actual} · {lote.fecha_caducidad}
+            </option>
+          {/each}
+        </select>
+      {:else}
+        <p class="text-secondary">{$_('productos.sinLotesCaducidad')}</p>
+      {/if}
+    </div>
+    <div class="form-field">
+      <label for="fecha_caducidad_lote">{$_('productos.fechaCaducidad')}</label>
+      <input
+        id="fecha_caducidad_lote"
+        type="date"
+        name="fecha_caducidad_lote"
+        value={fechaCaducidadLote ?? loteSeleccionado?.fecha_caducidad ?? ''}
+        oninput={(event) => fechaCaducidadLote = event.currentTarget.value}
+        disabled={lotes.length === 0}
+        required={lotes.length > 0}
+      />
+    </div>
+
     <div class="form-field">
       <label for="stock">{$_('productos.agregarStock')}</label>
       <input id="stock" type="number" name="stock" min="0" bind:value={stock} required />

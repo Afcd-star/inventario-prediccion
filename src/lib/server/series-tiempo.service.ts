@@ -23,32 +23,46 @@ export const seriesTiempoService = {
    * Obtiene el historial de ventas de un producto
    */
   obtenerHistorialVentas(productoId: number, dias: number = 90): PuntoDatos[] {
+    const producto = db.prepare(
+      'SELECT created_at FROM productos WHERE id = ?'
+    ).get(productoId) as { created_at: string } | undefined;
+    if (!producto) return [];
+
+    const hoy = new Date();
+    hoy.setHours(0, 0, 0, 0);
+    const inicioVentana = new Date(hoy);
+    inicioVentana.setDate(inicioVentana.getDate() - dias + 1);
+
+    const fechaCreacion = new Date(`${producto.created_at.slice(0, 10)}T00:00:00`);
+    const fechaInicio = fechaCreacion > inicioVentana ? fechaCreacion : inicioVentana;
+    fechaInicio.setHours(0, 0, 0, 0);
+
     const movimientos = db.prepare(`
-      SELECT fecha, cantidad 
+      SELECT date(fecha) AS fecha, cantidad
       FROM movimientos 
-      WHERE producto_id = ? AND tipo = 'salida' AND fecha >= datetime('now', '-' || ? || ' days')
+      WHERE producto_id = ? AND tipo = 'salida' AND date(fecha) >= date(?)
       ORDER BY fecha ASC
-    `).all(productoId, dias) as Array<{ fecha: string; cantidad: number }>;
+    `).all(productoId, fechaInicio.toISOString().split('T')[0]) as Array<{ fecha: string; cantidad: number }>;
 
     // Agrupar por día
     const ventasPorDia = new Map<string, number>();
     
     movimientos.forEach(m => {
-      const fecha = new Date(m.fecha).toISOString().split('T')[0];
-      ventasPorDia.set(fecha, (ventasPorDia.get(fecha) || 0) + m.cantidad);
+      ventasPorDia.set(m.fecha, (ventasPorDia.get(m.fecha) || 0) + m.cantidad);
     });
 
     // Convertir a array de puntos
-    const hoy = new Date();
     const puntos: PuntoDatos[] = [];
-    
-    for (let i = dias - 1; i >= 0; i--) {
-      const fecha = new Date(hoy);
-      fecha.setDate(fecha.getDate() - i);
-      const fechaStr = fecha.toISOString().split('T')[0];
-      
+
+    for (const fecha = new Date(fechaInicio); fecha <= hoy; fecha.setDate(fecha.getDate() + 1)) {
+      const fechaStr = [
+        fecha.getFullYear(),
+        String(fecha.getMonth() + 1).padStart(2, '0'),
+        String(fecha.getDate()).padStart(2, '0')
+      ].join('-');
+
       puntos.push({
-        fecha: fecha,
+        fecha: new Date(fecha),
         valor: ventasPorDia.get(fechaStr) || 0
       });
     }
@@ -96,7 +110,7 @@ export const seriesTiempoService = {
     // Calcular ratios
     puntos.forEach((punto, i) => {
       const diaSemana = punto.fecha.getDay();
-      const ratio = punto.valor / tendencia[i];
+      const ratio = tendencia[i] > 0 ? punto.valor / tendencia[i] : 1;
       
       sumasPorDia.set(diaSemana, sumasPorDia.get(diaSemana)! + ratio);
       conteosPorDia.set(diaSemana, conteosPorDia.get(diaSemana)! + 1);
@@ -113,7 +127,7 @@ export const seriesTiempoService = {
     });
 
     // Normalizar para que la suma sea 7 (promedio de 1 por día)
-    const factorNormalizacion = 7 / sumaTotal;
+    const factorNormalizacion = sumaTotal > 0 ? 7 / sumaTotal : 1;
     diasSemana.forEach(dia => {
       indices[dia] *= factorNormalizacion;
     });
@@ -137,7 +151,7 @@ export const seriesTiempoService = {
 
     puntos.forEach((punto, i) => {
       const mes = punto.fecha.getMonth();
-      const ratio = punto.valor / tendencia[i];
+      const ratio = tendencia[i] > 0 ? punto.valor / tendencia[i] : 1;
       
       sumasPorMes.set(mes, sumasPorMes.get(mes)! + ratio);
       conteosPorMes.set(mes, conteosPorMes.get(mes)! + 1);
@@ -145,14 +159,19 @@ export const seriesTiempoService = {
 
     const indices: { [key: string]: number } = {};
     let sumaTotal = 0;
+    let mesesConDatos = 0;
 
     meses.forEach((mes, idx) => {
-      const promedio = sumasPorMes.get(idx)! / conteosPorMes.get(idx)!;
+      const conteo = conteosPorMes.get(idx)!;
+      const promedio = conteo > 0 ? sumasPorMes.get(idx)! / conteo : 1;
       indices[mes] = promedio;
-      sumaTotal += promedio;
+      if (conteo > 0) {
+        sumaTotal += promedio;
+        mesesConDatos += 1;
+      }
     });
 
-    const factorNormalizacion = 12 / sumaTotal;
+    const factorNormalizacion = sumaTotal > 0 ? mesesConDatos / sumaTotal : 1;
     meses.forEach(mes => {
       indices[mes] *= factorNormalizacion;
     });
@@ -335,5 +354,47 @@ export const seriesTiempoService = {
     if (cambio > 0.1) return 'creciente';
     if (cambio < -0.1) return 'decreciente';
     return 'estable';
+  },
+
+    /**
+   * Exporta los coeficientes del modelo para el simulador What-if (Fase 4).
+   * Devuelve todo lo que el cliente necesita para recalcular predicciones
+   * sin volver a consultar la base de datos.
+   */
+  obtenerCoeficientes(productoId: number) {
+    const producto = db.prepare('SELECT * FROM productos WHERE id = ?').get(productoId) as any;
+    if (!producto) return null;
+
+    const puntos = this.obtenerHistorialVentas(productoId, 90);
+    if (puntos.length < 14) return null;
+
+    const componentes = this.descomponerSerie(puntos);
+    const n = componentes.tendencia.length;
+
+    // Pendiente de la tendencia por mínimos cuadrados
+    const mediaX = (n - 1) / 2;
+    const mediaY = componentes.tendencia.reduce((a, b) => a + b, 0) / n;
+    let numerador = 0;
+    let denominador = 0;
+    for (let i = 0; i < n; i++) {
+      numerador += (i - mediaX) * (componentes.tendencia[i] - mediaY);
+      denominador += (i - mediaX) * (i - mediaX);
+    }
+    const pendienteTendencia = denominador === 0 ? 0 : numerador / denominador;
+
+    const dias = ['domingo', 'lunes', 'martes', 'miercoles', 'jueves', 'viernes', 'sabado'];
+    const indicesSemanales = dias.map(d => componentes.indicesEstacionales[d] ?? 1);
+    const ultimosDias = puntos.slice(-7);
+    const consumoBase = ultimosDias.reduce((total, punto) => total + punto.valor, 0) / ultimosDias.length;
+
+    return {
+      productoId,
+      consumoBase: Math.max(0, consumoBase),
+      pendienteTendencia,
+      indicesSemanales,
+      volatilidad: this.calcularDesviacionEstandar(puntos.map(p => p.valor)),
+      stockActual: producto.stock_actual,
+      stockMinimo: producto.stock_minimo
+    };
   }
 };

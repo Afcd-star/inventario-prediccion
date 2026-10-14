@@ -2,6 +2,7 @@ import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import db from './database';
 import type { Producto } from '../types';
+import { VERSION } from '$lib/version';
 
 declare module 'jspdf' {
   interface jsPDF {
@@ -159,9 +160,9 @@ export const reportesService = {
         290
       );
       doc.text(
-        'StockPredict Pro - Sistema de Gestión de Inventario',
-        105,
-        290,
+        `StockPredict Pro v${VERSION} - Sistema de Gestión de Inventario`, 
+        105, 
+        290, 
         { align: 'center' }
       );
       doc.text(
@@ -218,7 +219,7 @@ export const reportesService = {
     doc.setFont('helvetica', 'bold');
     doc.text('Stock actual:', 14, 63);
     doc.setFont('helvetica', 'normal');
-    doc.text(`${producto.stock_actual} ${producto.unidad_medida || 'unidades'}`, 40, 63);
+    doc.text(String(producto.stock_actual), 40, 63);
     
     doc.setFont('helvetica', 'bold');
     doc.text('Fecha del reporte:', 14, 71);
@@ -312,7 +313,7 @@ export const reportesService = {
       doc.setFontSize(8);
       doc.setTextColor(...COLORES.textoClaro);
       doc.text(`Página ${i} de ${pageCount}`, 14, 290);
-      doc.text('StockPredict Pro', 105, 290, { align: 'center' });
+      doc.text(`StockPredict Pro v${VERSION}`, 105, 290, { align: 'center' });
       doc.setDrawColor(...COLORES.primario);
       doc.setLineWidth(0.3);
       doc.line(14, 285, 196, 285);

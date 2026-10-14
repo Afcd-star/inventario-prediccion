@@ -4,7 +4,17 @@
   import { _ } from 'svelte-i18n';
 
   type Usuario = PageData['usuarios'][number];
-  type Modal = 'usuarios' | 'crearUsuario' | 'herramientas' | 'tabla' | 'cambiarRol' | 'eliminarUsuario' | null;
+  type Modal = 'usuarios' | 'crearUsuario' | 'herramientas' | 'tabla' | 'cambiarRol' | 'eliminarUsuario' | 'editarProducto' | null;
+  type ProductoEdicion = {
+    id: number;
+    nombre: string;
+    descripcion: string;
+    precio: number;
+    stock_actual: number;
+    stock_minimo: number;
+    created_at: string;
+    updated_at: string;
+  };
   type TablaPreview = {
     nombre: string;
     columnas: string[];
@@ -19,6 +29,8 @@
   let tablaSeleccionada = $state('');
   let previewTabla = $state<TablaPreview | null>(null);
   let usuarioSeleccionado = $state<Usuario | null>(null);
+  let productoEditando = $state<ProductoEdicion | null>(null);
+  let stockObjetivo = $state(0);
   let rolSeleccionado = $state<'admin' | 'empleado'>('empleado');
   let cargandoTabla = $state(false);
   let errorTabla = $state('');
@@ -50,9 +62,39 @@
     modal = 'cambiarRol';
   }
 
+  function abrirEdicionProducto(fila: Record<string, unknown>) {
+    if (
+      typeof fila.id !== 'number' ||
+      typeof fila.nombre !== 'string' ||
+      typeof fila.precio !== 'number' ||
+      typeof fila.stock_actual !== 'number' ||
+      typeof fila.stock_minimo !== 'number' ||
+      typeof fila.created_at !== 'string' ||
+      typeof fila.updated_at !== 'string' ||
+      (fila.descripcion !== null && typeof fila.descripcion !== 'string')
+    ) {
+      errorTabla = $_('admin.errorTabla');
+      return;
+    }
+
+    productoEditando = {
+      id: fila.id,
+      nombre: fila.nombre,
+      descripcion: typeof fila.descripcion === 'string' ? fila.descripcion : '',
+      precio: fila.precio,
+      stock_actual: fila.stock_actual,
+      stock_minimo: fila.stock_minimo,
+      created_at: fila.created_at,
+      updated_at: fila.updated_at
+    };
+    stockObjetivo = fila.stock_actual;
+    modal = 'editarProducto';
+  }
+
   function cerrarModal() {
     modal = null;
     usuarioSeleccionado = null;
+    productoEditando = null;
   }
 
   function cerrarConEscape(event: KeyboardEvent) {
@@ -84,7 +126,7 @@
 
   {#if form?.success}
     <div class="alert alert-success">
-      ✅ {$_(`admin.${form.success === 'usuario_creado' ? 'usuarioCreado' : form.success === 'rol_actualizado' ? 'rolActualizado' : form.success === 'usuario_eliminado' ? 'usuarioEliminado' : 'prediccionesRecalculadas'}`)}
+      ✅ {$_(`admin.${form.success === 'usuario_creado' ? 'usuarioCreado' : form.success === 'rol_actualizado' ? 'rolActualizado' : form.success === 'usuario_eliminado' ? 'usuarioEliminado' : form.success === 'producto_actualizado' ? 'productoActualizado' : 'prediccionesRecalculadas'}`)}
     </div>
   {/if}
 
@@ -163,6 +205,8 @@
             {$_('admin.registrosDe')} {tablaSeleccionada}
           {:else if modal === 'cambiarRol'}
             {$_('admin.cambiarRol')}
+          {:else if modal === 'editarProducto'}
+            {$_('admin.editarProducto')}
           {:else}
             {$_('admin.confirmarEliminar')}
           {/if}
@@ -276,6 +320,9 @@
                     {#each previewTabla.columnas as columna}
                       <th>{columna}</th>
                     {/each}
+                    {#if tablaSeleccionada === 'productos'}
+                      <th>{$_('admin.acciones')}</th>
+                    {/if}
                   </tr>
                 </thead>
                 <tbody>
@@ -284,6 +331,17 @@
                       {#each previewTabla.columnas as columna}
                         <td>{formatoCelda(fila[columna])}</td>
                       {/each}
+                      {#if tablaSeleccionada === 'productos'}
+                        <td>
+                          <button
+                            class="btn btn-small btn-primary"
+                            type="button"
+                            onclick={() => abrirEdicionProducto(fila)}
+                          >
+                            {$_('botones.editar')}
+                          </button>
+                        </td>
+                      {/if}
                     </tr>
                   {/each}
                 </tbody>
@@ -291,6 +349,59 @@
             </div>
           {/if}
         {/if}
+      {:else if modal === 'editarProducto' && productoEditando}
+        <form
+          method="POST"
+          action="?/editarProducto"
+          use:enhance={() => async ({ result, update }) => {
+            await update();
+            if (result.type === 'success') await abrirTabla('productos');
+          }}
+          class="product-edit-form"
+        >
+          <input type="hidden" name="producto_id" value={productoEditando.id} />
+          <p class="text-secondary metadata-note">
+            ID {productoEditando.id} · {$_('admin.productoMetadatosSoloLectura')} ·
+            {productoEditando.created_at} · {productoEditando.updated_at}
+          </p>
+          <div class="input-group">
+            <label for="producto-nombre" class="label">{$_('productos.nombre')}</label>
+            <input id="producto-nombre" name="nombre" class="input-field" value={productoEditando.nombre} required />
+          </div>
+          <div class="input-group">
+            <label for="producto-descripcion" class="label">{$_('productos.descripcion')}</label>
+            <textarea id="producto-descripcion" name="descripcion" class="input-field" rows="3" value={productoEditando.descripcion}></textarea>
+          </div>
+          <div class="product-edit-grid">
+            <div class="input-group">
+              <label for="producto-precio" class="label">{$_('productos.precio')}</label>
+              <input id="producto-precio" name="precio" type="number" class="input-field" min="0" step="0.01" value={productoEditando.precio} required />
+            </div>
+            <div class="input-group">
+              <label for="producto-stock" class="label">{$_('productos.stockActual')}</label>
+              <input id="producto-stock" name="stock_actual" type="number" class="input-field" min="0" step="1" bind:value={stockObjetivo} required />
+            </div>
+            <div class="input-group">
+              <label for="producto-minimo" class="label">{$_('productos.stockMinimo')}</label>
+              <input id="producto-minimo" name="stock_minimo" type="number" class="input-field" min="0" step="1" value={productoEditando.stock_minimo} required />
+            </div>
+          </div>
+          {#if stockObjetivo > productoEditando.stock_actual}
+            <p class="text-secondary">{$_('admin.stockAumentaAviso')}</p>
+            <div class="input-group">
+              <label for="producto-lote" class="label">{$_('productos.numeroLote')}</label>
+              <input id="producto-lote" name="numero_lote" class="input-field" required />
+            </div>
+            <div class="input-group">
+              <label for="producto-caducidad" class="label">{$_('productos.fechaCaducidad')}</label>
+              <input id="producto-caducidad" name="fecha_caducidad" type="date" class="input-field" required />
+            </div>
+          {/if}
+          <div class="modal-actions">
+            <button type="button" class="btn btn-secondary" onclick={cerrarModal}>{$_('botones.cancelar')}</button>
+            <button type="submit" class="btn btn-primary">{$_('admin.guardarProducto')}</button>
+          </div>
+        </form>
       {:else if modal === 'cambiarRol' && usuarioSeleccionado}
         <form method="POST" action="?/cambiarRol" use:enhance class="form-stack">
           <input type="hidden" name="userId" value={usuarioSeleccionado.id} />
@@ -507,6 +618,22 @@
 
   .table-summary {
     margin-bottom: 1rem;
+  }
+
+  .product-edit-form {
+    display: grid;
+    gap: 1rem;
+  }
+
+  .product-edit-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 180px), 1fr));
+    gap: 1rem;
+  }
+
+  .metadata-note {
+    margin: 0;
+    font-size: var(--font-size-sm);
   }
 
   .modal-actions,

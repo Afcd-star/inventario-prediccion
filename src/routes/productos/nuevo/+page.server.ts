@@ -10,6 +10,7 @@ export const actions = {
     const precio = Number(data.get('precio')?.toString() || '0');
     const stock = Number(data.get('stock')?.toString() || '0');
     const minimo = Number(data.get('minimo')?.toString() || '10');
+    const descripcion = data.get('descripcion')?.toString().trim() ?? '';
     const numeroLote = data.get('numero_lote')?.toString().trim();
     const fechaCaducidad = data.get('fecha_caducidad')?.toString();
 
@@ -25,9 +26,9 @@ export const actions = {
 
     db.transaction(() => {
       const result = db.prepare(`
-        INSERT INTO productos (nombre, precio, stock_actual, stock_minimo)
-        VALUES (?, ?, 0, ?)
-      `).run(nombre, precio, minimo);
+        INSERT INTO productos (nombre, descripcion, precio, stock_actual, stock_minimo)
+        VALUES (?, ?, ?, 0, ?)
+      `).run(nombre, descripcion, precio, minimo);
 
       if (stock > 0 && numeroLote && fechaCaducidad) {
         movimientosService.registrarEntrada(

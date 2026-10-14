@@ -3,6 +3,7 @@
   import { onMount } from 'svelte';
   import { _, locale } from 'svelte-i18n';
   import { cambiarIdioma } from '$lib/i18n';
+  import { VERSION } from '$lib/version';
 
   let { data }: { data: { usuario?: { nombre: string; email: string; rol: string } } } = $props();
   
@@ -13,7 +14,9 @@
   onMount(() => {
     const guardado = localStorage.getItem('tema');
     const preferidoSistema = window.matchMedia('(prefers-color-scheme: dark)').matches;
-    temaActual = (guardado as 'light' | 'dark') || (preferidoSistema ? 'dark' : 'light');
+    temaActual = guardado === 'light' || guardado === 'dark'
+      ? guardado
+      : preferidoSistema ? 'dark' : 'light';
     document.documentElement.setAttribute('data-theme', temaActual);
   });
 
@@ -56,7 +59,8 @@
   const enlaces = [
     { href: '/dashboard', texto: 'nav.dashboard', icono: '📊' },
     { href: '/productos', texto: 'nav.productos', icono: '📦' },
-    { href: '/escanear', texto: 'nav.escanear', icono: '📱' }
+    { href: '/escanear', texto: 'nav.escanear', icono: '📱' },
+    { href: '/simulacion', texto: 'nav.simulacion', icono: '🧪' }
   ];
 
   const idiomasDisponibles = [
@@ -176,6 +180,8 @@
               <span>{$_('nav.cerrarSesion')}</span>
             </button>
           </form>
+          <div class="menu-divider"></div>
+          <div class="menu-version">StockPredict Pro v{VERSION}</div>
         </div>
       </div>
     {/if}
@@ -392,5 +398,12 @@
 
   .language-option {
     padding-left: 2.5rem;
+  }
+
+  .menu-version {
+    padding: 0.6rem 1.25rem;
+    font-size: var(--font-size-xs);
+    color: var(--text-muted);
+    text-align: center;
   }
 </style>
