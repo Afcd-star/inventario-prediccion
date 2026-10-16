@@ -2,9 +2,14 @@
 // Esquema semántico: MAYOR.MENOR.PARCHES
 // Regla: el cambio de versión viaja en el mismo commit que la funcionalidad.
 
-export const VERSION = '1.2.0';
+export const VERSION = '1.3.0';
 
 export const CHANGELOG = [
+  {
+    version: '1.3.0',
+    fecha: '2026-10-16',
+    resumen: 'Historial de auditoría inmutable con registro de acciones críticas, filtros combinables, paginación y exportación en CSV y PDF. Inmutabilidad garantizada por triggers de SQLite.'
+  },
   {
     version: '1.2.0',
     fecha: '2026-10-16',

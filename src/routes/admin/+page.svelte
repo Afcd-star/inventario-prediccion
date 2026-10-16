@@ -24,6 +24,23 @@
     limite: number;
     truncado: boolean;
   };
+  type AparienciaTabla = { icono: string; color: string };
+
+  const aparienciasTablas: Record<string, AparienciaTabla> = {
+    productos: { icono: '📦', color: '#2563EB' },
+    lotes: { icono: '🏷️', color: '#D97706' },
+    movimientos: { icono: '🔄', color: '#0F766E' },
+    predicciones: { icono: '📈', color: '#7C3AED' },
+    usuarios: { icono: '👥', color: '#16A34A' },
+    escenarios: { icono: '🧪', color: '#4F46E5' },
+    anomalias: { icono: '🚨', color: '#DC2626' },
+    configuracion: { icono: '⚙️', color: '#B45309' },
+    auditoria: { icono: '📜', color: '#475569' }
+  };
+
+  function aparienciaTabla(nombre: string): AparienciaTabla {
+    return aparienciasTablas[nombre] ?? { icono: '📋', color: '#64748B' };
+  }
 
   let { data, form }: { data: PageData; form?: { success?: string; error?: string; nuevas?: number } } = $props();
   let modal = $state<Modal>(null);
@@ -185,6 +202,11 @@
       <span class="action-title">{$_('anomalias.titulo')}</span>
       <span class="action-description">{$_('admin.descripcionMonitor')}</span>
     </button>
+    <a href="/auditoria" class="action-card action-link">
+      <span class="action-icon" aria-hidden="true">📜</span>
+      <span class="action-title">{$_('admin.auditoriaCard')}</span>
+      <span class="action-description">{$_('admin.auditoriaDescripcion')}</span>
+    </a>
   </section>
 
   <section class="card tables-card">
@@ -201,12 +223,16 @@
     {:else}
       <div class="tables-grid">
         {#each data.tablas as tabla}
-          <article class="table-card">
-            <div>
-              <h3>{tabla.nombre}</h3>
-              <p class="text-secondary">
-                {tabla.registros} {$_('admin.registros')} · {tabla.columnas} {$_('admin.columnas')}
-              </p>
+          {@const apariencia = aparienciaTabla(tabla.nombre)}
+          <article class="table-card" style:--table-accent={apariencia.color}>
+            <div class="table-card-heading">
+              <span class="table-icon" aria-hidden="true">{apariencia.icono}</span>
+              <div>
+                <h3>{tabla.nombre}</h3>
+                <p class="text-secondary">
+                  {tabla.registros} {$_('admin.registros')} · {tabla.columnas} {$_('admin.columnas')}
+                </p>
+              </div>
             </div>
             <button class="btn btn-secondary" type="button" onclick={() => abrirTabla(tabla.nombre)}>
               {$_('admin.verRegistros')}
@@ -584,6 +610,29 @@
   .table-card {
     justify-content: space-between;
     min-width: 0;
+    border-left: 4px solid var(--table-accent);
+  }
+
+  .table-card-heading {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .table-icon {
+    display: grid;
+    width: 2.5rem;
+    height: 2.5rem;
+    flex: 0 0 auto;
+    place-items: center;
+    border-radius: 0.75rem;
+    background: var(--table-accent);
+    color: #fff;
+    font-size: 1.25rem;
+  }
+
+  .table-card-heading h3 {
+    overflow-wrap: anywhere;
   }
 
   .modal-backdrop {
@@ -812,5 +861,9 @@
     .action-card {
       min-height: 140px;
     }
+  }
+
+  .action-link {
+    text-decoration: none;
   }
 </style>

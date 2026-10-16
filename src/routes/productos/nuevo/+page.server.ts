@@ -2,9 +2,10 @@ import db from '$lib/server/database';
 import { fail, redirect } from '@sveltejs/kit';
 import type { Actions } from './$types';
 import { esFechaCaducidadValida, movimientosService } from '$lib/server/services/movimientos.service';
+import { auditoriaService } from '$lib/server/services/auditoria.service';
 
 export const actions = {
-  crear: async ({ request }) => {
+  crear: async ({ locals, request, getClientAddress }) => {
     const data = await request.formData();
     const nombre = data.get('nombre')?.toString().trim();
     const precio = Number(data.get('precio')?.toString() || '0');
@@ -24,7 +25,7 @@ export const actions = {
       return fail(400, { error: 'productos.errorLote' });
     }
 
-    db.transaction(() => {
+    const resultado = db.transaction(() => {
       const result = db.prepare(`
         INSERT INTO productos (nombre, descripcion, precio, stock_actual, stock_minimo)
         VALUES (?, ?, ?, 0, ?)
@@ -39,7 +40,17 @@ export const actions = {
           fechaCaducidad
         );
       }
+      return result;
     })();
+
+    auditoriaService.registrar({
+      usuarioId: locals.usuario?.id ?? null,
+      accion: 'producto_crear',
+      tabla: 'productos',
+      registroId: Number(resultado.lastInsertRowid),
+      detalles: { nombre, precio, stock_actual: stock, stock_minimo: minimo },
+      ip: getClientAddress()
+    });
 
     throw redirect(303, '/productos');
   }

@@ -102,6 +102,32 @@ INSERT OR IGNORE INTO configuracion (clave, valor) VALUES
   ('umbral_porcentaje', '30'),
   ('dias_consecutivos', '3');
 
+-- Tabla de auditoría: registro inmutable de acciones críticas (Fase 6)
+CREATE TABLE IF NOT EXISTS auditoria (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  usuario_id INTEGER,
+  usuario_nombre TEXT,
+  accion TEXT NOT NULL,
+  tabla_afectada TEXT,
+  registro_id INTEGER,
+  detalles TEXT NOT NULL DEFAULT '{}',
+  ip TEXT,
+  creada_en DATETIME DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (usuario_id) REFERENCES usuarios(id) ON DELETE SET NULL
+);
+
+CREATE TRIGGER IF NOT EXISTS auditoria_bloquea_update
+BEFORE UPDATE ON auditoria
+BEGIN
+  SELECT RAISE(ABORT, 'AUDITORIA INMUTABLE: las modificaciones estan prohibidas');
+END;
+
+CREATE TRIGGER IF NOT EXISTS auditoria_bloquea_delete
+BEFORE DELETE ON auditoria
+BEGIN
+  SELECT RAISE(ABORT, 'AUDITORIA INMUTABLE: los borrados estan prohibidos');
+END;
+
 -- Índices para mejorar el rendimiento de las consultas
 CREATE INDEX IF NOT EXISTS idx_movimientos_producto_fecha ON movimientos(producto_id, fecha);
 CREATE INDEX IF NOT EXISTS idx_productos_nombre ON productos(nombre);

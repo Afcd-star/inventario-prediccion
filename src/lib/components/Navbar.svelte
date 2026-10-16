@@ -136,13 +136,13 @@
 
           <div class="menu-divider"></div>
 
-          <a href="/perfil" class="menu-item">
+          <a href="/perfil" class="menu-item" onclick={cerrarMenu}>
             <span class="menu-icon">👤</span>
             <span>{$_('nav.perfil')}</span>
           </a>
 
           {#if data.usuario.rol === 'admin'}
-            <a href="/admin" class="menu-item">
+            <a href="/admin" class="menu-item" onclick={cerrarMenu}>
               <span class="menu-icon">⚙️</span>
               <span>{$_('nav.admin')}</span>
             </a>

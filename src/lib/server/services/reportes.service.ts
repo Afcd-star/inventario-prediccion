@@ -3,6 +3,7 @@ import autoTable from 'jspdf-autotable';
 import db from '../database';
 import type { Producto } from '../../types';
 import { VERSION } from '$lib/version';
+import { auditoriaService } from './auditoria.service';
 
 declare module 'jspdf' {
   interface jsPDF {
@@ -320,5 +321,110 @@ export const reportesService = {
     }
     
     return doc;
+  },
+
+  generarPDF_Auditoria(filtros: {
+    desde?: string | null;
+    hasta?: string | null;
+    usuarioId?: number | null;
+    accion?: string | null;
+  }): Uint8Array {
+    const resultado = auditoriaService.listar({
+      ...filtros,
+      pagina: 1,
+      porPagina: 500
+    });
+
+    const doc = new jsPDF();
+
+    // Encabezado
+    doc.setFontSize(18);
+    doc.text('Historial de Auditoría', 105, 15, { align: 'center' });
+    doc.setFontSize(10);
+    doc.text(`Generado: ${new Date().toLocaleString('es-ES')}`, 105, 22, { align: 'center' });
+
+    // Filtros aplicados
+    let yPos = 32;
+    doc.setFontSize(9);
+    const filtrosTexto: string[] = [];
+    if (filtros.desde) filtrosTexto.push(`Desde: ${filtros.desde}`);
+    if (filtros.hasta) filtrosTexto.push(`Hasta: ${filtros.hasta}`);
+    if (filtros.accion) filtrosTexto.push(`Acción: ${filtros.accion}`);
+
+    if (filtrosTexto.length > 0) {
+      doc.text('Filtros: ' + filtrosTexto.join(' | '), 14, yPos);
+      yPos += 6;
+    }
+
+    doc.text(`Total de registros: ${resultado.total}`, 14, yPos);
+    yPos += 10;
+
+    // Tabla
+    doc.setFontSize(8);
+    const columnas = [
+      { header: 'Fecha', width: 30 },
+      { header: 'Autor', width: 35 },
+      { header: 'Acción', width: 35 },
+      { header: 'Objetivo', width: 30 },
+      { header: 'IP', width: 25 }
+    ];
+
+    // Encabezados de columna
+    let xPos = 14;
+    columnas.forEach(col => {
+      doc.setFont('helvetica', 'bold');
+      doc.text(col.header, xPos, yPos);
+      xPos += col.width;
+    });
+    yPos += 4;
+    doc.line(14, yPos, 196, yPos);
+    yPos += 4;
+
+    // Filas
+    doc.setFont('helvetica', 'normal');
+    resultado.registros.forEach((registro: { creada_en: string | number | Date; usuario_nombre: any; accion: any; tabla_afectada: any; registro_id: any; ip: any; }) => {
+      if (yPos > 280) {
+        doc.addPage();
+        yPos = 20;
+      }
+
+      const fecha = new Date(registro.creada_en).toLocaleString('es-ES', {
+        day: '2-digit',
+        month: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+
+      xPos = 14;
+      doc.text(fecha, xPos, yPos);
+      xPos += columnas[0].width;
+
+      doc.text(registro.usuario_nombre ?? '—', xPos, yPos);
+      xPos += columnas[1].width;
+
+      doc.text(registro.accion, xPos, yPos);
+      xPos += columnas[2].width;
+
+      const objetivo = registro.tabla_afectada
+        ? `${registro.tabla_afectada}${registro.registro_id ? ` #${registro.registro_id}` : ''}`
+        : '—';
+      doc.text(objetivo, xPos, yPos);
+      xPos += columnas[3].width;
+
+      doc.text(registro.ip ?? '—', xPos, yPos);
+
+      yPos += 5;
+    });
+
+    // Pie de página
+    doc.setFontSize(8);
+    doc.text(
+      `StockPredict Pro v${VERSION} - Historial de Auditoría`,
+      105,
+      290,
+      { align: 'center' }
+    );
+
+    return new Uint8Array(doc.output('arraybuffer'));
   }
 };

@@ -2,6 +2,7 @@ import { fail, redirect } from '@sveltejs/kit';
 import bcrypt from 'bcryptjs';
 import db from '$lib/server/database';
 import type { PageServerLoad, Actions } from './$types';
+import { auditoriaService } from '$lib/server/services/auditoria.service';
 
 export const load = (async ({ locals }) => {
   if (!locals.usuario) {
@@ -23,7 +24,7 @@ export const load = (async ({ locals }) => {
 }) satisfies PageServerLoad;
 
 export const actions = {
-  actualizarPerfil: async ({ request, locals }) => {
+  actualizarPerfil: async ({ request, locals, getClientAddress }) => {
     if (!locals.usuario) {
       throw redirect(303, '/login');
     }
@@ -35,14 +36,28 @@ export const actions = {
       return fail(400, { error: 'perfil.errorNombre' });
     }
 
+    const usuario = db.prepare(
+      'SELECT nombre FROM usuarios WHERE id = ?'
+    ).get(locals.usuario.id) as { nombre: string } | undefined;
+    const nombreAnterior = usuario?.nombre;
+
     db.prepare(
       'UPDATE usuarios SET nombre = ? WHERE id = ?'
     ).run(nombre, locals.usuario.id);
 
+    auditoriaService.registrar({
+      usuarioId: locals.usuario.id,
+      accion: 'perfil_nombre',
+      tabla: 'usuarios',
+      registroId: locals.usuario.id,
+      detalles: { nombreAnterior, nombreNuevo: nombre },
+      ip: getClientAddress()
+    });
+
     return { success: 'perfil_actualizado' };
   },
 
-  cambiarPassword: async ({ request, locals }) => {
+  cambiarPassword: async ({ request, locals, getClientAddress }) => {
     if (!locals.usuario) {
       throw redirect(303, '/login');
     }
@@ -82,6 +97,15 @@ export const actions = {
     db.prepare(
       'UPDATE usuarios SET password_hash = ? WHERE id = ?'
     ).run(hash, locals.usuario.id);
+
+    auditoriaService.registrar({
+      usuarioId: locals.usuario.id,
+      accion: 'perfil_password',
+      tabla: 'usuarios',
+      registroId: locals.usuario.id,
+      detalles: { cambio: 'contraseña actualizada' },
+      ip: getClientAddress()
+    });
 
     return { success: 'password_cambiado' };
   }

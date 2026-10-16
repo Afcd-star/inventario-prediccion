@@ -3,6 +3,7 @@ import { fail, redirect } from '@sveltejs/kit';
 import type { PageServerLoad, Actions } from './$types';
 import type { Producto } from '$lib/types';
 import { movimientosService } from '$lib/server/services/movimientos.service';
+import { auditoriaService } from '$lib/server/services/auditoria.service';
 
 export const load = (async ({ params }) => {
   const producto = db
@@ -19,7 +20,7 @@ export const load = (async ({ params }) => {
 }) satisfies PageServerLoad;
 
 export const actions = {
-  registrar: async ({ request }) => {
+  registrar: async ({ request, params, locals, getClientAddress }) => {
     const data = await request.formData();
     const producto_id = Number(data.get('producto_id')?.toString() || '0');
     const tipo = data.get('tipo')?.toString();
@@ -62,6 +63,15 @@ export const actions = {
       }
       throw error;
     }
+
+    auditoriaService.registrar({
+      usuarioId: locals.usuario?.id ?? null,
+      accion: tipo === 'entrada' ? 'movimiento_entrada' : 'movimiento_salida',
+      tabla: 'movimientos',
+      registroId: parseInt(params.id),
+      detalles: { cantidad, tipo, notas },
+      ip: getClientAddress()
+    });
 
     return { success: 'movimiento_registrado' };
   }

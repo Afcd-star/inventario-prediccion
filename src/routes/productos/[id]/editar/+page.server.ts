@@ -4,6 +4,7 @@ import type { PageServerLoad, Actions } from './$types';
 import type { Producto } from '$lib/types';
 import { esFechaCaducidadValida, movimientosService } from '$lib/server/services/movimientos.service';
 import { lotesService } from '$lib/server/services/lotes.service';
+import { auditoriaService } from '$lib/server/services/auditoria.service';
 
 // Carga los datos específicos para ESTA ruta (/editar)
 export const load = (async ({ params }) => {
@@ -19,7 +20,7 @@ export const load = (async ({ params }) => {
 
 // Maneja el envío del formulario de edición
 export const actions = {
-  editar: async ({ request, params }) => {
+  editar: async ({ request, params, locals, getClientAddress }) => {
     const data = await request.formData();
     const nombre = data.get('nombre')?.toString().trim();
     const precio = Number(data.get('precio')?.toString() || '0');
@@ -51,6 +52,15 @@ export const actions = {
       return fail(400, { error: 'productos.errorLote' });
     }
 
+    const antes = db.prepare(
+      'SELECT nombre, precio, stock_actual, stock_minimo FROM productos WHERE id = ?'
+    ).get(productoId) as {
+      nombre: string;
+      precio: number;
+      stock_actual: number;
+      stock_minimo: number;
+    } | undefined;
+
     const actualizar = db.transaction(() => {
       if (loteCaducidadId !== null) {
         const resultadoCaducidad = db.prepare(`
@@ -80,9 +90,27 @@ export const actions = {
       return true;
     });
 
-    if (!actualizar()) {
+    if (!antes || !actualizar()) {
       return fail(404, { error: 'productos.noEncontrado' });
     }
+
+    const despues = db.prepare(
+      'SELECT nombre, precio, stock_actual, stock_minimo FROM productos WHERE id = ?'
+    ).get(productoId) as {
+      nombre: string;
+      precio: number;
+      stock_actual: number;
+      stock_minimo: number;
+    };
+
+    auditoriaService.registrar({
+      usuarioId: locals.usuario?.id ?? null,
+      accion: 'producto_actualizar',
+      tabla: 'productos',
+      registroId: productoId,
+      detalles: { antes, despues },
+      ip: getClientAddress()
+    });
 
     throw redirect(303, '/productos');
   }

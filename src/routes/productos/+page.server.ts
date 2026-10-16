@@ -3,6 +3,7 @@ import { fail, redirect } from '@sveltejs/kit';
 import type { PageServerLoad, Actions } from './$types';
 import type { Producto } from '$lib/types';
 import { esFechaCaducidadValida, movimientosService } from '$lib/server/services/movimientos.service';
+import { auditoriaService } from '$lib/server/services/auditoria.service';
 
 type ProductoListado = Producto & {
   lotes_activos: number;
@@ -86,12 +87,26 @@ export const actions = {
     return { success: 'producto_creado' };
   },
 
-  eliminar: async ({ request }: { request: Request }) => {
+  eliminar: async ({ request, locals, getClientAddress }) => {
     const data = await request.formData();
     const id = parseInt(data.get('id')?.toString() || '0');
-    
-    db.prepare('DELETE FROM productos WHERE id = ?').run(id);
-    
+
+    const producto = db.prepare(
+      'SELECT nombre FROM productos WHERE id = ?'
+    ).get(id) as { nombre: string } | undefined;
+    const resultado = db.prepare('DELETE FROM productos WHERE id = ?').run(id);
+
+    if (resultado.changes > 0) {
+      auditoriaService.registrar({
+        usuarioId: locals.usuario?.id ?? null,
+        accion: 'producto_eliminar',
+        tabla: 'productos',
+        registroId: id,
+        detalles: { nombre: producto?.nombre ?? 'desconocido' },
+        ip: getClientAddress()
+      });
+    }
+
     // Retornar mensaje de éxito
     return { success: 'producto_eliminado' };
   }
