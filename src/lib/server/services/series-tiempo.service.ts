@@ -1,4 +1,4 @@
-import db from './database';
+import db from '../database';
 
 // Interfaces para los datos de series de tiempo
 interface PuntoDatos {
@@ -361,11 +361,12 @@ export const seriesTiempoService = {
    * Devuelve todo lo que el cliente necesita para recalcular predicciones
    * sin volver a consultar la base de datos.
    */
-  obtenerCoeficientes(productoId: number) {
+  obtenerCoeficientes(productoId: number, diasExcluir: number = 0) {
     const producto = db.prepare('SELECT * FROM productos WHERE id = ?').get(productoId) as any;
     if (!producto) return null;
 
-    const puntos = this.obtenerHistorialVentas(productoId, 90);
+    const historial = this.obtenerHistorialVentas(productoId, 90);
+    const puntos = diasExcluir > 0 ? historial.slice(0, -diasExcluir) : historial;
     if (puntos.length < 14) return null;
 
     const componentes = this.descomponerSerie(puntos);

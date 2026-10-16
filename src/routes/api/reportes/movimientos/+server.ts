@@ -1,6 +1,6 @@
 import { json, type RequestHandler } from '@sveltejs/kit';
 import db from '$lib/server/database';
-import { reportesService } from '$lib/server/reportes.service';
+import { reportesService } from '$lib/server/services/reportes.service';
 
 export const GET: RequestHandler = async ({ url, locals }) => {
   if (!locals.usuario) {

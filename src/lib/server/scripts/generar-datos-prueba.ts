@@ -2,7 +2,7 @@
 // Importa sqlite.ts (no database.ts) porque sqlite.ts no tiene imports
 // específicos de Vite y por tanto funciona con npx tsx sin problemas.
 import db from '../sqlite';
-import { prediccionService } from '../prediccion.service';
+import { prediccionService } from '../services/prediccion.service';
 
 // ID del producto: se pasa como argumento. Ej: npx tsx .../generar-datos-prueba.ts 3
 const productoId = Number(process.argv[2] ?? 1);

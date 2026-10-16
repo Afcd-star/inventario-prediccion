@@ -1,7 +1,7 @@
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
-import db from './database';
-import type { Producto } from '../types';
+import db from '../database';
+import type { Producto } from '../../types';
 import { VERSION } from '$lib/version';
 
 declare module 'jspdf' {

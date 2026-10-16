@@ -1,6 +1,6 @@
 <script lang="ts">
   import type { Producto } from '$lib/types';
-  import type { Lote } from '$lib/server/lotes.service';
+  import type { Lote } from '$lib/server/services/lotes.service';
   import { _ } from 'svelte-i18n';
 
   interface Props {

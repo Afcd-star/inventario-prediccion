@@ -73,6 +73,35 @@ CREATE TABLE IF NOT EXISTS escenarios (
   FOREIGN KEY (creado_por) REFERENCES usuarios(id) ON DELETE CASCADE
 );
 
+-- Tabla de anomalías detectadas por el monitor predictivo (Fase 5)
+CREATE TABLE IF NOT EXISTS anomalias (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  producto_id INTEGER NOT NULL,
+  tipo TEXT NOT NULL CHECK(tipo IN ('pico', 'caida')),
+  fecha_inicio DATE NOT NULL,
+  fecha_fin DATE NOT NULL,
+  desviacion_promedio REAL NOT NULL,
+  z_score_max REAL NOT NULL,
+  detalle TEXT NOT NULL DEFAULT '[]',
+  estado TEXT NOT NULL DEFAULT 'pendiente' CHECK(estado IN ('pendiente', 'revisada', 'falso_positivo')),
+  revisada_por INTEGER,
+  revisada_en DATETIME,
+  creada_en DATETIME DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (producto_id) REFERENCES productos(id) ON DELETE CASCADE,
+  FOREIGN KEY (revisada_por) REFERENCES usuarios(id) ON DELETE SET NULL
+);
+
+-- Tabla de configuración clave-valor (umbrales del monitor, Fase 5)
+CREATE TABLE IF NOT EXISTS configuracion (
+  clave TEXT PRIMARY KEY,
+  valor TEXT NOT NULL
+);
+
+INSERT OR IGNORE INTO configuracion (clave, valor) VALUES
+  ('umbral_z', '2'),
+  ('umbral_porcentaje', '30'),
+  ('dias_consecutivos', '3');
+
 -- Índices para mejorar el rendimiento de las consultas
 CREATE INDEX IF NOT EXISTS idx_movimientos_producto_fecha ON movimientos(producto_id, fecha);
 CREATE INDEX IF NOT EXISTS idx_productos_nombre ON productos(nombre);

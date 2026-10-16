@@ -1,7 +1,7 @@
 import { fail, redirect } from '@sveltejs/kit';
 import db from '$lib/server/database';
-import { seriesTiempoService } from '$lib/server/series-tiempo.service';
-import { escenariosService } from '$lib/server/escenarios.service';
+import { seriesTiempoService } from '$lib/server/services/series-tiempo.service';
+import { escenariosService } from '$lib/server/services/escenarios.service';
 import type { PageServerLoad, Actions } from './$types';
 
 export const load = (async ({ url, locals }) => {

@@ -1,7 +1,7 @@
 import db from '$lib/server/database';
 import { fail, redirect } from '@sveltejs/kit';
 import type { Actions } from './$types';
-import { esFechaCaducidadValida, movimientosService } from '$lib/server/movimientos.service';
+import { esFechaCaducidadValida, movimientosService } from '$lib/server/services/movimientos.service';
 
 export const actions = {
   crear: async ({ request }) => {

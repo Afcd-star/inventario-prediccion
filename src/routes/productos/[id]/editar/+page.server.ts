@@ -2,8 +2,8 @@ import db from '$lib/server/database';
 import { fail, redirect } from '@sveltejs/kit';
 import type { PageServerLoad, Actions } from './$types';
 import type { Producto } from '$lib/types';
-import { esFechaCaducidadValida, movimientosService } from '$lib/server/movimientos.service';
-import { lotesService } from '$lib/server/lotes.service';
+import { esFechaCaducidadValida, movimientosService } from '$lib/server/services/movimientos.service';
+import { lotesService } from '$lib/server/services/lotes.service';
 
 // Carga los datos específicos para ESTA ruta (/editar)
 export const load = (async ({ params }) => {

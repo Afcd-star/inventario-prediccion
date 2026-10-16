@@ -1,10 +1,11 @@
 <script lang="ts">
   import { enhance } from '$app/forms';
+  import type { SubmitFunction } from '@sveltejs/kit';
   import type { PageData } from './$types';
   import { _ } from 'svelte-i18n';
 
   type Usuario = PageData['usuarios'][number];
-  type Modal = 'usuarios' | 'crearUsuario' | 'herramientas' | 'tabla' | 'cambiarRol' | 'eliminarUsuario' | 'editarProducto' | null;
+  type Modal = 'usuarios' | 'crearUsuario' | 'herramientas' | 'monitor' | 'tabla' | 'cambiarRol' | 'eliminarUsuario' | 'editarProducto' | null;
   type ProductoEdicion = {
     id: number;
     nombre: string;
@@ -24,7 +25,7 @@
     truncado: boolean;
   };
 
-  let { data, form }: { data: PageData; form?: { success?: string; error?: string } } = $props();
+  let { data, form }: { data: PageData; form?: { success?: string; error?: string; nuevas?: number } } = $props();
   let modal = $state<Modal>(null);
   let tablaSeleccionada = $state('');
   let previewTabla = $state<TablaPreview | null>(null);
@@ -34,6 +35,21 @@
   let rolSeleccionado = $state<'admin' | 'empleado'>('empleado');
   let cargandoTabla = $state(false);
   let errorTabla = $state('');
+  let toastVisible = $state(false);
+
+  // Toast único con auto-ocultado: evita alertas duplicadas entre modal y pantalla
+  $effect(() => {
+    const hayFeedback = Boolean(form?.success || form?.error);
+    if (!hayFeedback) {
+      toastVisible = false;
+      return;
+    }
+    toastVisible = true;
+    const temporizador = setTimeout(() => {
+      toastVisible = false;
+    }, 4500);
+    return () => clearTimeout(temporizador);
+  });
 
   async function abrirTabla(nombre: string) {
     modal = 'tabla';
@@ -97,6 +113,11 @@
     productoEditando = null;
   }
 
+  const enhanceConCerrarModal: SubmitFunction = () => async ({ result, update }) => {
+    if (result.type === 'success') cerrarModal();
+    await update();
+  };
+
   function cerrarConEscape(event: KeyboardEvent) {
     if (event.key === 'Escape') cerrarModal();
   }
@@ -114,6 +135,25 @@
   <title>{$_('admin.titulo')} | StockPredict Pro</title>
 </svelte:head>
 
+<!-- Toast único de feedback: vive fuera del main y por encima de cualquier modal -->
+{#if toastVisible && (form?.success || form?.error)}
+  <div
+    class="toast"
+    class:toast-error={Boolean(form?.error)}
+    role={form?.error ? 'alert' : 'status'}
+  >
+    {#if form?.error}
+      ⚠️ {$_(form.error)}
+    {:else if form?.success === 'deteccion_ejecutada'}
+      🔍 {$_('admin.deteccionEjecutada', { values: { n: form.nuevas ?? 0 } })}
+    {:else if form?.success === 'umbrales_guardados'}
+      ✅ {$_('admin.umbralesGuardados')}
+    {:else if form?.success}
+      ✅ {$_(`admin.${form.success === 'usuario_creado' ? 'usuarioCreado' : form.success === 'rol_actualizado' ? 'rolActualizado' : form.success === 'usuario_eliminado' ? 'usuarioEliminado' : form.success === 'producto_actualizado' ? 'productoActualizado' : 'prediccionesRecalculadas'}`)}
+    {/if}
+  </div>
+{/if}
+
 <main class="page-container admin-page">
   <header class="page-header">
     <a href="/dashboard" class="btn-back">
@@ -123,16 +163,6 @@
     <h1>{$_('admin.titulo')}</h1>
     <p class="text-secondary">{$_('admin.subtitulo')}</p>
   </header>
-
-  {#if form?.success}
-    <div class="alert alert-success">
-      ✅ {$_(`admin.${form.success === 'usuario_creado' ? 'usuarioCreado' : form.success === 'rol_actualizado' ? 'rolActualizado' : form.success === 'usuario_eliminado' ? 'usuarioEliminado' : form.success === 'producto_actualizado' ? 'productoActualizado' : 'prediccionesRecalculadas'}`)}
-    </div>
-  {/if}
-
-  {#if form?.error}
-    <div class="alert alert-danger">{$_(form.error)}</div>
-  {/if}
 
   <section class="admin-actions" aria-label={$_('admin.acciones')}>
     <button class="action-card" type="button" onclick={() => modal = 'usuarios'}>
@@ -149,6 +179,11 @@
       <span class="action-icon" aria-hidden="true">⚙</span>
       <span class="action-title">{$_('admin.herramientas')}</span>
       <span class="action-description">{$_('admin.abrirAccion')}</span>
+    </button>
+    <button class="action-card" type="button" onclick={() => modal = 'monitor'}>
+      <span class="action-icon" aria-hidden="true">🚨</span>
+      <span class="action-title">{$_('anomalias.titulo')}</span>
+      <span class="action-description">{$_('admin.descripcionMonitor')}</span>
     </button>
   </section>
 
@@ -201,6 +236,8 @@
             {$_('admin.crearUsuario')}
           {:else if modal === 'herramientas'}
             {$_('admin.herramientas')}
+          {:else if modal === 'monitor'}
+            {$_('anomalias.titulo')}
           {:else if modal === 'tabla'}
             {$_('admin.registrosDe')} {tablaSeleccionada}
           {:else if modal === 'cambiarRol'}
@@ -213,12 +250,6 @@
         </h2>
         <button class="modal-close" type="button" aria-label={$_('admin.cerrar')} onclick={cerrarModal}>×</button>
       </header>
-
-      {#if form?.error}
-        <p class="alert alert-danger" role="alert">{$_(form.error)}</p>
-      {:else if form?.success}
-        <p class="alert alert-success" role="status">{$_('admin.operacionCompleta')}</p>
-      {/if}
 
       {#if modal === 'usuarios'}
         {#if data.usuarios.length === 0}
@@ -267,7 +298,7 @@
           </div>
         {/if}
       {:else if modal === 'crearUsuario'}
-        <form method="POST" action="?/crearUsuario" use:enhance class="form-stack">
+        <form method="POST" action="?/crearUsuario" use:enhance={enhanceConCerrarModal} class="form-stack">
           <div class="input-group">
             <label for="nombre" class="label">{$_('admin.nombreCompleto')}</label>
             <input id="nombre" type="text" name="nombre" required class="input-field" placeholder={$_('comunes.ejemploNombre')} />
@@ -283,7 +314,7 @@
           <div class="input-group">
             <label for="rol" class="label">{$_('admin.rol')}</label>
             <select id="rol" name="rol" class="input-field">
-              <option value="empleado">{$_('perfil.empleado')}</option>
+              <option value="empleado" selected>{$_('perfil.empleado')}</option>
               <option value="admin">{$_('perfil.admin')}</option>
             </select>
           </div>
@@ -294,9 +325,45 @@
         </form>
       {:else if modal === 'herramientas'}
         <p class="text-secondary">{$_('admin.descripcionHerramientas')}</p>
-        <form method="POST" action="?/recalcularPredicciones" use:enhance class="modal-actions">
+        <form method="POST" action="?/recalcularPredicciones" use:enhance={enhanceConCerrarModal} class="modal-actions">
           <button type="button" class="btn btn-secondary" onclick={cerrarModal}>{$_('botones.cancelar')}</button>
           <button type="submit" class="btn btn-warning">🔄 {$_('admin.recalcular')}</button>
+        </form>
+      {:else if modal === 'monitor'}
+        <p class="text-secondary">{$_('admin.descripcionMonitor')}</p>
+
+        <form method="POST" action="?/detectarAhora" use:enhance={enhanceConCerrarModal} class="monitor-detect-form">
+          <button type="submit" class="btn btn-warning">🔍 {$_('admin.detectarAhora')}</button>
+        </form>
+
+        <h3 class="monitor-subtitle">{$_('admin.umbrales')}</h3>
+        <p class="field-help monitor-intro">{$_('admin.umbralesIntro')}</p>
+        <form
+          method="POST"
+          action="?/guardarUmbrales"
+          use:enhance={enhanceConCerrarModal}
+        >
+          <div class="monitor-thresholds">
+            <div class="input-group">
+              <label for="umbral_z" class="label">{$_('admin.umbralZ')}</label>
+              <input id="umbral_z" type="number" name="umbral_z" step="0.5" min="1" max="5" required value={data.configDeteccion.umbralZ} class="input-field" />
+              <p class="field-help">{$_('admin.ayudaUmbralZ')}</p>
+            </div>
+            <div class="input-group">
+              <label for="umbral_porcentaje" class="label">{$_('admin.umbralPct')}</label>
+              <input id="umbral_porcentaje" type="number" name="umbral_porcentaje" step="5" min="10" max="500" required value={data.configDeteccion.umbralPorcentaje} class="input-field" />
+              <p class="field-help">{$_('admin.ayudaUmbralPct')}</p>
+            </div>
+            <div class="input-group">
+              <label for="dias_consecutivos" class="label">{$_('admin.diasConsecutivos')}</label>
+              <input id="dias_consecutivos" type="number" name="dias_consecutivos" min="2" max="7" required value={data.configDeteccion.diasConsecutivos} class="input-field" />
+              <p class="field-help">{$_('admin.ayudaDiasConsecutivos')}</p>
+            </div>
+          </div>
+          <div class="modal-actions">
+            <button type="button" class="btn btn-secondary" onclick={cerrarModal}>{$_('botones.cancelar')}</button>
+            <button type="submit" class="btn btn-primary">{$_('admin.guardarUmbrales')}</button>
+          </div>
         </form>
       {:else if modal === 'tabla'}
         {#if cargandoTabla}
@@ -353,10 +420,7 @@
         <form
           method="POST"
           action="?/editarProducto"
-          use:enhance={() => async ({ result, update }) => {
-            await update();
-            if (result.type === 'success') await abrirTabla('productos');
-          }}
+          use:enhance={enhanceConCerrarModal}
           class="product-edit-form"
         >
           <input type="hidden" name="producto_id" value={productoEditando.id} />
@@ -403,7 +467,7 @@
           </div>
         </form>
       {:else if modal === 'cambiarRol' && usuarioSeleccionado}
-        <form method="POST" action="?/cambiarRol" use:enhance class="form-stack">
+        <form method="POST" action="?/cambiarRol" use:enhance={enhanceConCerrarModal} class="form-stack">
           <input type="hidden" name="userId" value={usuarioSeleccionado.id} />
           <p>{usuarioSeleccionado.nombre} · {usuarioSeleccionado.email}</p>
           <div class="input-group">
@@ -420,7 +484,7 @@
         </form>
       {:else if modal === 'eliminarUsuario' && usuarioSeleccionado}
         <p>{$_('admin.confirmarEliminar')} <strong>{usuarioSeleccionado.nombre}</strong>?</p>
-        <form method="POST" action="?/eliminarUsuario" use:enhance class="modal-actions">
+        <form method="POST" action="?/eliminarUsuario" use:enhance={enhanceConCerrarModal} class="modal-actions">
           <input type="hidden" name="userId" value={usuarioSeleccionado.id} />
           <button type="button" class="btn btn-secondary" onclick={cerrarModal}>{$_('botones.cancelar')}</button>
           <button type="submit" class="btn btn-danger">{$_('botones.eliminar')}</button>
@@ -668,6 +732,70 @@
   .badge-empleado {
     background: var(--status-success-bg);
     color: var(--status-success-text);
+  }
+
+  /* Monitor de Anomalías (Fase 5) */
+  .monitor-detect-form {
+    display: flex;
+    justify-content: flex-start;
+    margin-bottom: 1.5rem;
+  }
+
+  .monitor-subtitle {
+    margin: 0 0 0.5rem;
+    font-size: var(--font-size-lg);
+    font-weight: var(--font-weight-semibold);
+  }
+
+  .monitor-thresholds {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 180px), 1fr));
+    gap: 1rem;
+  }
+
+  /* Ayudas en lenguaje plano y toast único de feedback */
+  .field-help {
+    margin: 0.35rem 0 0;
+    font-size: var(--font-size-xs);
+    color: var(--text-muted);
+    line-height: 1.45;
+  }
+
+  .monitor-intro {
+    margin: 0 0 1rem;
+  }
+
+  .toast {
+    position: fixed;
+    top: 1rem;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 1200;
+    max-width: min(92vw, 480px);
+    padding: 0.85rem 1.25rem;
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    background: var(--status-success-bg, #d1fae5);
+    color: var(--status-success-text, #065f46);
+    box-shadow: var(--shadow-popover, 0 10px 30px rgb(0 0 0 / 0.25));
+    font-weight: var(--font-weight-medium);
+    animation: toast-in 0.25s ease;
+  }
+
+  .toast-error {
+    background: var(--status-danger-bg, #fee2e2);
+    color: var(--status-danger-text, #991b1b);
+  }
+
+  @keyframes toast-in {
+    from {
+      opacity: 0;
+      transform: translate(-50%, -8px);
+    }
+    to {
+      opacity: 1;
+      transform: translate(-50%, 0);
+    }
   }
 
   @media (max-width: 600px) {

@@ -5,7 +5,7 @@
   import { cambiarIdioma } from '$lib/i18n';
   import { VERSION } from '$lib/version';
 
-  let { data }: { data: { usuario?: { nombre: string; email: string; rol: string } } } = $props();
+  let { data }: { data: { usuario?: { nombre: string; email: string; rol: string }; anomaliasPendientes?: number } } = $props();
   
   let temaActual = $state<'light' | 'dark'>('light');
   let menuAbierto = $state(false);
@@ -102,6 +102,14 @@
   </div>
 
   <div class="right-section">
+    {#if data.usuario}
+      <a href="/anomalias" class="alerta-badge" title={$_('anomalias.titulo')}>
+        <span>🚨</span>
+        {#if (data.anomaliasPendientes ?? 0) > 0}
+          <span class="alerta-contador">{data.anomaliasPendientes}</span>
+        {/if}
+      </a>
+    {/if}
     <!-- Botón de tema con el estilo original de gradiente y texto -->
     <button onclick={alternarTema} class="btn btn-gradient theme-btn">
       <span>{temaActual === 'light' ? '🌙' : '☀️'}</span>
@@ -405,5 +413,41 @@
     font-size: var(--font-size-xs);
     color: var(--text-muted);
     text-align: center;
+  }
+
+    .alerta-badge {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    font-size: 1.2rem;
+    transition: all 0.2s ease;
+  }
+
+  .alerta-badge:hover {
+    transform: scale(1.1);
+    background: var(--bg-primary);
+  }
+
+  .alerta-contador {
+    position: absolute;
+    top: -4px;
+    right: -4px;
+    min-width: 18px;
+    height: 18px;
+    padding: 0 4px;
+    border-radius: 9px;
+    background: var(--accent-danger);
+    color: white;
+    font-size: 0.7rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
 </style>

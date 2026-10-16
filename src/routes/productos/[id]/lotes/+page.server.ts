@@ -1,5 +1,5 @@
 import db from '$lib/server/database';
-import { lotesService } from '$lib/server/lotes.service';
+import { lotesService } from '$lib/server/services/lotes.service';
 import type { Producto } from '$lib/types';
 import { redirect } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';

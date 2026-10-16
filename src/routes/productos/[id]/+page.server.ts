@@ -2,7 +2,7 @@ import db from '$lib/server/database';
 import { fail, redirect } from '@sveltejs/kit';
 import type { PageServerLoad, Actions } from './$types';
 import type { Producto } from '$lib/types';
-import { esFechaCaducidadValida, movimientosService } from '$lib/server/movimientos.service';
+import { esFechaCaducidadValida, movimientosService } from '$lib/server/services/movimientos.service';
 
 // 'satisfies' asegura que el retorno coincida con PageServerLoad y genera los tipos correctos
 export const load = (async ({ params }) => {

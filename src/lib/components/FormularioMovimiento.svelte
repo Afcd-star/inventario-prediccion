@@ -1,18 +1,28 @@
 <script lang="ts">
+  import { enhance } from '$app/forms';
   import { _ } from 'svelte-i18n';
 
   interface Props {
     productoId: number;
     stockActual: number;
+    onSuccess: () => void;
   }
 
-  let { productoId, stockActual }: Props = $props();
+  let { productoId, stockActual, onSuccess }: Props = $props();
   
   // Estado reactivo para saber qué tipo de movimiento está seleccionado
   let tipoSeleccionado = $state('entrada');
 </script>
 
-<form method="POST" action="?/registrar" class="movement-form">
+<form
+  method="POST"
+  action="?/registrar"
+  use:enhance={() => async ({ result, update }) => {
+    if (result.type === 'success') onSuccess();
+    await update();
+  }}
+  class="movement-form"
+>
   <input type="hidden" name="producto_id" value={productoId} />
 
   <fieldset class="type-field">

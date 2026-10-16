@@ -2,7 +2,8 @@ import db from '$lib/server/database';
 import type { PageServerLoad } from './$types';
 import type { Producto } from '$lib/types';
 import { redirect } from '@sveltejs/kit';
-import { lotesService } from '$lib/server/lotes.service';
+import { lotesService } from '$lib/server/services/lotes.service';
+import { anomaliasService } from '$lib/server/services/anomalias.service';
 
 interface PrediccionData {
   producto_id: number;
@@ -62,7 +63,8 @@ export const load = (async ({ locals }) => {
       totalProductos,
       stockBajo,
       reordenUrgente,
-      lotesProximosAVencer: lotesProximos.length
+      lotesProximosAVencer: lotesProximos.length,
+      anomaliasPendientes: anomaliasService.contarPendientes(),
     },
     topConsumidos,
     lotesProximos

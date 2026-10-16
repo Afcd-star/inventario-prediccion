@@ -1,5 +1,5 @@
 import { json } from '@sveltejs/kit';
-import { seriesTiempoService } from '$lib/server/series-tiempo.service';
+import { seriesTiempoService } from '$lib/server/services/series-tiempo.service';
 
 export async function GET({ url, locals }) {
   if (!locals.usuario) {

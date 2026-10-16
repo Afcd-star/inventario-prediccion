@@ -4,6 +4,7 @@ import { fileURLToPath } from 'node:url';
 import { migrarLotes } from './migrations/002_lotes';
 import { migrarSeriesTiempo } from './migrations/001_series_tiempo';
 import { migrarUnidadMedida } from './migrations/004_eliminar_unidad_medida';
+import { migrarAnomaliasConfig } from './migrations/005_anomalias_config';
 import db from './sqlite';
 
 // Cargar el schema con readFileSync: funciona igual en Vite y en Node puro,
@@ -51,6 +52,7 @@ migrarUsuarios();
 migrarLotes(db);
 migrarSeriesTiempo(db);
 migrarUnidadMedida(db);
+migrarAnomaliasConfig(db);
 
 console.log('✅ Base de datos conectada y tablas inicializadas en:', db.name);
 

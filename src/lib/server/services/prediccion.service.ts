@@ -1,4 +1,4 @@
-import db from './database';
+import db from '../database';
 import { seriesTiempoService } from './series-tiempo.service';
 
 export const prediccionService = {

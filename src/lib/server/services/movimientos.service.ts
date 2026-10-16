@@ -1,6 +1,7 @@
-import db from './database';
+import db from '../database';
 import { lotesService } from './lotes.service';
 import { prediccionService } from './prediccion.service';
+import { anomaliasService } from './anomalias.service';
 
 export interface Movimiento {
   id: number;
@@ -122,6 +123,15 @@ export const movimientosService = {
       `).run(cantidad, productoId);
 
       prediccionService.calcularParaProducto(productoId);
+
+          // Fase 5: el monitor reevalúa solo este producto (ligero y automático).
+    // El try/catch garantiza que un fallo del monitor nunca rompa una venta.
+      try {
+        anomaliasService.detectarParaProducto(productoId);
+      } catch (error) {
+        console.error('El monitor de anomalías falló (no bloquea la venta):', error);
+      }
+
       return movimientosCreados;
     })();
   },

@@ -2,7 +2,7 @@ import db from '$lib/server/database';
 import { fail, redirect } from '@sveltejs/kit';
 import type { PageServerLoad, Actions } from './$types';
 import type { Producto } from '$lib/types';
-import { movimientosService } from '$lib/server/movimientos.service';
+import { movimientosService } from '$lib/server/services/movimientos.service';
 
 export const load = (async ({ params }) => {
   const producto = db
@@ -63,6 +63,6 @@ export const actions = {
       throw error;
     }
 
-    throw redirect(303, `/productos/${producto_id}/movimientos`);
+    return { success: 'movimiento_registrado' };
   }
 } satisfies Actions;

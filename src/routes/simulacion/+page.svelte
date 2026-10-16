@@ -30,7 +30,7 @@
   onchange={(event) => event.currentTarget.form?.requestSubmit()}
   disabled={data.productos.length === 0}
 >
-  <option value="">No hay ningún producto seleccionado aún</option>
+  <option value="" selected={data.productoSeleccionado === null}>No hay ningún producto seleccionado aún</option>
   {#each data.productos as producto}
     <option 
       value={producto.id}

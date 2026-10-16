@@ -1,5 +1,5 @@
 <script lang="ts">
-  import type { Movimiento } from '$lib/server/movimientos.service';
+  import type { Movimiento } from '$lib/server/services/movimientos.service';
   import { _, locale } from 'svelte-i18n';
 
   interface Props {

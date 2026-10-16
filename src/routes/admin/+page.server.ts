@@ -1,9 +1,10 @@
 import { fail, redirect } from '@sveltejs/kit';
 import bcrypt from 'bcryptjs';
 import db from '$lib/server/database';
-import { prediccionService } from '$lib/server/prediccion.service';
-import { esFechaCaducidadValida, movimientosService } from '$lib/server/movimientos.service';
+import { prediccionService } from '$lib/server/services/prediccion.service';
+import { esFechaCaducidadValida, movimientosService } from '$lib/server/services/movimientos.service';
 import type { PageServerLoad, Actions } from './$types';
+import { anomaliasService } from '$lib/server/services/anomalias.service';
 
 export const load = (async ({ locals }) => {
   // Protección estricta: solo admins
@@ -41,7 +42,7 @@ export const load = (async ({ locals }) => {
     registros: obtenerConteo(name).total
   }));
 
-  return { usuarios, tablas: tablasSistema, usuarioActualId: locals.usuario.id };
+  return { usuarios, tablas: tablasSistema, usuarioActualId: locals.usuario.id, configDeteccion: anomaliasService.obtenerConfiguracion() };
 }) satisfies PageServerLoad;
 
 export const actions = {
@@ -223,5 +224,35 @@ export const actions = {
     prediccionService.calcularTodas();
 
     return { success: 'predicciones_recalculadas' };
+  },
+
+  detectarAhora: async ({ locals }) => {
+    if (!locals.usuario || locals.usuario.rol !== 'admin') {
+      throw redirect(303, '/dashboard');
+    }
+    const nuevas = anomaliasService.detectarTodas();
+    return { success: 'deteccion_ejecutada', nuevas };
+  },
+
+  guardarUmbrales: async ({ request, locals }) => {
+    if (!locals.usuario || locals.usuario.rol !== 'admin') {
+      throw redirect(303, '/dashboard');
+    }
+
+    const data = await request.formData();
+    const umbralZ = Number(data.get('umbral_z'));
+    const umbralPorcentaje = Number(data.get('umbral_porcentaje'));
+    const diasConsecutivos = Number(data.get('dias_consecutivos'));
+
+    if (
+      !Number.isFinite(umbralZ) || umbralZ < 1 || umbralZ > 5 ||
+      !Number.isFinite(umbralPorcentaje) || umbralPorcentaje < 10 || umbralPorcentaje > 500 ||
+      !Number.isInteger(diasConsecutivos) || diasConsecutivos < 2 || diasConsecutivos > 7
+    ) {
+      return fail(400, { error: 'Umbrales fuera del rango permitido' });
+    }
+
+    anomaliasService.guardarConfiguracion({ umbralZ, umbralPorcentaje, diasConsecutivos });
+    return { success: 'umbrales_guardados' };
   }
 } satisfies Actions;

@@ -177,6 +177,10 @@
       <h3 class="text-sm">{$_('dashboard.reordenUrgente')}</h3>
       <p class="metric-value">{data.metricas.reordenUrgente}</p>
     </div>
+    <div class="metric-card metric-anomalia">
+      <h3 class="text-sm">{$_('anomalias.activas')}</h3>
+      <p class="metric-value">{data.anomaliasPendientes}</p>
+    </div>
     <a class="metric-card metric-warning metric-link" href="#lotes-proximos">
       <h3 class="text-sm">{$_('dashboard.lotesProximosAVencer')}</h3>
       <p class="metric-value">{data.metricas.lotesProximosAVencer}</p>
