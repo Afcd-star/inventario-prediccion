@@ -3,6 +3,7 @@
   import type { SubmitFunction } from '@sveltejs/kit';
   import type { PageData } from './$types';
   import { _ } from 'svelte-i18n';
+  import ToastFeedback from '$lib/components/ToastFeedback.svelte';
 
   type Usuario = PageData['usuarios'][number];
   type Modal = 'usuarios' | 'crearUsuario' | 'herramientas' | 'monitor' | 'tabla' | 'cambiarRol' | 'eliminarUsuario' | 'editarProducto' | null;
@@ -52,20 +53,25 @@
   let rolSeleccionado = $state<'admin' | 'empleado'>('empleado');
   let cargandoTabla = $state(false);
   let errorTabla = $state('');
-  let toastVisible = $state(false);
-
-  // Toast único con auto-ocultado: evita alertas duplicadas entre modal y pantalla
-  $effect(() => {
-    const hayFeedback = Boolean(form?.success || form?.error);
-    if (!hayFeedback) {
-      toastVisible = false;
-      return;
+  const mensajeToast = $derived.by(() => {
+    if (form?.error) return `⚠️ ${$_(form.error)}`;
+    if (form?.success === 'deteccion_ejecutada') {
+      return `🔍 ${$_('admin.deteccionEjecutada', { values: { n: form.nuevas ?? 0 } })}`;
     }
-    toastVisible = true;
-    const temporizador = setTimeout(() => {
-      toastVisible = false;
-    }, 4500);
-    return () => clearTimeout(temporizador);
+    if (form?.success === 'umbrales_guardados') return `✅ ${$_('admin.umbralesGuardados')}`;
+    if (form?.success) {
+      const clave = form.success === 'usuario_creado'
+        ? 'usuarioCreado'
+        : form.success === 'rol_actualizado'
+          ? 'rolActualizado'
+          : form.success === 'usuario_eliminado'
+            ? 'usuarioEliminado'
+            : form.success === 'producto_actualizado'
+              ? 'productoActualizado'
+              : 'prediccionesRecalculadas';
+      return `✅ ${$_(`admin.${clave}`)}`;
+    }
+    return null;
   });
 
   async function abrirTabla(nombre: string) {
@@ -152,24 +158,7 @@
   <title>{$_('admin.titulo')} | StockPredict Pro</title>
 </svelte:head>
 
-<!-- Toast único de feedback: vive fuera del main y por encima de cualquier modal -->
-{#if toastVisible && (form?.success || form?.error)}
-  <div
-    class="toast"
-    class:toast-error={Boolean(form?.error)}
-    role={form?.error ? 'alert' : 'status'}
-  >
-    {#if form?.error}
-      ⚠️ {$_(form.error)}
-    {:else if form?.success === 'deteccion_ejecutada'}
-      🔍 {$_('admin.deteccionEjecutada', { values: { n: form.nuevas ?? 0 } })}
-    {:else if form?.success === 'umbrales_guardados'}
-      ✅ {$_('admin.umbralesGuardados')}
-    {:else if form?.success}
-      ✅ {$_(`admin.${form.success === 'usuario_creado' ? 'usuarioCreado' : form.success === 'rol_actualizado' ? 'rolActualizado' : form.success === 'usuario_eliminado' ? 'usuarioEliminado' : form.success === 'producto_actualizado' ? 'productoActualizado' : 'prediccionesRecalculadas'}`)}
-    {/if}
-  </div>
-{/if}
+<ToastFeedback feedback={form} message={mensajeToast} isError={Boolean(form?.error)} />
 
 <main class="page-container admin-page">
   <header class="page-header">
@@ -802,7 +791,7 @@
     gap: 1rem;
   }
 
-  /* Ayudas en lenguaje plano y toast único de feedback */
+  /* Ayudas en lenguaje plano */
   .field-help {
     margin: 0.35rem 0 0;
     font-size: var(--font-size-xs);
@@ -812,39 +801,6 @@
 
   .monitor-intro {
     margin: 0 0 1rem;
-  }
-
-  .toast {
-    position: fixed;
-    top: 1rem;
-    left: 50%;
-    transform: translateX(-50%);
-    z-index: 1200;
-    max-width: min(92vw, 480px);
-    padding: 0.85rem 1.25rem;
-    border: 1px solid var(--border-color);
-    border-radius: 10px;
-    background: var(--status-success-bg, #d1fae5);
-    color: var(--status-success-text, #065f46);
-    box-shadow: var(--shadow-popover, 0 10px 30px rgb(0 0 0 / 0.25));
-    font-weight: var(--font-weight-medium);
-    animation: toast-in 0.25s ease;
-  }
-
-  .toast-error {
-    background: var(--status-danger-bg, #fee2e2);
-    color: var(--status-danger-text, #991b1b);
-  }
-
-  @keyframes toast-in {
-    from {
-      opacity: 0;
-      transform: translate(-50%, -8px);
-    }
-    to {
-      opacity: 1;
-      transform: translate(-50%, 0);
-    }
   }
 
   @media (max-width: 600px) {

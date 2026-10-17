@@ -3,6 +3,14 @@
 Formato: versión semántica MAYOR.MENOR.PARCHES.
 Regla del proyecto: el cambio de versión viaja en el mismo commit que la funcionalidad.
 
+## 1.4.0 (2026.10.18)
+* Sesiones persistentes: migracion de autenticacion a tokens opacos hasheados en base de datos, permitiendo listar dispositivos activos y cierre de sesiones remoto individual o masivo.
+* Defensas en el servidor: implementacion de rate limiting para bloquear intentos de login fallidos y cambios excesivos de contrasena, con registro automatico en auditoria.
+* Perfil unificado y endurecido: formulario unico para editar datos, correo y preferencias, con reautenticacion obligatoria para cambios sensibles y medidor de fortaleza de contrasena en tiempo real.
+* Experiencia de usuario mejorada: errores de validacion mostrados junto al campo correspondiente, estados de carga en botones para evitar envios dobles y seccion de actividad reciente siempre visible.
+* Preferencias sincronizadas: el idioma y el tema seleccionados se guardan en la base de datos y se aplican automaticamente al iniciar sesion en cualquier dispositivo.
+* Autenticacion de dos factores (2FA): soporte completo para TOTP con generacion de QR, validacion de codigos y gestion de codigos de recuperacion de un solo uso.
+
 ## 1.3.0 (2026-10-16)
 - Historial de auditoría inmutable: registro automático de todas las acciones críticas del sistema con marca de tiempo, usuario, IP y detalles.
 - Tabla `auditoria` con triggers de SQLite que garantizan inmutabilidad: ni UPDATE ni DELETE permitidos.

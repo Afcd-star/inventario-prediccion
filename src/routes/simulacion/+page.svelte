@@ -2,13 +2,22 @@
   import type { PageData } from './$types';
   import { _ } from 'svelte-i18n';
   import SimuladorWhatIf from '$lib/components/SimuladorWhatIf.svelte';
+  import ToastFeedback from '$lib/components/ToastFeedback.svelte';
 
   let { data, form }: { data: PageData; form?: { success?: string; error?: string } } = $props();
+  const mensajeFeedback = $derived.by(() => {
+    if (form?.error) return `⚠️ ${$_(form.error)}`;
+    if (form?.success === 'escenario_guardado') return `💾 ${$_('simulacion.guardadoExito')}`;
+    if (form?.success === 'escenario_eliminado') return `🗑️ ${$_('simulacion.eliminadoExito')}`;
+    return null;
+  });
 </script>
 
 <svelte:head>
   <title>{$_('simulacion.titulo')} | StockPredict Pro</title>
 </svelte:head>
+
+<ToastFeedback feedback={form} message={mensajeFeedback} isError={Boolean(form?.error)} />
 
 <main class="page-container">
   <header class="page-header">
@@ -42,14 +51,6 @@
 </select>
     </form>
   </div>
-
-  {#if form?.success === 'escenario_guardado'}
-    <div class="alert alert-success">💾 {$_('simulacion.guardadoExito')}</div>
-  {:else if form?.success === 'escenario_eliminado'}
-    <div class="alert alert-success">🗑️ {$_('simulacion.eliminadoExito')}</div>
-  {:else if form?.error}
-    <div class="alert alert-danger">⚠️ {form.error}</div>
-  {/if}
 
   {#if data.productos.length === 0}
     <div class="card">

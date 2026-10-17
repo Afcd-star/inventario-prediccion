@@ -1,33 +1,43 @@
 import type { Handle } from '@sveltejs/kit';
 import { redirect } from '@sveltejs/kit';
-import db from '$lib/server/database';
-import { serverInstanceId } from '$lib/server/session';
+import { sesionesService } from '$lib/server/services/sesiones.service';
+import { totpService } from '$lib/server/services/totp.service';
 
 export const handle: Handle = async ({ event, resolve }) => {
-  const sesionId = event.cookies.get('sesion');
-  const sesionServidor = event.cookies.get('sesion_servidor');
+  const token = event.cookies.get('sesion');
+  const preSesion = event.cookies.get('pre_sesion');
 
-  if (sesionId && sesionServidor === serverInstanceId) {
-    const usuario = db.prepare(
-      'SELECT id, nombre, email, rol FROM usuarios WHERE id = ?'
-    ).get(sesionId) as { id: number; nombre: string; email: string; rol: 'admin' | 'empleado' } | undefined;
-
+  if (token) {
+    const usuario = sesionesService.validarSesion(token);
     if (usuario) {
       event.locals.usuario = usuario;
     } else {
       event.cookies.delete('sesion', { path: '/' });
-      event.cookies.delete('sesion_servidor', { path: '/' });
     }
-  } else if (sesionId || sesionServidor) {
-    event.cookies.delete('sesion', { path: '/' });
-    event.cookies.delete('sesion_servidor', { path: '/' });
+  } else if (preSesion) {
+    // Hay pre_sesión: verificar si es válida y exponer el usuario_id
+    const usuarioId = totpService.verificarTokenTemporal(preSesion);
+    if (usuarioId) {
+      event.locals.preSesionUsuarioId = usuarioId;
+    } else {
+      event.cookies.delete('pre_sesion', { path: '/' });
+    }
   }
 
   const esRutaApi = event.url.pathname.startsWith('/api/');
-  const esRutaPublica = event.url.pathname === '/login' || event.url.pathname === '/logout';
+  const esRutaPublica =
+    event.url.pathname === '/login' ||
+    event.url.pathname === '/logout' ||
+    event.url.pathname === '/2fa';
 
-  if (!event.locals.usuario && !esRutaApi && !esRutaPublica) {
+  // Si no hay usuario ni pre_sesión válida, redirigir a login
+  if (!event.locals.usuario && !event.locals.preSesionUsuarioId && !esRutaApi && !esRutaPublica) {
     throw redirect(303, '/login');
+  }
+
+  // Si hay sesión real y el usuario va a /2fa, redirigir al dashboard
+  if (event.locals.usuario && event.url.pathname === '/2fa') {
+    throw redirect(303, '/dashboard');
   }
 
   const respuesta = await resolve(event);

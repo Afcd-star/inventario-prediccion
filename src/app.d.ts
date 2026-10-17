@@ -3,13 +3,19 @@
 declare global {
   namespace App {
     interface Locals {
-      usuario: {
+      usuario?: {
         id: number;
         nombre: string;
         email: string;
         rol: 'admin' | 'empleado';
-      } | undefined;
+      };
+      preSesionUsuarioId?: number;
+      preferencias?: {
+        idioma_preferido: string;
+        tema_preferido: string;
+      };
     }
   }
 }
+
 export {};

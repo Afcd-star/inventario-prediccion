@@ -20,10 +20,24 @@
     document.documentElement.setAttribute('data-theme', temaActual);
   });
 
-  function alternarTema() {
+  async function alternarTema() {
     temaActual = temaActual === 'light' ? 'dark' : 'light';
     document.documentElement.setAttribute('data-theme', temaActual);
     localStorage.setItem('tema', temaActual);
+    
+    // Sincronizar con BD si hay sesión
+    if (data.usuario) {
+      try {
+        await fetch('/api/preferencias', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ idioma: idiomaActual, tema: temaActual })
+        });
+      } catch (error) {
+        // Silencioso: el localStorage ya aplicó el cambio
+        console.error('Error sincronizando preferencias:', error);
+      }
+    }
   }
 
   function toggleMenu() {
@@ -40,9 +54,23 @@
     idiomasAbiertos = !idiomasAbiertos;
   }
 
-  function seleccionarIdioma(idioma: 'es' | 'en') {
+  async function seleccionarIdioma(idioma: 'es' | 'en') {
     cambiarIdioma(idioma);
     idiomasAbiertos = false;
+    
+    // Sincronizar con BD si hay sesión
+    if (data.usuario) {
+      try {
+        await fetch('/api/preferencias', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ idioma, tema: temaActual })
+        });
+      } catch (error) {
+        // Silencioso: el idioma ya cambió en el cliente
+        console.error('Error sincronizando preferencias:', error);
+      }
+    }
   }
 
   onMount(() => {

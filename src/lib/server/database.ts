@@ -1,13 +1,18 @@
 import { readFileSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { migrarLotes } from './migrations/002_lotes';
 import { migrarSeriesTiempo } from './migrations/001_series_tiempo';
+import { migrarLotes } from './migrations/002_lotes';
 import { migrarUnidadMedida } from './migrations/004_eliminar_unidad_medida';
 import { migrarAnomaliasConfig } from './migrations/005_anomalias_config';
 import { migrarAuditoria } from './migrations/006_auditoria';
 import { migrarAuditoriaNombre } from './migrations/007_auditoria_nombre';
+import { migrarSesiones } from './migrations/008_sesiones';
+import { migrarIntentosFallidos } from './migrations/009_intentos_fallidos';
+import { migrarPreferenciasUsuario } from './migrations/010_preferencias_usuario';
+import { migrar2FA } from './migrations/011_2fa';
 import db from './sqlite';
+
 
 
 // Cargar el schema con readFileSync: funciona igual en Vite y en Node puro,
@@ -58,6 +63,10 @@ migrarUnidadMedida(db);
 migrarAnomaliasConfig(db);
 migrarAuditoria(db);
 migrarAuditoriaNombre(db);
+migrarSesiones(db);
+migrarIntentosFallidos(db);
+migrarPreferenciasUsuario(db)
+migrar2FA(db);
 console.log('✅ Base de datos conectada y tablas inicializadas en:', db.name);
 
 export default db;

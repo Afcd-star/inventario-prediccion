@@ -2,27 +2,32 @@
 // Esquema semántico: MAYOR.MENOR.PARCHES
 // Regla: el cambio de versión viaja en el mismo commit que la funcionalidad.
 
-export const VERSION = '1.3.0';
+export const VERSION = '1.4.0';
 
 export const CHANGELOG = [
   {
+    version: '1.4.0',
+    fecha: '2026.10.18',
+    resumen: 'Endurecimiento de seguridad: sesiones persistentes en base de datos, invalidacion remota, rate limiting, perfil unificado con reautenticacion, medidor de fortaleza de contrasenas y preferencias sincronizadas. Implementacion completa de 2FA con TOTP y codigos de recuperacion.'
+  },
+  {
     version: '1.3.0',
-    fecha: '2026-10-16',
-    resumen: 'Historial de auditoría inmutable con registro de acciones críticas, filtros combinables, paginación y exportación en CSV y PDF. Inmutabilidad garantizada por triggers de SQLite.'
+    fecha: '2026.10.16',
+    resumen: 'Historial de auditoria inmutable con registro de acciones criticas, filtros combinables, paginacion y exportacion en CSV y PDF.'
   },
   {
     version: '1.2.0',
-    fecha: '2026-10-16',
-    resumen: 'Monitor de anomalías con detección automática por z-score y desviación porcentual, ventana móvil de 7 días, umbrales configurables desde el Panel de Administración y panel de clasificación de alertas.'
+    fecha: '2026.10.16',
+    resumen: 'Monitor de anomalias con deteccion automatica, ventana movil de 7 dias, umbrales configurables y panel de clasificacion de alertas.'
   },
   {
     version: '1.1.0',
-    fecha: '2026-10-13',
-    resumen: 'Simulación de escenarios What-if con comparador interactivo y escenarios guardables.'
+    fecha: '2026.10.13',
+    resumen: 'Simulador de escenarios What if con comparador interactivo, guardado de escenarios y sistema de version visible en toda la aplicacion.'
   },
   {
     version: '1.0.0',
-    fecha: '2026-10-10',
-    resumen: 'Base estable: autenticación con roles, i18n, series de tiempo, lotes FEFO, reportes PDF y códigos QR.'
+    fecha: '2026.10.10',
+    resumen: 'Base estable: autenticacion con roles, internacionalizacion, series de tiempo con estacionalidad, lotes con logica FEFO, reportes PDF y codigos QR.'
   }
 ];

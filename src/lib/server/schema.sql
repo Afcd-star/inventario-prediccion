@@ -57,6 +57,8 @@ CREATE TABLE IF NOT EXISTS usuarios (
   email TEXT NOT NULL UNIQUE,
   password_hash TEXT NOT NULL,
   rol TEXT NOT NULL DEFAULT 'empleado' CHECK(rol IN ('admin', 'empleado')),
+  idioma_preferido TEXT DEFAULT 'es',
+  tema_preferido TEXT DEFAULT 'light',
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -127,6 +129,17 @@ BEFORE DELETE ON auditoria
 BEGIN
   SELECT RAISE(ABORT, 'AUDITORIA INMUTABLE: los borrados estan prohibidos');
 END;
+
+-- Tabla de intentos fallidos para rate limiting (Fase 6.5)
+CREATE TABLE IF NOT EXISTS intentos_fallidos (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  tipo TEXT NOT NULL,
+  clave TEXT NOT NULL,
+  creada_en DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_intentos_tipo_clave_fecha
+  ON intentos_fallidos(tipo, clave, creada_en);
 
 -- Índices para mejorar el rendimiento de las consultas
 CREATE INDEX IF NOT EXISTS idx_movimientos_producto_fecha ON movimientos(producto_id, fecha);

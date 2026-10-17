@@ -1,14 +1,23 @@
 <script lang="ts">
   import type { PageData } from './$types';
   import TablaProductos from '$lib/components/TablaProductos.svelte';
+  import ToastFeedback from '$lib/components/ToastFeedback.svelte';
   import { _ } from 'svelte-i18n';
 
   let { data, form }: { data: PageData; form?: { success?: string; error?: string } } = $props();
+  const mensajeFeedback = $derived.by(() => {
+    if (form?.error) return `⚠️ ${$_(form.error)}`;
+    if (form?.success === 'producto_creado') return `✅ ${$_('productos.creado')}`;
+    if (form?.success === 'producto_eliminado') return `✅ ${$_('productos.eliminado')}`;
+    return null;
+  });
 </script>
 
 <svelte:head>
   <title>{$_('productos.titulo')} | StockPredict Pro</title>
 </svelte:head>
+
+<ToastFeedback feedback={form} message={mensajeFeedback} isError={Boolean(form?.error)} />
 
 <main class="page-container products-page">
   <header class="page-header-flex">
@@ -34,21 +43,6 @@
       {/if}
     </form>
   </div>
-
-  <!-- Mensajes de feedback -->
-  {#if form?.success === 'producto_creado'}
-    <div class="alert alert-success">
-      ✅ {$_('productos.creado')}
-    </div>
-  {:else if form?.success === 'producto_eliminado'}
-    <div class="alert alert-danger">
-      ️ {$_('productos.eliminado')}
-    </div>
-  {/if}
-
-  {#if form?.error}
-    <div class="alert alert-danger">{$_(form.error)}</div>
-  {/if}
 
   <TablaProductos productos={data.productos} />
 </main>

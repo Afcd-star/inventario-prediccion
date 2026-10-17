@@ -3,25 +3,17 @@
   import FormularioMovimiento from '$lib/components/FormularioMovimiento.svelte';
   import HistorialMovimientos from '$lib/components/HistorialMovimientos.svelte';
   import BotonPDF from '$lib/components/BotonPDF.svelte';
+  import ToastFeedback from '$lib/components/ToastFeedback.svelte';
   import { _ } from 'svelte-i18n';
 
   import type { ActionData } from './$types';
 
   let { data, form }: { data: PageData; form?: ActionData } = $props();
   let modalMovimientoAbierto = $state(false);
-  let toastVisible = $state(false);
-
-  $effect(() => {
-    if (!form?.success && !form?.error) {
-      toastVisible = false;
-      return;
-    }
-
-    toastVisible = true;
-    const temporizador = setTimeout(() => {
-      toastVisible = false;
-    }, 4500);
-    return () => clearTimeout(temporizador);
+  const mensajeFeedback = $derived.by(() => {
+    if (form?.error) return `⚠️ ${$_(form.error)}`;
+    if (form?.success === 'movimiento_registrado') return `✅ ${$_('movimientos.registradoExito')}`;
+    return null;
   });
 
   function cerrarModalMovimiento() {
@@ -39,15 +31,7 @@
   <title>{$_('movimientos.titulo')}: {data.producto.nombre} | StockPredict Pro</title>
 </svelte:head>
 
-{#if toastVisible && (form?.success || form?.error)}
-  <div class="movement-toast" class:toast-error={Boolean(form?.error)} role={form?.error ? 'alert' : 'status'}>
-    {#if form?.error}
-      ⚠️ {$_(form.error)}
-    {:else}
-      ✅ {$_('movimientos.registradoExito')}
-    {/if}
-  </div>
-{/if}
+<ToastFeedback feedback={form} message={mensajeFeedback} isError={Boolean(form?.error)} />
 
 <main class="page-container page-container--narrow">
   <header class="page-header">
@@ -177,27 +161,6 @@
     color: var(--text-primary);
     font-size: 1.5rem;
     cursor: pointer;
-  }
-
-  .movement-toast {
-    position: fixed;
-    z-index: 1200;
-    top: 1rem;
-    left: 50%;
-    max-width: min(92vw, 480px);
-    transform: translateX(-50%);
-    padding: 0.85rem 1.25rem;
-    border: 1px solid var(--border-color);
-    border-radius: 10px;
-    background: var(--status-success-bg);
-    color: var(--status-success-text);
-    box-shadow: var(--shadow-popover);
-    font-weight: var(--font-weight-medium);
-  }
-
-  .movement-toast.toast-error {
-    background: var(--status-danger-bg);
-    color: var(--status-danger-text);
   }
 
   @media (max-width: 600px) {
