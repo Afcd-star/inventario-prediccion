@@ -26,7 +26,7 @@ CREATE TABLE IF NOT EXISTS lotes (
 CREATE TABLE IF NOT EXISTS movimientos (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   producto_id INTEGER NOT NULL,
-  tipo TEXT NOT NULL CHECK(tipo IN ('entrada', 'salida')),
+  tipo TEXT NOT NULL CHECK(tipo IN ('entrada', 'salida', 'transferencia_salida', 'transferencia_entrada', 'transferencia_cancelada')),
   cantidad INTEGER NOT NULL CHECK(cantidad > 0),
   fecha DATETIME DEFAULT CURRENT_TIMESTAMP,
   notas TEXT,

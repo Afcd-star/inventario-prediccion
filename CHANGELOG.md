@@ -3,6 +3,15 @@
 Formato: versión semántica MAYOR.MENOR.PARCHES.
 Regla del proyecto: el cambio de versión viaja en el mismo commit que la funcionalidad.
 
+## 1.5.0 (2026.10.18)
+* Multi ubicación: nueva tabla de ubicaciones con soporte para almacenes, tiendas y centros de distribución, administrables desde el panel con permisos de rol.
+* Transferencias en tránsito: flujo completo de origen a destino con validación de stock, descuento inmediato en origen y confirmación de recepción en destino.
+* Trazabilidad por ubicación: los lotes y movimientos ahora registran su ubicación, permitiendo reportes de stock consolidado por almacén o tienda.
+* Cancelación segura: las transferencias canceladas devuelven automáticamente el stock no recibido al origen, con registro de auditoría.
+* Dashboard logístico: resumen de ubicaciones activas, stock total del sistema, stock por vencer y transferencias en tránsito visibles de un vistazo.
+* Navegación contextual: el botón de retorno en ubicaciones adapta su destino y su texto según el punto de entrada del usuario.
+* Migraciones 012 y 013: creación de tablas logísticas y ampliación segura de los tipos de movimiento mediante recreación de tabla sin pérdida de datos.
+
 ## 1.4.0 (2026.10.18)
 * Sesiones persistentes: migracion de autenticacion a tokens opacos hasheados en base de datos, permitiendo listar dispositivos activos y cierre de sesiones remoto individual o masivo.
 * Defensas en el servidor: implementacion de rate limiting para bloquear intentos de login fallidos y cambios excesivos de contrasena, con registro automatico en auditoria.

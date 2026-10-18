@@ -316,6 +316,111 @@
       </p>
     {/if}
   </section>
+
+  <!-- Resumen de Ubicaciones -->
+  <section class="card" style="margin-top: 2rem;">
+    <h2 style="margin-top: 0;">🏢 {$_('dashboard.resumenUbicaciones')}</h2>
+    <div class="stats-grid">
+      <div class="stat-card">
+        <span class="stat-number">{data.resumen.total_ubicaciones}</span>
+        <span class="stat-label">{$_('dashboard.totalUbicaciones')}</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-number">{data.resumen.transferencias_activas}</span>
+        <span class="stat-label">{$_('dashboard.transferenciasActivas')}</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-number">{data.resumen.stock_total_sistema.toLocaleString()}</span>
+        <span class="stat-label">{$_('dashboard.stockTotalSistema')}</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- Stock por Ubicación -->
+  <section class="card" style="margin-top: 1.5rem;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+      <h2 style="margin: 0;">📦 {$_('dashboard.stockPorUbicacion')}</h2>
+      <a href="/admin/ubicaciones?from=dashboard" class="btn btn-sm btn-secondary">{$_('dashboard.gestionarUbicaciones')}</a>
+    </div>
+
+    {#if data.stockPorUbicacion.length === 0}
+      <p class="text-secondary">{$_('dashboard.sinUbicaciones')}</p>
+    {:else}
+      <div class="table-container">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>{$_('dashboard.ubicacion')}</th>
+              <th>{$_('dashboard.tipo')}</th>
+              <th>{$_('dashboard.productos')}</th>
+              <th>{$_('dashboard.stockTotal')}</th>
+              <th>{$_('dashboard.porVencer')}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {#each data.stockPorUbicacion as ub}
+              <tr>
+                <td><strong>{ub.ubicacion_nombre}</strong></td>
+                <td>
+                  <span class="badge badge-info">
+                    {ub.ubicacion_tipo === 'almacen' ? $_('ubicaciones.tipoAlmacen') : 
+                     ub.ubicacion_tipo === 'tienda' ? $_('ubicaciones.tipoTienda') : $_('ubicaciones.tipoCentro')}
+                  </span>
+                </td>
+                <td>{ub.total_productos}</td>
+                <td><strong>{ub.stock_total.toLocaleString()}</strong></td>
+                <td>
+                  {#if ub.stock_por_vencer > 0}
+                    <span class="badge badge-warning">⚠️ {ub.stock_por_vencer}</span>
+                  {:else}
+                    <span class="text-secondary">0</span>
+                  {/if}
+                </td>
+              </tr>
+            {/each}
+          </tbody>
+        </table>
+      </div>
+    {/if}
+  </section>
+
+  <!-- Transferencias en Tránsito -->
+  {#if data.transferenciasActivas.length > 0}
+    <section class="card" style="margin-top: 1.5rem;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+        <h2 style="margin: 0;">🚚 {$_('dashboard.transferenciasEnTransito')}</h2>
+        <a href="/transferencias" class="btn btn-sm btn-primary">{$_('dashboard.verTodas')}</a>
+      </div>
+      <div class="table-container">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>{$_('transferencias.origen')}</th>
+              <th>{$_('transferencias.destino')}</th>
+              <th>{$_('transferencias.estado')}</th>
+              <th>{$_('transferencias.fecha')}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {#each data.transferenciasActivas.slice(0, 5) as t}
+              <tr>
+                <td><a href="/transferencias/{t.id}"><strong>#{t.id}</strong></a></td>
+                <td>{t.origen_nombre}</td>
+                <td>{t.destino_nombre}</td>
+                <td>
+                  <span class="badge badge-warning">
+                    {t.estado === 'pendiente' ? $_('transferencias.estadoPendiente') : $_('transferencias.estadoTransito')}
+                  </span>
+                </td>
+                <td>{new Date(t.creada_en).toLocaleDateString()}</td>
+              </tr>
+            {/each}
+          </tbody>
+        </table>
+      </div>
+    </section>
+  {/if}
 </main>
 
 <style>

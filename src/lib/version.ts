@@ -2,9 +2,14 @@
 // Esquema semántico: MAYOR.MENOR.PARCHES
 // Regla: el cambio de versión viaja en el mismo commit que la funcionalidad.
 
-export const VERSION = '1.4.0';
+export const VERSION = '1.5.0';
 
 export const CHANGELOG = [
+  {
+    version: '1.5.0',
+    fecha: '2026.10.18',
+    resumen: 'Escalabilidad logística: gestión de múltiples ubicaciones (almacenes, tiendas y centros de distribución), transferencias con estado en tránsito y confirmación de recepción, stock rastreado por lote y ubicación, dashboard con resumen logístico y nuevos tipos de movimiento para transferencias.'
+  },
   {
     version: '1.4.0',
     fecha: '2026.10.18',

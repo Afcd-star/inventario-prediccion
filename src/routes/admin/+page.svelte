@@ -196,6 +196,11 @@
       <span class="action-title">{$_('admin.auditoriaCard')}</span>
       <span class="action-description">{$_('admin.auditoriaDescripcion')}</span>
     </a>
+    <a href="/admin/ubicaciones?from=admin" class="action-card action-link">
+      <span class="action-icon" aria-hidden="true">🏢</span>
+      <span class="action-title">{$_('ubicaciones.titulo')}</span>
+      <span class="action-description">{$_('ubicaciones.descripcion')}</span>
+    </a>
   </section>
 
   <section class="card tables-card">

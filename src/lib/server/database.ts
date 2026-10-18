@@ -11,6 +11,8 @@ import { migrarSesiones } from './migrations/008_sesiones';
 import { migrarIntentosFallidos } from './migrations/009_intentos_fallidos';
 import { migrarPreferenciasUsuario } from './migrations/010_preferencias_usuario';
 import { migrar2FA } from './migrations/011_2fa';
+import { migrarUbicacionesYTransferencias } from './migrations/012_ubicaciones_y_transferencias';
+import { migrarTiposMovimientoTransferencia } from './migrations/013_tipos_movimiento_transferencia';
 import db from './sqlite';
 
 
@@ -67,6 +69,8 @@ migrarSesiones(db);
 migrarIntentosFallidos(db);
 migrarPreferenciasUsuario(db)
 migrar2FA(db);
+migrarUbicacionesYTransferencias(db);
+migrarTiposMovimientoTransferencia(db);
 console.log('✅ Base de datos conectada y tablas inicializadas en:', db.name);
 
 export default db;

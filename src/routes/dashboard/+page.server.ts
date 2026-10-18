@@ -4,6 +4,8 @@ import type { Producto } from '$lib/types';
 import { redirect } from '@sveltejs/kit';
 import { lotesService } from '$lib/server/services/lotes.service';
 import { anomaliasService } from '$lib/server/services/anomalias.service';
+import { transferenciasService } from '$lib/server/services/transferencias.service';
+import { ubicacionesService } from '$lib/server/services/ubicaciones.service';
 
 interface PrediccionData {
   producto_id: number;
@@ -57,6 +59,10 @@ export const load = (async ({ locals }) => {
     LIMIT 5
   `).all() as { nombre: string; total_vendido: number }[];
 
+  const resumen = ubicacionesService.obtenerResumenGeneral();
+  const stockPorUbicacion = ubicacionesService.obtenerStockConsolidado();
+  const transferenciasActivas = transferenciasService.obtenerActivas();
+
   return { 
     productos: productosConPrediccion,
     metricas: {
@@ -67,6 +73,9 @@ export const load = (async ({ locals }) => {
       anomaliasPendientes: anomaliasService.contarPendientes(),
     },
     topConsumidos,
-    lotesProximos
+    lotesProximos,
+    resumen,
+    stockPorUbicacion,
+    transferenciasActivas
   };
 }) satisfies PageServerLoad;

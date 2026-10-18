@@ -365,33 +365,4 @@
       padding: 0.5rem;
     }
   }
-
-  .page-header { margin-bottom: 1rem; }
-  .profile-card { position: relative; display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; min-width: 0; padding: clamp(1.25rem, 4vw, 2rem); box-shadow: var(--shadow-card); }
-  .profile-summary { display: flex; align-items: center; gap: 1.25rem; min-width: 0; }
-  .profile-avatar { display: grid; width: clamp(4rem, 12vw, 6rem); height: clamp(4rem, 12vw, 6rem); flex: 0 0 auto; place-items: center; border: 3px solid var(--bg-card); border-radius: 50%; background: linear-gradient(135deg, var(--accent-primary), var(--accent-purple)); color: var(--text-on-accent); font-size: clamp(1.25rem, 4vw, 2rem); font-weight: var(--font-weight-bold); box-shadow: var(--shadow-subtle); }
-  .profile-heading { min-width: 0; }
-  .profile-heading h1 { margin: 0; }
-  .profile-heading p { margin: 0.35rem 0 0; overflow-wrap: anywhere; }
-  .profile-name { color: var(--text-primary); font-weight: var(--font-weight-semibold); font-size: var(--font-size-lg); }
-  .profile-role { font-size: var(--font-size-sm); }
-  .profile-menu { position: relative; flex: 0 0 auto; margin-left: auto; }
-  .profile-menu-trigger { display: grid; width: 2.5rem; height: 2.5rem; place-items: center; border: 1px solid var(--border-color); border-radius: 50%; background: var(--bg-card); color: var(--text-primary); font-size: 1.5rem; line-height: 1; cursor: pointer; }
-  .profile-menu-trigger:hover, .profile-menu-trigger:focus-visible { border-color: var(--accent-primary); color: var(--accent-primary); }
-  .profile-dropdown { position: absolute; z-index: 10; top: calc(100% + 0.5rem); right: 0; display: grid; width: max-content; min-width: 14rem; padding: 0.4rem; border: 1px solid var(--border-color); border-radius: 10px; background: var(--bg-card); box-shadow: var(--shadow-popover); }
-  .profile-dropdown button { display: flex; align-items: center; gap: 0.75rem; width: 100%; padding: 0.75rem; border: 0; border-radius: 6px; background: transparent; color: var(--text-primary); text-align: left; font: inherit; cursor: pointer; }
-  .profile-dropdown button:hover, .profile-dropdown button:focus-visible { background: var(--status-info-bg); color: var(--status-info-text); }
-  .actividad-section { margin-top: 1.5rem; padding: 1.5rem; }
-  .actividad-section h2 { margin: 0 0 1rem; font-size: var(--font-size-lg); }
-  .profile-modal-backdrop { position: fixed; z-index: 1000; inset: 0; display: grid; place-items: center; padding: 1rem; background: rgb(15 23 42 / 65%); }
-  .profile-modal { position: relative; place-self: center; margin: 0; width: min(100%, 760px); max-height: min(90vh, 900px); overflow: auto; padding: clamp(1rem, 4vw, 1.5rem); border: 1px solid var(--border-color); border-radius: 12px; background: var(--bg-card); color: var(--text-primary); box-shadow: var(--shadow-popover); }
-  .profile-modal-header { display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-bottom: 1rem; }
-  .profile-modal-header h2 { margin: 0; }
-  .modal-close { display: grid; width: 2.25rem; height: 2.25rem; flex: 0 0 auto; place-items: center; border: 0; border-radius: 6px; background: var(--bg-secondary); color: var(--text-primary); font-size: 1.5rem; cursor: pointer; }
-  .profile-modal-content { min-width: 0; }
-  @media (max-width: 520px) {
-    .profile-summary { align-items: flex-start; gap: 0.75rem; }
-    .profile-heading h1 { font-size: var(--font-size-xl); }
-    .profile-modal-backdrop { padding: 0.5rem; }
-  }
 </style>
