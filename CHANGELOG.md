@@ -3,7 +3,32 @@
 Formato: versión semántica MAYOR.MENOR.PARCHES.
 Regla del proyecto: el cambio de versión viaja en el mismo commit que la funcionalidad.
 
-## 1.5.0 (2026.10.18)
+## [1.6.0] - 2026-10-18
+
+### ✨ Nuevas funcionalidades
+
+- **API pública RESTful**: endpoints para consulta de productos, stock por ubicación y registro de movimientos
+- **Autenticación por API keys**: claves hasheadas con scopes granulares (productos:leer, stock:leer, movimientos:escribir)
+- **Sistema de webhooks**: notificaciones push con firma HMAC-SHA256, cola de reintentos con backoff exponencial
+- **Panel de gestión de integraciones**: CRUD de API keys y webhooks, logs de llamadas API, historial de entregas de webhooks
+- **Documentación OpenAPI**: especificación completa con ejemplos de uso en curl, JavaScript y Python
+- **Rate limiting por API key**: 120 peticiones por minuto con respuesta 429 al exceder el límite
+
+### 🔒 Seguridad
+
+- API keys hasheadas con SHA-256 (nunca se almacenan en texto plano)
+- Secreto de webhook firmado con HMAC para verificación de autenticidad
+- Validación de scopes en cada endpoint (rechazo 403 si el scope es insuficiente)
+- Logs inmutables de todas las llamadas API con duración, código de respuesta e IP de origen
+
+### 🏗️ Arquitectura
+
+- Migración 014: tablas api_keys, webhooks, webhook_entregas, api_logs
+- Servicio apiGateway para autenticación, rate limiting y logging centralizado
+- Worker de webhooks con procesamiento asíncrono y reintentos automáticos (30s, 5min, 30min, 2h, 24h)
+- Documentación OpenAPI 3.0 servida como JSON estático
+
+## 1.5.0 (2026-10-18)
 * Multi ubicación: nueva tabla de ubicaciones con soporte para almacenes, tiendas y centros de distribución, administrables desde el panel con permisos de rol.
 * Transferencias en tránsito: flujo completo de origen a destino con validación de stock, descuento inmediato en origen y confirmación de recepción en destino.
 * Trazabilidad por ubicación: los lotes y movimientos ahora registran su ubicación, permitiendo reportes de stock consolidado por almacén o tienda.
@@ -12,7 +37,7 @@ Regla del proyecto: el cambio de versión viaja en el mismo commit que la funcio
 * Navegación contextual: el botón de retorno en ubicaciones adapta su destino y su texto según el punto de entrada del usuario.
 * Migraciones 012 y 013: creación de tablas logísticas y ampliación segura de los tipos de movimiento mediante recreación de tabla sin pérdida de datos.
 
-## 1.4.0 (2026.10.18)
+## 1.4.0 (2026-10-18)
 * Sesiones persistentes: migracion de autenticacion a tokens opacos hasheados en base de datos, permitiendo listar dispositivos activos y cierre de sesiones remoto individual o masivo.
 * Defensas en el servidor: implementacion de rate limiting para bloquear intentos de login fallidos y cambios excesivos de contrasena, con registro automatico en auditoria.
 * Perfil unificado y endurecido: formulario unico para editar datos, correo y preferencias, con reautenticacion obligatoria para cambios sensibles y medidor de fortaleza de contrasena en tiempo real.

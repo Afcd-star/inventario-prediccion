@@ -2,6 +2,10 @@ import type { Handle } from '@sveltejs/kit';
 import { redirect } from '@sveltejs/kit';
 import { sesionesService } from '$lib/server/services/sesiones.service';
 import { totpService } from '$lib/server/services/totp.service';
+import { iniciarWorker } from '$lib/server/services/webhook-worker';
+
+// Iniciar el worker de webhooks al cargar el servidor
+iniciarWorker();
 
 export const handle: Handle = async ({ event, resolve }) => {
   const token = event.cookies.get('sesion');

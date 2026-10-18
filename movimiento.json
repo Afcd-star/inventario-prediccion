@@ -1,0 +1,7 @@
+{
+  "producto_id": 1,
+  "tipo": "entrada",
+  "cantidad": 10,
+  "lote_id": 1,
+  "notas": "Entrada de prueba via API"
+}

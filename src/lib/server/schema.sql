@@ -141,6 +141,54 @@ CREATE TABLE IF NOT EXISTS intentos_fallidos (
 CREATE INDEX IF NOT EXISTS idx_intentos_tipo_clave_fecha
   ON intentos_fallidos(tipo, clave, creada_en);
 
+-- Fase 8: Integración Empresarial
+CREATE TABLE IF NOT EXISTS api_keys (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  nombre TEXT NOT NULL,
+  prefijo TEXT NOT NULL,
+  hash TEXT NOT NULL UNIQUE,
+  scopes TEXT NOT NULL,
+  creada_por INTEGER REFERENCES usuarios(id),
+  creada_en DATETIME DEFAULT CURRENT_TIMESTAMP,
+  expira_en DATETIME,
+  ultima_usada_en DATETIME,
+  activa INTEGER DEFAULT 1
+);
+
+CREATE TABLE IF NOT EXISTS webhooks (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  url TEXT NOT NULL,
+  secreto TEXT NOT NULL,
+  eventos TEXT NOT NULL,
+  activa INTEGER DEFAULT 1,
+  creada_por INTEGER REFERENCES usuarios(id),
+  creada_en DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS webhook_entregas (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  webhook_id INTEGER NOT NULL REFERENCES webhooks(id) ON DELETE CASCADE,
+  evento TEXT NOT NULL,
+  payload TEXT NOT NULL,
+  estado TEXT NOT NULL DEFAULT 'pendiente',
+  intentos INTEGER DEFAULT 0,
+  proximo_intento_en DATETIME,
+  ultima_respuesta TEXT,
+  creada_en DATETIME DEFAULT CURRENT_TIMESTAMP,
+  completada_en DATETIME
+);
+
+CREATE TABLE IF NOT EXISTS api_logs (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  api_key_id INTEGER REFERENCES api_keys(id) ON DELETE SET NULL,
+  endpoint TEXT NOT NULL,
+  metodo TEXT NOT NULL,
+  codigo_respuesta INTEGER NOT NULL,
+  duracion_ms INTEGER,
+  ip TEXT,
+  creada_en DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
 -- Índices para mejorar el rendimiento de las consultas
 CREATE INDEX IF NOT EXISTS idx_movimientos_producto_fecha ON movimientos(producto_id, fecha);
 CREATE INDEX IF NOT EXISTS idx_productos_nombre ON productos(nombre);

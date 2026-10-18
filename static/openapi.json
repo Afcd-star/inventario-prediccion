@@ -1,0 +1,221 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "StockPredict Pro API",
+    "description": "API pública para integración con sistemas externos (ERP, ecommerce, transporte)",
+    "version": "1.6.0",
+    "contact": {
+      "name": "StockPredict Pro"
+    }
+  },
+  "servers": [
+    {
+      "url": "http://localhost:5173",
+      "description": "Servidor de desarrollo"
+    }
+  ],
+  "components": {
+    "securitySchemes": {
+      "BearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "description": "API Key en formato: Bearer spk_xxxxx"
+      }
+    },
+    "schemas": {
+      "Producto": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "integer" },
+          "nombre": { "type": "string" },
+          "descripcion": { "type": "string" },
+          "precio": { "type": "number" },
+          "stock_actual": { "type": "integer" },
+          "stock_minimo": { "type": "integer" }
+        }
+      },
+      "StockUbicacion": {
+        "type": "object",
+        "properties": {
+          "ubicacion_id": { "type": "integer" },
+          "ubicacion_nombre": { "type": "string" },
+          "stock_total": { "type": "integer" },
+          "lotes_activos": { "type": "integer" }
+        }
+      },
+      "Movimiento": {
+        "type": "object",
+        "required": ["producto_id", "tipo", "cantidad"],
+        "properties": {
+          "producto_id": { "type": "integer" },
+          "tipo": { "type": "string", "enum": ["entrada", "salida"] },
+          "cantidad": { "type": "integer", "minimum": 1 },
+          "lote_id": { "type": "integer", "nullable": true },
+          "notas": { "type": "string", "nullable": true }
+        }
+      },
+      "Error": {
+        "type": "object",
+        "properties": {
+          "error": { "type": "string" }
+        }
+      }
+    }
+  },
+  "paths": {
+    "/api/public/ping": {
+      "get": {
+        "summary": "Verificar conexión",
+        "description": "Endpoint de prueba para validar que la API key es válida",
+        "security": [{ "BearerAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "Conexión exitosa",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "ok": { "type": "boolean" },
+                    "mensaje": { "type": "string" },
+                    "clave": { "type": "string" }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No autenticado",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/public/productos": {
+      "get": {
+        "summary": "Listar todos los productos",
+        "description": "Retorna el catálogo completo de productos con su stock actual",
+        "security": [{ "BearerAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "Lista de productos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": { "$ref": "#/components/schemas/Producto" }
+                }
+              }
+            }
+          },
+          "401": { "description": "No autenticado" },
+          "403": { "description": "Scope insuficiente (requiere productos:leer)" }
+        }
+      }
+    },
+    "/api/public/productos/{id}": {
+      "get": {
+        "summary": "Obtener detalle de un producto",
+        "security": [{ "BearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "integer" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Detalle del producto",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Producto" }
+              }
+            }
+          },
+          "401": { "description": "No autenticado" },
+          "403": { "description": "Scope insuficiente" },
+          "404": { "description": "Producto no encontrado" }
+        }
+      }
+    },
+    "/api/public/stock/{producto_id}": {
+      "get": {
+        "summary": "Stock de un producto por ubicación",
+        "description": "Retorna el desglose de stock de un producto en cada ubicación donde tiene lotes activos",
+        "security": [{ "BearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "producto_id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "integer" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Stock desglosado por ubicación",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "producto_id": { "type": "integer" },
+                    "nombre": { "type": "string" },
+                    "stock_por_ubicacion": {
+                      "type": "array",
+                      "items": { "$ref": "#/components/schemas/StockUbicacion" }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": { "description": "No autenticado" },
+          "403": { "description": "Scope insuficiente (requiere stock:leer)" },
+          "404": { "description": "Producto no encontrado" }
+        }
+      }
+    },
+    "/api/public/movimientos": {
+      "post": {
+        "summary": "Registrar un movimiento de inventario",
+        "description": "Crea una entrada o salida de stock. Si se especifica lote_id, actualiza el stock del lote. Siempre actualiza el stock global del producto.",
+        "security": [{ "BearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/Movimiento" }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Movimiento creado exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "ok": { "type": "boolean" },
+                    "movimiento_id": { "type": "integer" }
+                  }
+                }
+              }
+            }
+          },
+          "400": { "description": "Datos inválidos o stock insuficiente" },
+          "401": { "description": "No autenticado" },
+          "403": { "description": "Scope insuficiente (requiere movimientos:escribir)" },
+          "404": { "description": "Producto o lote no encontrado" }
+        }
+      }
+    }
+  }
+}

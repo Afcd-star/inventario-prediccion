@@ -201,6 +201,21 @@
       <span class="action-title">{$_('ubicaciones.titulo')}</span>
       <span class="action-description">{$_('ubicaciones.descripcion')}</span>
     </a>
+    <a href="/admin/integraciones" class="action-card action-link">
+      <span class="action-icon" aria-hidden="true">🔌</span>
+      <span class="action-title">{$_('integraciones.titulo')}</span>
+      <span class="action-description">{$_('integraciones.descripcion')}</span>
+    </a>
+    <a href="/api/docs" class="action-card action-link">
+      <span class="action-icon" aria-hidden="true">📚</span>
+      <span class="action-title">{$_('api.docs.titulo')}</span>
+      <span class="action-description">{$_('api.docs.descripcion')}</span>
+    </a>
+    <a href="/api/docs" class="admin-card">
+  <div class="admin-card-icon">📚</div>
+  <h3>Documentación de API</h3>
+  <p class="text-secondary">Referencia completa de endpoints públicos.</p>
+</a>
   </section>
 
   <section class="card tables-card">

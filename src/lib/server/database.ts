@@ -13,6 +13,7 @@ import { migrarPreferenciasUsuario } from './migrations/010_preferencias_usuario
 import { migrar2FA } from './migrations/011_2fa';
 import { migrarUbicacionesYTransferencias } from './migrations/012_ubicaciones_y_transferencias';
 import { migrarTiposMovimientoTransferencia } from './migrations/013_tipos_movimiento_transferencia';
+import { migrarApiWebhooks } from './migrations/014_api_webhooks';
 import db from './sqlite';
 
 
@@ -71,6 +72,7 @@ migrarPreferenciasUsuario(db)
 migrar2FA(db);
 migrarUbicacionesYTransferencias(db);
 migrarTiposMovimientoTransferencia(db);
+migrarApiWebhooks(db);
 console.log('✅ Base de datos conectada y tablas inicializadas en:', db.name);
 
 export default db;
