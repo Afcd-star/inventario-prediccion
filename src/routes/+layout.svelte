@@ -3,6 +3,7 @@
   import { page } from '$app/stores';
   import { onMount } from 'svelte';
   import { inicializarI18n, waitLocale, cambiarIdioma } from '$lib/i18n';
+  import Toasts from '$lib/components/Toasts.svelte';
   import { VERSION } from '$lib/version';
 
   let { children, data } = $props();
@@ -56,3 +57,6 @@
     <span class="footer-version">v{VERSION}</span>
   </footer>
 {/if}
+
+<!-- Sistema global de notificaciones: disponible en todas las rutas, incluido el login -->
+<Toasts />

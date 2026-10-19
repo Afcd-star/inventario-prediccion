@@ -3,6 +3,14 @@
 Formato: versión semántica MAYOR.MENOR.PARCHES.
 Regla del proyecto: el cambio de versión viaja en el mismo commit que la funcionalidad.
 
+## [1.6.1] - 2026-10-18
+### ✨ Mejoras de UX
+
+- **Sistema global de toasts**: Notificaciones de éxito unificadas, con duración de 4.5s, apilamiento automático y cierre manual.
+- **Limpieza visual**: Eliminación de banners de éxito inline en formularios de administración, productos, movimientos, transferencias, simulación, perfil y anomalías.
+- **Persistencia inteligente**: Los errores de validación y los secretos de API/Webhooks siguen mostrándose inline, ya que requieren atención o acción del usuario.
+- **Eliminación de deuda técnica**: Removido el componente obsoleto `ToastFeedback.svelte`.
+
 ## [1.6.0] - 2026-10-18
 
 ### ✨ Nuevas funcionalidades

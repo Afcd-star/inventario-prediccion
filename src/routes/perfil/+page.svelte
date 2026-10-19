@@ -4,8 +4,8 @@
   import ActividadReciente from '$lib/components/ActividadReciente.svelte';
   import PerfilEditarForm from '$lib/components/PerfilEditarForm.svelte';
   import SesionesAbiertas from '$lib/components/SesionesAbiertas.svelte';
-  import ToastFeedback from '$lib/components/ToastFeedback.svelte';
-  import Gestion2FA from '$lib/components/Gestion2FA.svelte'; // <-- NUEVO IMPORT
+  import Gestion2FA from '$lib/components/Gestion2FA.svelte';
+  import { mostrarToast } from '$lib/stores/toasts';
 
   type ModalPerfil = 'editar' | 'sesiones' | null;
   
@@ -27,13 +27,14 @@
     data.usuario.nombre.split(/\s+/).filter(Boolean).map(nombre => nombre[0]).join('').toUpperCase().slice(0, 2)
   );
 
-  const mensajeFeedback = $derived.by(() => {
-    if (form?.error && !form.campo) return $_(form.error);
-    switch (form?.success) {
-      case 'perfil_actualizado': return `✅ ${$_('perfil.perfilActualizado')}`;
-      case 'sesion_cerrada': return `✅ ${$_('sesiones.cerradaExito')}`;
-      case 'sesiones_masivo': return `🔒 ${$_('sesiones.masivoExito', { values: { n: form.cerradas ?? 0 } })}`;
-      default: return null;
+  // Mostrar toasts de éxito
+  $effect(() => {
+    if (form?.success === 'perfil_actualizado') {
+      mostrarToast($_('perfil.perfilActualizado'), 'success');
+    } else if (form?.success === 'sesion_cerrada') {
+      mostrarToast($_('sesiones.cerradaExito'), 'success');
+    } else if (form?.success === 'sesiones_masivo') {
+      mostrarToast($_('sesiones.masivoExito', { values: { n: form.cerradas ?? 0 } }), 'success');
     }
   });
 
@@ -66,8 +67,6 @@
   <title>{$_('perfil.titulo')} | StockPredict Pro</title>
 </svelte:head>
 
-<ToastFeedback feedback={form} message={mensajeFeedback} isError={Boolean(form?.error && !form?.campo)} />
-
 <main class="page-container page-container--narrow">
   <header class="page-header">
     <a href="/dashboard" class="btn-back">
@@ -75,6 +74,11 @@
       <span>{$_('perfil.volver')}</span>
     </a>
   </header>
+
+  <!-- Alerta de error general (no asociado a un campo específico) -->
+  {#if form?.error && !form?.campo}
+    <div class="alert alert-danger">⚠️ {$_(form.error)}</div>
+  {/if}
 
   <!-- Tarjeta de Perfil -->
   <section class="profile-card card">
@@ -114,7 +118,7 @@
     </div>
   </section>
 
-  <!-- NUEVO: Gestión de 2FA -->
+  <!-- Gestión de 2FA -->
   <section class="actividad-section card">
     <Gestion2FA 
       usuarioId={data.usuario.id} 

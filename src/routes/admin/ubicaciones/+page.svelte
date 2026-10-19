@@ -4,6 +4,7 @@
   import { _ } from 'svelte-i18n';
   import { page } from '$app/stores';
   import type { PageData } from './$types';
+  import { mostrarToast } from '$lib/stores/toasts';
 
   let { data, form }: { data: PageData; form?: { success?: string; error?: string } } = $props();
   
@@ -19,6 +20,15 @@
   // Detectar de dónde vino el usuario
   const desdeDashboard = $derived($page.url.searchParams.get('from') === 'dashboard');
   const urlRetorno = $derived(desdeDashboard ? '/dashboard' : '/admin');
+
+  // Mostrar toasts de éxito
+  $effect(() => {
+    if (form?.success === 'ubicaciones.creado') {
+      mostrarToast($_('ubicaciones.creado'), 'success');
+    } else if (form?.success === 'ubicaciones.actualizado') {
+      mostrarToast($_('ubicaciones.actualizado'), 'success');
+    }
+  });
 
   function abrirModalCrear() {
     modoEdicion = false;
@@ -44,8 +54,8 @@
     modalAbierto = false;
   }
 
-  async function eliminarUbicacion(id: number, nombre: string) {
-    if (confirm(`¿Estás seguro de que deseas eliminar la ubicación "${nombre}"? Esta acción no se puede deshacer.`)) {
+  async function eliminarUbicacion(id: number, nombreUbicacion: string) {
+    if (confirm(`¿Estás seguro de que deseas eliminar la ubicación "${nombreUbicacion}"? Esta acción no se puede deshacer.`)) {
       const formData = new FormData();
       formData.append('id', String(id));
     
@@ -55,6 +65,7 @@
       });
       
       if (res.ok) {
+        mostrarToast($_('ubicaciones.eliminado'), 'success');
         window.location.reload();
       } else {
         const data = await res.json();
@@ -62,6 +73,7 @@
       }
     }
   }
+
   // Tipado correcto para SvelteKit enhance
   const handleSubmit: SubmitFunction = () => {
     return async ({ update }) => {
@@ -97,11 +109,7 @@
     <p class="text-secondary">{$_('ubicaciones.descripcion')}</p>
   </header>
 
-  {#if form?.success === 'ubicaciones.creado'}
-    <div class="alert alert-success">✅ {$_('ubicaciones.creado')}</div>
-  {:else if form?.success === 'ubicaciones.actualizado'}
-    <div class="alert alert-success">✅ {$_('ubicaciones.actualizado')}</div>
-  {:else if form?.error}
+  {#if form?.error}
     <div class="alert alert-danger">⚠️ {$_(form.error)}</div>
   {/if}
 

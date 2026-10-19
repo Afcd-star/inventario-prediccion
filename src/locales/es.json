@@ -56,7 +56,7 @@
     "sinLotesProximos": "No hay lotes con stock que venzan en los próximos 30 días.",
     "estadoVencimiento": "Estado",
     "vencimientoCritico": "Vence pronto",
-        "resumenUbicaciones": "Resumen de Ubicaciones",
+    "resumenUbicaciones": "Resumen de Ubicaciones",
     "totalUbicaciones": "Ubicaciones Activas",
     "transferenciasActivas": "Transferencias Activas",
     "stockTotalSistema": "Stock Total del Sistema",
@@ -589,6 +589,16 @@
     "completada": "Completada",
     "errorApiKeyCampos": "El nombre y al menos un scope son obligatorios.",
     "errorWebhookCampos": "La URL debe ser válida y debes suscribir al menos un evento.",
+    "api_key_creada": "Clave de API creada exitosamente.",
+    "api_key_revocada": "Clave de API revocada.",
+    "webhook_creado": "Webhook creado exitosamente.",
+    "webhook_eliminado": "Webhook eliminado exitosamente.",
     "confirmarEliminarWebhook": "¿Eliminar este webhook y todas sus entregas pendientes?"
+  },
+  "api": {
+    "docs": {
+      "titulo": "Documentación de la API",
+      "descripcion": "Referencia completa de endpoints públicos."
+    }
   }
 }

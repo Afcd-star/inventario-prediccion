@@ -3,6 +3,7 @@
   import type { SubmitFunction } from '@sveltejs/kit';
   import { _ } from 'svelte-i18n';
   import type { PageData } from './$types';
+  import { mostrarToast } from '$lib/stores/toasts';
 
   interface ApiKey {
     id: number;
@@ -58,6 +59,20 @@
     'producto.eliminado'
   ];
 
+  // Mostrar toasts de éxito
+  $effect(() => {
+    if (form?.success) {
+      const mensajes: Record<string, string> = {
+        api_key_creada: $_('integraciones.api_key_creada'),
+        api_key_revocada: $_('integraciones.api_key_revocada'),
+        webhook_creado: $_('integraciones.webhook_creado'),
+        webhook_eliminado: $_('integraciones.webhook_eliminado')
+      };
+      const mensaje = mensajes[form.success];
+      if (mensaje) mostrarToast(mensaje, 'success');
+    }
+  });
+
   function cerrarModales() {
     modalApiKey = false;
     modalWebhook = false;
@@ -65,10 +80,11 @@
 
   const manejarEnvioApiKey: SubmitFunction = () => {
     return async ({ result, update }) => {
-      if (result.type === 'success' && result.data?.secretoNuevo) {
-        secretoMostrado = result.data.secretoNuevo as string;
-      } else {
+      if (result.type === 'success') {
         cerrarModales();
+        if (result.data?.secretoNuevo) {
+          secretoMostrado = result.data.secretoNuevo as string;
+        }
       }
       await update();
     };
@@ -76,10 +92,11 @@
 
   const manejarEnvioWebhook: SubmitFunction = () => {
     return async ({ result, update }) => {
-      if (result.type === 'success' && result.data?.secretoNuevo) {
-        secretoMostrado = result.data.secretoNuevo as string;
-      } else {
+      if (result.type === 'success') {
         cerrarModales();
+        if (result.data?.secretoNuevo) {
+          secretoMostrado = result.data.secretoNuevo as string;
+        }
       }
       await update();
     };
@@ -89,6 +106,13 @@
     'productos:leer': 'Leer productos',
     'stock:leer': 'Leer stock por ubicación',
     'movimientos:escribir': 'Registrar movimientos'
+  };
+
+  const ETIQUETAS_EVENTOS: Record<string, string> = {
+    'movimiento.registrado': 'Movimiento registrado',
+    'stock.bajo': 'Stock bajo mínimo',
+    'producto.creado': 'Producto creado',
+    'producto.eliminado': 'Producto eliminado'
   };
 
   function copiarSecreto() {
@@ -108,6 +132,10 @@
   function etiquetaScope(scope: string): string {
     return ETIQUETAS_SCOPES[scope] ?? scope;
   }
+
+  function etiquetaEvento(ev: string): string {
+    return ETIQUETAS_EVENTOS[ev] ?? ev;
+  }
 </script>
 
 <svelte:head>
@@ -124,7 +152,7 @@
     <p class="text-secondary">{$_('integraciones.descripcion')}</p>
   </header>
 
-  <!-- Banner de secreto recién creado -->
+  <!-- Banner de secreto recién creado (NO es toast: debe persistir hasta que el usuario lo confirme) -->
   {#if secretoMostrado}
     <div class="alert alert-warning secreto-banner">
       <strong>⚠️ {$_('integraciones.secretoUnicaVez')}</strong>
@@ -224,7 +252,7 @@
                 <td><code>{wh.url}</code></td>
                 <td>
                   {#each wh.eventos as ev}
-                    <span class="badge badge-info">{ev}</span>
+                    <span class="badge badge-info">{etiquetaEvento(ev)}</span>
                   {/each}
                 </td>
                 <td>
@@ -394,7 +422,7 @@
           {#each EVENTOS_DISPONIBLES as ev, i}
             <label class="checkbox-label" for={`event-${i}`}>
               <input id={`event-${i}`} type="checkbox" name="eventos" value={ev} />
-              <span>{ev}</span>
+              <span>{etiquetaEvento(ev)}</span>
             </label>
           {/each}
         </div>

@@ -3,16 +3,18 @@
   import { enhance } from '$app/forms';
   import { _ } from 'svelte-i18n';
   import type { Anomalia } from '$lib/server/services/anomalias.service';
-  import ToastFeedback from '$lib/components/ToastFeedback.svelte';
+  import { mostrarToast } from '$lib/stores/toasts';
 
   type AnomaliaFila = Anomalia & { producto_nombre: string; revisor_nombre: string | null };
   interface DiaDetalle { fecha: string; real: number; predicho: number; desvPct: number; z: number; }
 
   let { data, form }: { data: PageData; form?: { success?: string; error?: string } } = $props();
-  const mensajeFeedback = $derived.by(() => {
-    if (form?.error) return `⚠️ ${$_(form.error)}`;
-    if (form?.success === 'anomalia_clasificada') return `✅ ${$_('anomalias.clasificadaExito')}`;
-    return null;
+
+  // Mostrar toasts de éxito
+  $effect(() => {
+    if (form?.success === 'anomalia_clasificada') {
+      mostrarToast($_('anomalias.clasificadaExito'), 'success');
+    }
   });
 
   const filtros = [
@@ -57,8 +59,6 @@
   <title>{$_('anomalias.titulo')} | StockPredict Pro</title>
 </svelte:head>
 
-<ToastFeedback feedback={form} message={mensajeFeedback} isError={Boolean(form?.error)} />
-
 <main class="page-container">
   <header class="page-header">
     <a href="/dashboard" class="btn-back">
@@ -68,6 +68,10 @@
     <h1>🚨 {$_('anomalias.titulo')}</h1>
     <p class="text-secondary">{$_('anomalias.subtitulo')}</p>
   </header>
+
+  {#if form?.error}
+    <div class="alert alert-danger">⚠️ {$_(form.error)}</div>
+  {/if}
 
   <div class="filtros">
     {#each filtros as filtro}

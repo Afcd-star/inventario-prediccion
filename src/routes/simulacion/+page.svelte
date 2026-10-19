@@ -2,22 +2,23 @@
   import type { PageData } from './$types';
   import { _ } from 'svelte-i18n';
   import SimuladorWhatIf from '$lib/components/SimuladorWhatIf.svelte';
-  import ToastFeedback from '$lib/components/ToastFeedback.svelte';
+  import { mostrarToast } from '$lib/stores/toasts';
 
   let { data, form }: { data: PageData; form?: { success?: string; error?: string } } = $props();
-  const mensajeFeedback = $derived.by(() => {
-    if (form?.error) return `⚠️ ${$_(form.error)}`;
-    if (form?.success === 'escenario_guardado') return `💾 ${$_('simulacion.guardadoExito')}`;
-    if (form?.success === 'escenario_eliminado') return `🗑️ ${$_('simulacion.eliminadoExito')}`;
-    return null;
+
+  // Mostrar toasts de éxito
+  $effect(() => {
+    if (form?.success === 'escenario_guardado') {
+      mostrarToast($_('simulacion.guardadoExito'), 'success');
+    } else if (form?.success === 'escenario_eliminado') {
+      mostrarToast($_('simulacion.eliminadoExito'), 'success');
+    }
   });
 </script>
 
 <svelte:head>
   <title>{$_('simulacion.titulo')} | StockPredict Pro</title>
 </svelte:head>
-
-<ToastFeedback feedback={form} message={mensajeFeedback} isError={Boolean(form?.error)} />
 
 <main class="page-container">
   <header class="page-header">
@@ -29,26 +30,30 @@
     <p class="text-secondary">{$_('simulacion.subtitulo')}</p>
   </header>
 
+  {#if form?.error}
+    <div class="alert alert-danger">⚠️ {$_(form.error)}</div>
+  {/if}
+
   <div class="selector-card card">
     <form method="GET" action="/simulacion" class="selector-form">
       <label for="selector-producto" class="label">{$_('simulacion.selector')}</label>
       <select
-  id="selector-producto"
-  name="producto"
-  class="input-field"
-  onchange={(event) => event.currentTarget.form?.requestSubmit()}
-  disabled={data.productos.length === 0}
->
-  <option value="" selected={data.productoSeleccionado === null}>No hay ningún producto seleccionado aún</option>
-  {#each data.productos as producto}
-    <option 
-      value={producto.id}
-      selected={producto.id === data.productoSeleccionado}
-    >
-      {producto.nombre}
-    </option>
-  {/each}
-</select>
+        id="selector-producto"
+        name="producto"
+        class="input-field"
+        onchange={(event) => event.currentTarget.form?.requestSubmit()}
+        disabled={data.productos.length === 0}
+      >
+        <option value="" selected={data.productoSeleccionado === null}>No hay ningún producto seleccionado aún</option>
+        {#each data.productos as producto}
+          <option 
+            value={producto.id}
+            selected={producto.id === data.productoSeleccionado}
+          >
+            {producto.nombre}
+          </option>
+        {/each}
+      </select>
     </form>
   </div>
 
@@ -58,7 +63,7 @@
     </div>
   {:else if !data.productoSeleccionado}
     <div class="card">
-      <p class="text-secondary">⚠️ Noy hay ningún producto selecciondado aún</p>
+      <p class="text-secondary">⚠️ No hay ningún producto seleccionado aún</p>
     </div>
   {:else if data.coeficientes}
     <SimuladorWhatIf coeficientes={data.coeficientes} escenarios={data.escenarios} />

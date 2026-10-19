@@ -2,9 +2,19 @@
   import { enhance } from '$app/forms';
   import { _ } from 'svelte-i18n';
   import type { PageData } from './$types';
+  import { mostrarToast } from '$lib/stores/toasts';
 
   let { data, form }: { data: PageData; form?: { success?: string; error?: string } } = $props();
   const t = $derived(data.transferencia);
+
+  // Mostrar toasts de éxito
+  $effect(() => {
+    if (form?.success === 'transferencias.completada') {
+      mostrarToast($_('transferencias.completada'), 'success');
+    } else if (form?.success === 'transferencias.cancelada') {
+      mostrarToast($_('transferencias.cancelada'), 'info');
+    }
+  });
 </script>
 
 <svelte:head>
@@ -20,11 +30,7 @@
     <h1>{$_('transferencias.detalle')} #{t.id}</h1>
   </header>
 
-  {#if form?.success === 'transferencias.completada'}
-    <div class="alert alert-success">✅ {$_('transferencias.completada')}</div>
-  {:else if form?.success === 'transferencias.cancelada'}
-    <div class="alert alert-warning">⚠️ {$_('transferencias.cancelada')}</div>
-  {:else if form?.error}
+  {#if form?.error}
     <div class="alert alert-danger">⚠️ {$_(form.error)}</div>
   {/if}
 

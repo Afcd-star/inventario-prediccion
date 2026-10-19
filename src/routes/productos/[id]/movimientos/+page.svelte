@@ -3,17 +3,19 @@
   import FormularioMovimiento from '$lib/components/FormularioMovimiento.svelte';
   import HistorialMovimientos from '$lib/components/HistorialMovimientos.svelte';
   import BotonPDF from '$lib/components/BotonPDF.svelte';
-  import ToastFeedback from '$lib/components/ToastFeedback.svelte';
   import { _ } from 'svelte-i18n';
+  import { mostrarToast } from '$lib/stores/toasts';
 
   import type { ActionData } from './$types';
 
   let { data, form }: { data: PageData; form?: ActionData } = $props();
   let modalMovimientoAbierto = $state(false);
-  const mensajeFeedback = $derived.by(() => {
-    if (form?.error) return `⚠️ ${$_(form.error)}`;
-    if (form?.success === 'movimiento_registrado') return `✅ ${$_('movimientos.registradoExito')}`;
-    return null;
+
+  // Mostrar toasts de éxito
+  $effect(() => {
+    if (form?.success === 'movimiento_registrado') {
+      mostrarToast($_('movimientos.registradoExito'), 'success');
+    }
   });
 
   function cerrarModalMovimiento() {
@@ -30,8 +32,6 @@
 <svelte:head>
   <title>{$_('movimientos.titulo')}: {data.producto.nombre} | StockPredict Pro</title>
 </svelte:head>
-
-<ToastFeedback feedback={form} message={mensajeFeedback} isError={Boolean(form?.error)} />
 
 <main class="page-container page-container--narrow">
   <header class="page-header">
@@ -58,6 +58,10 @@
       </button>
     </div>
   </header>
+
+  {#if form?.error}
+    <div class="alert alert-danger">⚠️ {$_(form.error)}</div>
+  {/if}
 
   <div class="movements-stack">
     <section class="card">

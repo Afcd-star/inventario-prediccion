@@ -2,6 +2,7 @@
   import { enhance } from '$app/forms';
   import { _ } from 'svelte-i18n';
   import type { PageData } from './$types';
+  import { mostrarToast } from '$lib/stores/toasts';
 
   let { data, form }: { data: PageData; form?: { success?: string; error?: string } } = $props();
 
@@ -15,6 +16,13 @@
   // Estado reactivo para las filas de items
   type ItemRow = { producto_id: string; lote_id: string; cantidad: string };
   let items = $state<ItemRow[]>([{ producto_id: '', lote_id: '', cantidad: '1' }]);
+
+  // Mostrar toasts de éxito
+  $effect(() => {
+    if (form?.success === 'transferencias.creada') {
+      mostrarToast($_('transferencias.creada'), 'success');
+    }
+  });
 
   function agregarFila() {
     items = [...items, { producto_id: '', lote_id: '', cantidad: '1' }];
@@ -47,9 +55,7 @@
     <h1>{$_('transferencias.nueva')}</h1>
   </header>
 
-  {#if form?.success === 'transferencias.creada'}
-    <div class="alert alert-success">✅ {$_('transferencias.creada')}</div>
-  {:else if form?.error}
+  {#if form?.error}
     <div class="alert alert-danger">⚠️ {$_(form.error)}</div>
   {/if}
 

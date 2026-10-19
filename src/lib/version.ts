@@ -2,9 +2,14 @@
 // Esquema semántico: MAYOR.MENOR.PARCHES
 // Regla: el cambio de versión viaja en el mismo commit que la funcionalidad.
 
-export const VERSION = '1.6.0';
+export const VERSION = '1.6.1';
 
 export const CHANGELOG = [
+  {
+    version: '1.6.1',
+    fecha: '2026-10-18',
+    resumen: 'Sistema unificado de notificaciones tipo toast (4.5s) para confirmaciones transaccionales, reemplazando banners inline y mejorando la consistencia de la experiencia de usuario.'
+  },
   {
     version: '1.6.0',
     fecha: '2026-10-18',

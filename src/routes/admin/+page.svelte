@@ -3,7 +3,7 @@
   import type { SubmitFunction } from '@sveltejs/kit';
   import type { PageData } from './$types';
   import { _ } from 'svelte-i18n';
-  import ToastFeedback from '$lib/components/ToastFeedback.svelte';
+  import { mostrarToast } from '$lib/stores/toasts';
 
   type Usuario = PageData['usuarios'][number];
   type Modal = 'usuarios' | 'crearUsuario' | 'herramientas' | 'monitor' | 'tabla' | 'cambiarRol' | 'eliminarUsuario' | 'editarProducto' | null;
@@ -53,13 +53,14 @@
   let rolSeleccionado = $state<'admin' | 'empleado'>('empleado');
   let cargandoTabla = $state(false);
   let errorTabla = $state('');
-  const mensajeToast = $derived.by(() => {
-    if (form?.error) return `⚠️ ${$_(form.error)}`;
+
+  // Mostrar toasts de éxito
+  $effect(() => {
     if (form?.success === 'deteccion_ejecutada') {
-      return `🔍 ${$_('admin.deteccionEjecutada', { values: { n: form.nuevas ?? 0 } })}`;
-    }
-    if (form?.success === 'umbrales_guardados') return `✅ ${$_('admin.umbralesGuardados')}`;
-    if (form?.success) {
+      mostrarToast($_('admin.deteccionEjecutada', { values: { n: form.nuevas ?? 0 } }), 'success');
+    } else if (form?.success === 'umbrales_guardados') {
+      mostrarToast($_('admin.umbralesGuardados'), 'success');
+    } else if (form?.success) {
       const clave = form.success === 'usuario_creado'
         ? 'usuarioCreado'
         : form.success === 'rol_actualizado'
@@ -69,9 +70,8 @@
             : form.success === 'producto_actualizado'
               ? 'productoActualizado'
               : 'prediccionesRecalculadas';
-      return `✅ ${$_(`admin.${clave}`)}`;
+      mostrarToast($_(`admin.${clave}`), 'success');
     }
-    return null;
   });
 
   async function abrirTabla(nombre: string) {
@@ -158,8 +158,6 @@
   <title>{$_('admin.titulo')} | StockPredict Pro</title>
 </svelte:head>
 
-<ToastFeedback feedback={form} message={mensajeToast} isError={Boolean(form?.error)} />
-
 <main class="page-container admin-page">
   <header class="page-header">
     <a href="/dashboard" class="btn-back">
@@ -169,6 +167,10 @@
     <h1>{$_('admin.titulo')}</h1>
     <p class="text-secondary">{$_('admin.subtitulo')}</p>
   </header>
+
+  {#if form?.error}
+    <div class="alert alert-danger">⚠️ {$_(form.error)}</div>
+  {/if}
 
   <section class="admin-actions" aria-label={$_('admin.acciones')}>
     <button class="action-card" type="button" onclick={() => modal = 'usuarios'}>
@@ -211,11 +213,6 @@
       <span class="action-title">{$_('api.docs.titulo')}</span>
       <span class="action-description">{$_('api.docs.descripcion')}</span>
     </a>
-    <a href="/api/docs" class="admin-card">
-  <div class="admin-card-icon">📚</div>
-  <h3>Documentación de API</h3>
-  <p class="text-secondary">Referencia completa de endpoints públicos.</p>
-</a>
   </section>
 
   <section class="card tables-card">

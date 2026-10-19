@@ -33,14 +33,25 @@ export const webhooksService = {
   },
 
   /**
-   * Lista todos los webhooks configurados (sin mostrar el secreto).
-   */
+  * Lista todos los webhooks configurados (sin mostrar el secreto).
+  */
   listar(): Array<WebhookConfig & { creada_en: string }> {
-    return db.prepare(`
+    const filas = db.prepare(`
       SELECT id, url, eventos, activa, creada_en
       FROM webhooks
       ORDER BY creada_en DESC
-    `).all() as Array<WebhookConfig & { creada_en: string }>;
+    `).all() as Array<{
+      id: number;
+      url: string;
+      eventos: string;
+      activa: number;
+      creada_en: string;
+    }>;
+
+    return filas.map(fila => ({
+      ...fila,
+      eventos: fila.eventos.split(',').filter(Boolean)
+    }));
   },
 
   /**

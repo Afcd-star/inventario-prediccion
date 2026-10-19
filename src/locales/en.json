@@ -587,6 +587,16 @@
     "completada": "Completed",
     "errorApiKeyCampos": "Name and at least one scope are required.",
     "errorWebhookCampos": "URL must be valid and you must subscribe to at least one event.",
+    "api_key_creada": "API key created successfully.",
+    "api_key_revocada": "API key revoked.",
+    "webhook_creado": "Webhook created successfully.",
+    "webhook_eliminado": "Webhook deleted successfully.",
     "confirmarEliminarWebhook": "Delete this webhook and all its pending deliveries?"
+  },
+  "api": {
+    "docs": {
+      "titulo": "API Documentation",
+      "descripcion": "Complete reference of public endpoints."
+    }
   }
 }
