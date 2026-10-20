@@ -4,6 +4,7 @@
   import { onMount } from 'svelte';
   import { inicializarI18n, waitLocale, cambiarIdioma } from '$lib/i18n';
   import Toasts from '$lib/components/Toasts.svelte';
+  import { iniciarSSE, detenerSSE } from '$lib/stores/notificaciones';
   import { VERSION } from '$lib/version';
 
   let { children, data } = $props();
@@ -32,6 +33,22 @@
         : (preferidoSistema ? 'dark' : 'light');
       document.documentElement.setAttribute('data-theme', temaInicial);
     }
+  });
+
+  // Iniciar SSE cuando hay usuario, detenerlo al hacer logout
+  $effect(() => {
+    if (tieneUsuario) {
+      iniciarSSE();
+    } else {
+      detenerSSE();
+    }
+  
+    // Cleanup al desmontar o cambiar de estado
+    return () => {
+      if (!tieneUsuario) {
+        detenerSSE();
+      }
+    };
   });
 
   void inicializarI18n();

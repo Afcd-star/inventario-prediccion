@@ -1,5 +1,6 @@
 import db from '../database';
 import { seriesTiempoService } from './series-tiempo.service';
+import { dispararAnomalia } from './notificaciones-disparadores';
 
 export interface Anomalia {
   id: number;
@@ -149,7 +150,17 @@ export const anomaliasService = {
       VALUES (?, ?, ?, ?, ?, ?, ?)
     `).run(productoId, tipo, fechaInicio, racha[racha.length - 1].fecha, desviacionPromedio, zMax, detalle);
 
-    return db.prepare('SELECT * FROM anomalias WHERE id = ?').get(resultado.lastInsertRowid) as Anomalia;
+    const anomaliaCreada = db.prepare('SELECT * FROM anomalias WHERE id = ?').get(resultado.lastInsertRowid) as Anomalia;
+
+    // Disparar notificación de anomalía detectada
+    if (anomaliaCreada) {
+      const producto = db.prepare('SELECT nombre FROM productos WHERE id = ?').get(productoId) as { nombre: string } | undefined;
+      if (producto) {
+        dispararAnomalia(anomaliaCreada.id, producto.nombre, tipo, desviacionPromedio);
+      }
+    }
+
+    return anomaliaCreada;
   },
 
   /**

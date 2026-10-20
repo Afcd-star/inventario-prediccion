@@ -231,6 +231,8 @@
     "reglaMinuscula": "Al menos una minúscula",
     "reglaNumero": "Al menos un número",
     "reglaSimbolo": "Al menos un símbolo",
+    "notificacionesNavegador": "Notificaciones del Navegador",
+    "descNotificacionesNavegador": "Recibe alertas del sistema operativo incluso con el navegador minimizado.",
     "2fa": {
       "titulo": "Autenticación en dos pasos (2FA)",
       "descripcion": "Protege tu cuenta con un código de verificación adicional al iniciar sesión.",
@@ -600,5 +602,24 @@
       "titulo": "Documentación de la API",
       "descripcion": "Referencia completa de endpoints públicos."
     }
+  },
+  "notificaciones": {
+    "titulo": "Notificaciones",
+    "subtitulo": "Eventos importantes de tu inventario",
+    "volver": "Volver al Dashboard",
+    "sinLeer": "sin leer",
+    "tipo": "Tipo",
+    "estado": "Estado",
+    "marcarTodasLeidas": "Marcar todas como leídas",
+    "eliminarLeidas": "Eliminar leídas",
+    "confirmarEliminarLeidas": "¿Eliminar todas las notificaciones leídas?",
+    "vacias": "No tienes notificaciones.",
+    "marcarLeida": "Marcar como leída",
+    "eliminar": "Eliminar",
+    "confirmarEliminar": "¿Eliminar esta notificación?",
+    "anterior": "Anterior",
+    "siguiente": "Siguiente",
+    "verTodas": "Ver todas",
+    "paginas": "Página {actual} de {total}"
   }
 }

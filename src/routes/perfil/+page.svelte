@@ -22,6 +22,9 @@
   let menuAbierto = $state(false);
   let modal = $state<ModalPerfil>(null);
   let menuRoot = $state<HTMLDivElement | null>(null);
+  let cargandoPush = $state(false);
+  let mensajePush = $state('');
+  let errorPush = $state(false);
 
   const iniciales = $derived(
     data.usuario.nombre.split(/\s+/).filter(Boolean).map(nombre => nombre[0]).join('').toUpperCase().slice(0, 2)
@@ -58,6 +61,87 @@
     if (menuAbierto && event.target instanceof Node && !menuRoot?.contains(event.target)) {
       menuAbierto = false;
     }
+  }
+
+  async function activarNotificacionesNavegador() {
+    if (!('Notification' in window)) {
+      mensajePush = 'Tu navegador no soporta notificaciones.';
+      errorPush = true;
+      return;
+    }
+
+    cargandoPush = true;
+    mensajePush = '';
+    errorPush = false;
+
+    try {
+      // 1. Pedir permiso del sistema
+      const permission = await Notification.requestPermission();
+      
+      if (permission === 'granted') {
+        // 2. Esperar a que el Service Worker esté listo y controlando la página
+        const registration = await navigator.serviceWorker.ready;
+        console.log('Service Worker listo:', registration);
+
+        // 3. Verificar si ya existe una suscripción
+        let subscription = await registration.pushManager.getSubscription();
+        
+        if (!subscription) {
+          // 4. Obtener la clave pública (¡IMPORTANTE! Debe tener el prefijo VITE_)
+          const vapidPublicKey = import.meta.env.VITE_VAPID_PUBLIC_KEY;
+          
+          console.log('Clave VAPID cargada:', vapidPublicKey ? 'SÍ (longitud: ' + vapidPublicKey.length + ')' : 'NO');
+
+          if (!vapidPublicKey || vapidPublicKey.includes('TU_PUBLIC_KEY')) {
+            throw new Error('La clave VAPID pública no está configurada en .env o no tiene el prefijo VITE_');
+          }
+
+          // 5. Convertir la clave y suscribirse
+          const convertedVapidKey = urlBase64ToUint8Array(vapidPublicKey);
+          
+          subscription = await registration.pushManager.subscribe({
+            userVisibleOnly: true,
+            applicationServerKey: convertedVapidKey
+          });
+          
+          console.log('Suscripción creada exitosamente:', subscription);
+        }
+
+        // 6. Enviar la suscripción al servidor
+        const res = await fetch('/api/push/subscribe', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(subscription)
+        });
+
+        if (res.ok) {
+          mensajePush = '✅ Notificaciones del navegador activadas correctamente.';
+        } else {
+          const errData = await res.json();
+          throw new Error(errData.error || 'Error al guardar en el servidor');
+        }
+      } else {
+        mensajePush = 'Permiso de notificaciones denegado por el usuario.';
+        errorPush = true;
+      }
+    } catch (error: any) {
+      console.error('Error activando push:', error);
+      mensajePush = `Error: ${error.message}`;
+      errorPush = true;
+    } finally {
+      cargandoPush = false;
+    }
+  }
+
+  function urlBase64ToUint8Array(base64String: string) {
+    const padding = '='.repeat((4 - (base64String.length % 4)) % 4);
+    const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+    const rawData = window.atob(base64);
+    const outputArray = new Uint8Array(rawData.length);
+    for (let i = 0; i < rawData.length; ++i) {
+      outputArray[i] = rawData.charCodeAt(i);
+    }
+    return outputArray;
   }
 </script>
 
@@ -125,6 +209,28 @@
       estaActivado={data.usuario.totp_activado === 1} 
       codigosDisponibles={data.codigosDisponibles}
     />
+  </section>
+
+  <!-- Tarjeta de Notificaciones del Navegador -->
+  <section class="actividad-section card">
+    <h2>🔔 {$_('perfil.notificacionesNavegador')}</h2>
+    <p class="text-secondary text-sm" style="margin-bottom: 1rem;">
+      {$_('perfil.descNotificacionesNavegador')}
+    </p>
+
+    <button 
+      class="btn btn-primary" 
+      onclick={activarNotificacionesNavegador}
+      disabled={cargandoPush}
+    >
+      {cargandoPush ? 'Activando...' : 'Activar notificaciones del navegador'}
+    </button>
+
+    {#if mensajePush}
+      <p class="text-sm" style="margin-top: 0.5rem; color: {errorPush ? 'var(--accent-danger)' : 'var(--accent-success)'};">
+        {mensajePush}
+      </p>
+    {/if}
   </section>
 
   <!-- Actividad Reciente -->

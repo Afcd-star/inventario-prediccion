@@ -228,6 +228,8 @@
     "reglaMayuscula": "At least one uppercase letter",
     "reglaMinuscula": "At least one lowercase letter",
     "reglaNumero": "At least one number",
+    "notificacionesNavegador": "Browser Notifications",
+    "descNotificacionesNavegador": "Receive alerts from the operating system even with the browser minimized.",
     "reglaSimbolo": "At least one symbol",
     "2fa": {
       "titulo": "Two-Factor Authentication (2FA)",
@@ -598,5 +600,24 @@
       "titulo": "API Documentation",
       "descripcion": "Complete reference of public endpoints."
     }
+  },
+  "notificaciones": {
+    "titulo": "Notifications",
+    "subtitulo": "Important events from your inventory",
+    "volver": "Back to Dashboard",
+    "sinLeer": "unread",
+    "tipo": "Type",
+    "estado": "Status",
+    "marcarTodasLeidas": "Mark all as read",
+    "eliminarLeidas": "Delete read",
+    "confirmarEliminarLeidas": "Delete all read notifications?",
+    "vacias": "You have no notifications.",
+    "marcarLeida": "Mark as read",
+    "eliminar": "Delete",
+    "confirmarEliminar": "Delete this notification?",
+    "anterior": "Previous",
+    "siguiente": "Next",
+    "verTodas": "View all",
+    "paginas": "Page {actual} of {total}"
   }
 }

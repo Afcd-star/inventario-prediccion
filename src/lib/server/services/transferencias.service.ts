@@ -1,5 +1,6 @@
 import db from '../database';
 import { auditoriaService } from './auditoria.service';
+import { dispararTransferenciaCompletada, dispararTransferenciaCancelada } from './notificaciones-disparadores';
 
 export const transferenciasService = {
   crear: (
@@ -78,7 +79,8 @@ export const transferenciasService = {
     itemsRecibidos: Array<{ item_id: number; cantidad_recibida: number }>
   ) => {
     const completar = db.transaction(() => {
-      const t = db.prepare('SELECT origen_id, destino_id, estado FROM transferencias WHERE id = ?').get(transferenciaId) as { origen_id: number; destino_id: number; estado: string } | undefined;
+      // Agregamos creado_por para saber a quién notificar
+      const t = db.prepare('SELECT origen_id, destino_id, estado, creado_por FROM transferencias WHERE id = ?').get(transferenciaId) as { origen_id: number; destino_id: number; estado: string; creado_por: number } | undefined;
       if (!t || t.estado !== 'en_transito') {
         throw new Error('La transferencia no está en estado válido para completar');
       }
@@ -132,10 +134,10 @@ export const transferenciasService = {
       }
 
       stmtUpdateTransf.run(transferenciaId);
-      return true;
+      return { creado_por: t.creado_por, origen_id: t.origen_id, destino_id: t.destino_id };
     });
 
-    completar();
+    const resultado = completar();
 
     auditoriaService.registrar({
       usuarioId: completadoPor,
@@ -145,11 +147,17 @@ export const transferenciasService = {
       detalles: { transferenciaId },
       ip: ip || 'localhost'
     });
+
+    // Disparar notificación de transferencia completada
+    const origen = db.prepare('SELECT nombre FROM ubicaciones WHERE id = ?').get(resultado.origen_id) as { nombre: string };
+    const destino = db.prepare('SELECT nombre FROM ubicaciones WHERE id = ?').get(resultado.destino_id) as { nombre: string };
+    dispararTransferenciaCompletada(transferenciaId, origen.nombre, destino.nombre, resultado.creado_por);
   },
 
   cancelar: (transferenciaId: number, canceladoPor: number, ip: string | null) => {
     const cancelar = db.transaction(() => {
-      const t = db.prepare('SELECT origen_id, destino_id, estado FROM transferencias WHERE id = ?').get(transferenciaId) as { origen_id: number; destino_id: number; estado: string } | undefined;
+      // Agregamos creado_por para saber a quién notificar
+      const t = db.prepare('SELECT origen_id, destino_id, estado, creado_por FROM transferencias WHERE id = ?').get(transferenciaId) as { origen_id: number; destino_id: number; estado: string; creado_por: number } | undefined;
       if (!t || t.estado === 'completada' || t.estado === 'cancelada') {
         throw new Error('No se puede cancelar esta transferencia');
       }
@@ -173,9 +181,10 @@ export const transferenciasService = {
       }
 
       db.prepare(`UPDATE transferencias SET estado = 'cancelada', completada_en = CURRENT_TIMESTAMP WHERE id = ?`).run(transferenciaId);
+      return { creado_por: t.creado_por, origen_id: t.origen_id, destino_id: t.destino_id };
     });
 
-    cancelar();
+    const resultado = cancelar();
 
     auditoriaService.registrar({
       usuarioId: canceladoPor,
@@ -185,6 +194,11 @@ export const transferenciasService = {
       detalles: { transferenciaId },
       ip: ip || 'localhost'
     });
+
+    // Disparar notificación de transferencia cancelada
+    const origen = db.prepare('SELECT nombre FROM ubicaciones WHERE id = ?').get(resultado.origen_id) as { nombre: string };
+    const destino = db.prepare('SELECT nombre FROM ubicaciones WHERE id = ?').get(resultado.destino_id) as { nombre: string };
+    dispararTransferenciaCancelada(transferenciaId, origen.nombre, destino.nombre, resultado.creado_por);
   },
 
   obtenerDetalles: (transferenciaId: number) => {

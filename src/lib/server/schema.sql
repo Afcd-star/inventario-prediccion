@@ -189,6 +189,26 @@ CREATE TABLE IF NOT EXISTS api_logs (
   creada_en DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
+-- Fase 10: Notificaciones en tiempo real
+CREATE TABLE IF NOT EXISTS notificaciones (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  usuario_id INTEGER NOT NULL REFERENCES usuarios(id) ON DELETE CASCADE,
+  tipo TEXT NOT NULL,
+  titulo TEXT NOT NULL,
+  mensaje TEXT NOT NULL,
+  leida INTEGER DEFAULT 0,
+  metadata TEXT,
+  creada_en DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS preferencias_notificacion (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  usuario_id INTEGER NOT NULL REFERENCES usuarios(id) ON DELETE CASCADE,
+  tipo_evento TEXT NOT NULL,
+  activa INTEGER DEFAULT 1,
+  UNIQUE(usuario_id, tipo_evento)
+);
+
 -- Índices para mejorar el rendimiento de las consultas
 CREATE INDEX IF NOT EXISTS idx_movimientos_producto_fecha ON movimientos(producto_id, fecha);
 CREATE INDEX IF NOT EXISTS idx_productos_nombre ON productos(nombre);

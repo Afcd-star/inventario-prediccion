@@ -2,6 +2,7 @@ import db from '../database';
 import { lotesService } from './lotes.service';
 import { prediccionService } from './prediccion.service';
 import { anomaliasService } from './anomalias.service';
+import { dispararStockBajo } from './notificaciones-disparadores'; // <-- NUEVO IMPORT
 
 export interface Movimiento {
   id: number;
@@ -116,16 +117,25 @@ export const movimientosService = {
         cantidadRestante -= cantidadDelLote;
       }
 
+      // 1. Actualizar stock global del producto
       db.prepare(`
         UPDATE productos
         SET stock_actual = stock_actual - ?, updated_at = CURRENT_TIMESTAMP
         WHERE id = ?
       `).run(cantidad, productoId);
 
+      // 2. VERIFICAR Y DISPARAR NOTIFICACIÓN DE STOCK BAJO (Lugar arquitectónico correcto)
+      const productoActualizado = db.prepare(`
+        SELECT stock_actual, stock_minimo, nombre FROM productos WHERE id = ?
+      `).get(productoId) as { stock_actual: number; stock_minimo: number; nombre: string } | undefined;
+
+      if (productoActualizado && productoActualizado.stock_actual < productoActualizado.stock_minimo) {
+        dispararStockBajo(productoId, productoActualizado.nombre, productoActualizado.stock_actual, productoActualizado.stock_minimo);
+      }
+
+      // 3. Recalcular predicciones y detectar anomalías
       prediccionService.calcularParaProducto(productoId);
 
-          // Fase 5: el monitor reevalúa solo este producto (ligero y automático).
-    // El try/catch garantiza que un fallo del monitor nunca rompa una venta.
       try {
         anomaliasService.detectarParaProducto(productoId);
       } catch (error) {

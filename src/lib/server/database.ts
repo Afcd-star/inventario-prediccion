@@ -14,6 +14,8 @@ import { migrar2FA } from './migrations/011_2fa';
 import { migrarUbicacionesYTransferencias } from './migrations/012_ubicaciones_y_transferencias';
 import { migrarTiposMovimientoTransferencia } from './migrations/013_tipos_movimiento_transferencia';
 import { migrarApiWebhooks } from './migrations/014_api_webhooks';
+import { migrarNotificaciones } from './migrations/015_notificaciones';
+import { migrarPushSuscripciones } from './migrations/016_push_suscripciones';
 import db from './sqlite';
 
 
@@ -73,6 +75,8 @@ migrar2FA(db);
 migrarUbicacionesYTransferencias(db);
 migrarTiposMovimientoTransferencia(db);
 migrarApiWebhooks(db);
+migrarNotificaciones(db);
+migrarPushSuscripciones(db);
 console.log('✅ Base de datos conectada y tablas inicializadas en:', db.name);
 
 export default db;

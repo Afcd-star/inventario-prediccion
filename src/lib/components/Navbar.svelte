@@ -4,12 +4,18 @@
   import { _, locale } from 'svelte-i18n';
   import { cambiarIdioma } from '$lib/i18n';
   import { VERSION } from '$lib/version';
+  import { contadorNoLeidas } from '$lib/stores/notificaciones';
 
   let { data }: { data: { usuario?: { nombre: string; email: string; rol: string }; anomaliasPendientes?: number } } = $props();
   
   let temaActual = $state<'light' | 'dark'>('light');
   let menuAbierto = $state(false);
   let idiomasAbiertos = $state(false);
+  
+  // Estados para el popover de notificaciones
+  let notificacionesPopoverAbierto = $state(false);
+  let notificacionesRecientes = $state<any[]>([]);
+  let cargandoNotificaciones = $state(false);
 
   onMount(() => {
     const guardado = localStorage.getItem('tema');
@@ -25,7 +31,6 @@
     document.documentElement.setAttribute('data-theme', temaActual);
     localStorage.setItem('tema', temaActual);
     
-    // Sincronizar con BD si hay sesión
     if (data.usuario) {
       try {
         await fetch('/api/preferencias', {
@@ -34,7 +39,6 @@
           body: JSON.stringify({ idioma: idiomaActual, tema: temaActual })
         });
       } catch (error) {
-        // Silencioso: el localStorage ya aplicó el cambio
         console.error('Error sincronizando preferencias:', error);
       }
     }
@@ -43,6 +47,7 @@
   function toggleMenu() {
     menuAbierto = !menuAbierto;
     idiomasAbiertos = false;
+    notificacionesPopoverAbierto = false;
   }
 
   function cerrarMenu() {
@@ -52,13 +57,13 @@
 
   function toggleIdiomas() {
     idiomasAbiertos = !idiomasAbiertos;
+    notificacionesPopoverAbierto = false;
   }
 
   async function seleccionarIdioma(idioma: 'es' | 'en') {
     cambiarIdioma(idioma);
     idiomasAbiertos = false;
     
-    // Sincronizar con BD si hay sesión
     if (data.usuario) {
       try {
         await fetch('/api/preferencias', {
@@ -67,17 +72,68 @@
           body: JSON.stringify({ idioma, tema: temaActual })
         });
       } catch (error) {
-        // Silencioso: el idioma ya cambió en el cliente
         console.error('Error sincronizando preferencias:', error);
       }
     }
   }
 
+  // --- Lógica de Notificaciones ---
+  function toggleNotificaciones() {
+    notificacionesPopoverAbierto = !notificacionesPopoverAbierto;
+    menuAbierto = false;
+    idiomasAbiertos = false;
+    
+    if (notificacionesPopoverAbierto && notificacionesRecientes.length === 0) {
+      cargarNotificaciones();
+    }
+  }
+
+  function cerrarNotificaciones() {
+    notificacionesPopoverAbierto = false;
+  }
+
+  async function cargarNotificaciones() {
+    cargandoNotificaciones = true;
+    try {
+      const res = await fetch('/api/notificaciones/recientes');
+      if (res.ok) {
+        notificacionesRecientes = await res.json();
+      }
+    } catch (error) {
+      console.error('Error cargando notificaciones:', error);
+    } finally {
+      cargandoNotificaciones = false;
+    }
+  }
+
+  function iconoDeTipo(tipo: string): string {
+    const iconos: Record<string, string> = {
+      stock_bajo: '📦',
+      anomalia_detectada: '⚠️',
+      transferencia_completada: '✅',
+      transferencia_cancelada: '❌',
+      lote_por_vencer: '⏳'
+    };
+    return iconos[tipo] ?? '🔔';
+  }
+
+  function formatoFechaCorta(fecha: string): string {
+    const d = new Date(fecha);
+    const ahora = new Date();
+    const diffMin = Math.floor((ahora.getTime() - d.getTime()) / 60000);
+    if (diffMin < 1) return 'Ahora';
+    if (diffMin < 60) return `Hace ${diffMin} min`;
+    const diffHoras = Math.floor(diffMin / 60);
+    if (diffHoras < 24) return `Hace ${diffHoras} h`;
+    return d.toLocaleDateString('es-ES', { day: '2-digit', month: 'short' });
+  }
+
   onMount(() => {
     function handleClickOutside(event: MouseEvent) {
       const target = event.target as HTMLElement;
-      if (!target.closest('.profile-menu')) {
+      if (!target.closest('.profile-menu') && !target.closest('.notification-wrapper')) {
         cerrarMenu();
+        cerrarNotificaciones();
       }
     }
     document.addEventListener('click', handleClickOutside);
@@ -132,26 +188,76 @@
 
   <div class="right-section">
     {#if data.usuario}
+      <!-- Botón de Anomalías (existente) -->
       <a href="/anomalias" class="alerta-badge" title={$_('anomalias.titulo')}>
         <span>🚨</span>
         {#if (data.anomaliasPendientes ?? 0) > 0}
           <span class="alerta-contador">{data.anomaliasPendientes}</span>
         {/if}
       </a>
+
+      <!-- Botón de Notificaciones (CORREGIDO) -->
+      <div class="notification-wrapper" class:open={notificacionesPopoverAbierto}>
+        <button 
+          class="alerta-badge notification-btn" 
+          title={$_('notificaciones.titulo')}
+          aria-label={$_('notificaciones.titulo')}
+          aria-expanded={notificacionesPopoverAbierto}
+          onclick={toggleNotificaciones}
+        >
+          <span>🔔</span>
+          {#if $contadorNoLeidas > 0}
+            <span class="alerta-contador">{$contadorNoLeidas > 99 ? '99+' : $contadorNoLeidas}</span>
+          {/if}
+        </button>
+
+        <!-- Quitamos el {#if} para que la animación CSS funcione -->
+        <div class="dropdown-menu notification-dropdown">
+          <div class="notification-header">
+            <h3>{$_('notificaciones.titulo')}</h3>
+            <button class="btn-icon-close" onclick={cerrarNotificaciones}>×</button>
+          </div>
+          
+          {#if cargandoNotificaciones}
+            <div class="notification-loading">Cargando...</div>
+          {:else if notificacionesRecientes.length === 0}
+            <div class="notification-empty">
+              <span>✨</span>
+              <p>{$_('notificaciones.vacias')}</p>
+            </div>
+          {:else}
+            <ul class="notification-list">
+              {#each notificacionesRecientes as notif}
+                <li class="notification-item">
+                  <span class="notification-icon">{iconoDeTipo(notif.tipo)}</span>
+                  <div class="notification-content">
+                    <p class="notification-title">{notif.titulo}</p>
+                    <p class="notification-message">{notif.mensaje}</p>
+                    <span class="notification-time">{formatoFechaCorta(notif.creada_en)}</span>
+                  </div>
+                </li>
+              {/each}
+            </ul>
+          {/if}
+          
+          <div class="notification-footer">
+            <a href="/notificaciones" class="btn btn-sm btn-primary btn-block" onclick={cerrarNotificaciones}>
+              {$_('notificaciones.verTodas')}
+            </a>
+          </div>
+        </div>
+      </div>
     {/if}
-    <!-- Botón de tema con el estilo original de gradiente y texto -->
+
     <button onclick={alternarTema} class="btn btn-gradient theme-btn">
       <span>{temaActual === 'light' ? '🌙' : '☀️'}</span>
       <span>{temaActual === 'light' ? $_('nav.modoOscuro') : $_('nav.modoClaro')}</span>
     </button>
 
     {#if data.usuario}
-      <!-- Menú desplegable de perfil -->
       <div class="profile-menu" class:open={menuAbierto}>
         <button onclick={toggleMenu} class="profile-button" aria-label="Menú de usuario" aria-expanded={menuAbierto}>
-          <div class="avatar">
-            {iniciales}
-          </div>
+          <div class="avatar">{iniciales}</div>
         </button>
 
         <div class="dropdown-menu">
@@ -276,7 +382,6 @@
     padding: 0 2rem;
   }
 
-  /* Estilo original del botón de tema */
   .theme-btn {
     display: flex;
     align-items: center;
@@ -285,166 +390,7 @@
     font-size: var(--font-size-sm);
   }
 
-  /* Menú de perfil desplegable */
-  .profile-menu {
-    position: relative;
-  }
-
-  .profile-button {
-    background: none;
-    border: none;
-    cursor: pointer;
-    padding: 0;
-  }
-
-  .avatar {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, var(--accent-primary), var(--accent-purple));
-    color: var(--text-on-accent);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: var(--font-weight-bold);
-    font-size: var(--font-size-sm);
-    transition: transform 0.2s;
-  }
-
-  .profile-button:hover .avatar {
-    transform: scale(1.05);
-  }
-
-  .dropdown-menu {
-    position: absolute;
-    top: calc(100% + 10px);
-    right: 0;
-    background: var(--bg-card);
-    border: 1px solid var(--border-color);
-    border-radius: 12px;
-    box-shadow: var(--shadow-popover);
-    min-width: 280px;
-    opacity: 0;
-    visibility: hidden;
-    transform: translateY(-10px);
-    transition: all 0.2s ease;
-    z-index: 1001;
-  }
-
-  .profile-menu.open .dropdown-menu {
-    opacity: 1;
-    visibility: visible;
-    transform: translateY(0);
-  }
-
-  .user-header {
-    padding: 1.25rem;
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-  }
-
-  .avatar.large {
-    width: 48px;
-    height: 48px;
-    font-size: var(--font-size-lg);
-  }
-
-  .user-details {
-    flex: 1;
-  }
-
-  .user-name {
-    font-weight: var(--font-weight-bold);
-    color: var(--text-primary);
-    font-size: var(--font-size-base);
-    margin-bottom: 0.25rem;
-  }
-
-  .user-email {
-    font-size: var(--font-size-xs);
-    color: var(--text-secondary);
-  }
-
-  .menu-divider {
-    height: 1px;
-    background: var(--border-color);
-    margin: 0.5rem 0;
-  }
-
-  .menu-item {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    padding: 0.75rem 1.25rem;
-    text-decoration: none;
-    color: var(--text-primary);
-    cursor: pointer;
-    background: none;
-    border: none;
-    width: 100%;
-    font-size: var(--font-size-sm);
-    transition: background-color 0.2s, color 0.2s;
-    text-align: left;
-  }
-
-  .menu-item:hover:not(.logout),
-  .menu-item.active-language {
-    background: var(--status-info-bg);
-    color: var(--status-info-text);
-  }
-
-  .menu-item.logout {
-    color: var(--accent-danger);
-  }
-
-  .menu-item.logout:hover {
-    background: var(--status-danger-bg);
-    color: var(--status-danger-text);
-  }
-
-  .menu-icon {
-    font-size: var(--font-size-lg);
-    width: 20px;
-    flex: 0 0 20px;
-  }
-
-  .language-toggle {
-    font-family: inherit;
-  }
-
-  .language-label {
-    flex: 1;
-  }
-
-  .menu-chevron {
-    font-size: var(--font-size-xl);
-    line-height: 1;
-    transition: transform 0.2s ease;
-  }
-
-  .menu-chevron.expanded {
-    transform: rotate(90deg);
-  }
-
-  .language-options {
-    max-height: 220px;
-    overflow-y: auto;
-    padding: 0.25rem 0;
-  }
-
-  .language-option {
-    padding-left: 2.5rem;
-  }
-
-  .menu-version {
-    padding: 0.6rem 1.25rem;
-    font-size: var(--font-size-xs);
-    color: var(--text-muted);
-    text-align: center;
-  }
-
-    .alerta-badge {
+  .alerta-badge {
     position: relative;
     display: flex;
     align-items: center;
@@ -456,6 +402,8 @@
     border: 1px solid var(--border-color);
     font-size: 1.2rem;
     transition: all 0.2s ease;
+    text-decoration: none;
+    color: inherit;
   }
 
   .alerta-badge:hover {
@@ -479,4 +427,154 @@
     align-items: center;
     justify-content: center;
   }
+
+  /* --- Estilos específicos de Notificaciones --- */
+  .notification-btn { cursor: pointer; }
+
+  .notification-wrapper.open .notification-dropdown {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+  }
+
+  .notification-dropdown {
+    min-width: 320px;
+    max-width: 90vw;
+    padding: 0;
+    right: 0;
+    top: calc(100% + 10px);
+  }
+
+  .notification-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+    border-bottom: 1px solid var(--border-color);
+  }
+
+  .notification-header h3 { margin: 0; font-size: var(--font-size-base); }
+
+  .btn-icon-close {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    color: var(--text-secondary);
+    cursor: pointer;
+    line-height: 1;
+  }
+
+  .notification-loading, .notification-empty {
+    padding: 2rem;
+    text-align: center;
+    color: var(--text-secondary);
+  }
+
+  .notification-empty span {
+    font-size: 2rem;
+    display: block;
+    margin-bottom: 0.5rem;
+  }
+
+  .notification-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    max-height: 300px;
+    overflow-y: auto;
+  }
+
+  .notification-item {
+    display: flex;
+    gap: 0.75rem;
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid var(--border-color);
+    transition: background 0.15s;
+    cursor: default;
+  }
+
+  .notification-item:hover { background: var(--bg-secondary); }
+  .notification-item:last-child { border-bottom: none; }
+
+  .notification-icon {
+    font-size: 1.25rem;
+    flex-shrink: 0;
+    margin-top: 0.1rem;
+  }
+
+  .notification-content { flex: 1; min-width: 0; }
+
+  .notification-title {
+    margin: 0 0 0.25rem;
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-semibold);
+    color: var(--text-primary);
+  }
+
+  .notification-message {
+    margin: 0 0 0.25rem;
+    font-size: var(--font-size-xs);
+    color: var(--text-secondary);
+    line-height: 1.4;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .notification-time {
+    font-size: var(--font-size-2xs);
+    color: var(--text-muted);
+  }
+
+  .notification-footer {
+    padding: 0.75rem;
+    border-top: 1px solid var(--border-color);
+  }
+
+  .btn-block {
+    width: 100%;
+    text-align: center;
+  }
+
+  /* --- Estilos existentes del menú de perfil --- */
+  .profile-menu { position: relative; }
+  .profile-button { background: none; border: none; cursor: pointer; padding: 0; }
+  .avatar {
+    width: 40px; height: 40px; border-radius: 50%;
+    background: linear-gradient(135deg, var(--accent-primary), var(--accent-purple));
+    color: var(--text-on-accent); display: flex; align-items: center; justify-content: center;
+    font-weight: var(--font-weight-bold); font-size: var(--font-size-sm); transition: transform 0.2s;
+  }
+  .profile-button:hover .avatar { transform: scale(1.05); }
+  .dropdown-menu {
+    position: absolute; top: calc(100% + 10px); right: 0;
+    background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px;
+    box-shadow: var(--shadow-popover); min-width: 280px; opacity: 0; visibility: hidden;
+    transform: translateY(-10px); transition: all 0.2s ease; z-index: 1001;
+  }
+  .profile-menu.open .dropdown-menu { opacity: 1; visibility: visible; transform: translateY(0); }
+  .user-header { padding: 1.25rem; display: flex; align-items: center; gap: 1rem; }
+  .avatar.large { width: 48px; height: 48px; font-size: var(--font-size-lg); }
+  .user-details { flex: 1; }
+  .user-name { font-weight: var(--font-weight-bold); color: var(--text-primary); font-size: var(--font-size-base); margin-bottom: 0.25rem; }
+  .user-email { font-size: var(--font-size-xs); color: var(--text-secondary); }
+  .menu-divider { height: 1px; background: var(--border-color); margin: 0.5rem 0; }
+  .menu-item {
+    display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1.25rem;
+    text-decoration: none; color: var(--text-primary); cursor: pointer; background: none;
+    border: none; width: 100%; font-size: var(--font-size-sm); transition: background-color 0.2s, color 0.2s; text-align: left;
+  }
+  .menu-item:hover:not(.logout), .menu-item.active-language { background: var(--status-info-bg); color: var(--status-info-text); }
+  .menu-item.logout { color: var(--accent-danger); }
+  .menu-item.logout:hover { background: var(--status-danger-bg); color: var(--status-danger-text); }
+  .menu-icon { font-size: var(--font-size-lg); width: 20px; flex: 0 0 20px; }
+  .language-toggle { font-family: inherit; }
+  .language-label { flex: 1; }
+  .menu-chevron { font-size: var(--font-size-xl); line-height: 1; transition: transform 0.2s ease; }
+  .menu-chevron.expanded { transform: rotate(90deg); }
+  .language-options { max-height: 220px; overflow-y: auto; padding: 0.25rem 0; }
+  .language-option { padding-left: 2.5rem; }
+  .menu-version { padding: 0.6rem 1.25rem; font-size: var(--font-size-xs); color: var(--text-muted); text-align: center; }
 </style>
