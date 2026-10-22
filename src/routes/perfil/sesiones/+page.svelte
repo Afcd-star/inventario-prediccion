@@ -2,16 +2,19 @@
   import type { PageData } from './$types';
   import { enhance } from '$app/forms';
   import { _ } from 'svelte-i18n';
-  import ToastFeedback from '$lib/components/ToastFeedback.svelte';
+  import { mostrarToast } from '$lib/stores/toasts'; // ✅ Import correcto
 
   let { data, form }: { data: PageData; form?: { success?: string; error?: string; cerradas?: number } } = $props();
-  const mensajeFeedback = $derived.by(() => {
-    if (form?.error) return `⚠️ ${$_(form.error)}`;
-    if (form?.success === 'sesion_cerrada') return `✅ ${$_('sesiones.cerradaExito')}`;
-    if (form?.success === 'sesiones_masivo') {
-      return `🔒 ${$_('sesiones.masivoExito', { values: { n: form.cerradas ?? 0 } })}`;
+
+  // ✅ Reemplaza ToastFeedback con un effect que muestra el toast
+  $effect(() => {
+    if (form?.error) {
+      mostrarToast(`️ ${$_(form.error)}`, 'error');
+    } else if (form?.success === 'sesion_cerrada') {
+      mostrarToast(`✅ ${$_('sesiones.cerradaExito')}`, 'success');
+    } else if (form?.success === 'sesiones_masivo') {
+      mostrarToast(`🔒 ${$_('sesiones.masivoExito', { values: { n: form.cerradas ?? 0 } })}`, 'success');
     }
-    return null;
   });
 
   const otrasSesiones = $derived(data.sesiones.filter(s => !s.es_actual).length);
@@ -30,7 +33,7 @@
   <title>{$_('sesiones.titulo')} | StockPredict Pro</title>
 </svelte:head>
 
-<ToastFeedback feedback={form} message={mensajeFeedback} isError={Boolean(form?.error)} />
+<!-- ✅ Elimina la línea <ToastFeedback ... /> -->
 
 <main class="page-container page-container--narrow">
   <header class="page-header">

@@ -1,0 +1,6 @@
+nombre         , descripcion                    , precio, stock_actual, stock_minimo
+Pan de molde   , Pan de molde blanco 500g       ,   2.50,          100,           20
+Leche entera   , Leche entera 1L UHT            ,   1.20,           80,           15
+Aceite de oliva, Aceite de oliva virgen extra 1L,   6.90,           40,           10
+Arroz blanco   , Arroz grano largo 1kg          ,   1.80,           60,           12
+Café molido    , Café molido natural 250g       ,   3.40,           30,            8

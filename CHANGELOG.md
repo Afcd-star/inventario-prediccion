@@ -3,6 +3,23 @@
 Formato: versión semántica MAYOR.MENOR.PARCHES.
 Regla del proyecto: el cambio de versión viaja en el mismo commit que la funcionalidad.
 
+## [1.8.0] - 2026-10-23
+
+### ✨ Fase 11: Gestión Masiva de Datos
+- **Importación de catálogo (CSV y Excel)**: vista `/productos/importar` con parseo en el navegador, previsualización paginada de 50 filas, celdas editables, validación visual fila por fila y dos modos: "Crear solo" o "Crear o actualizar" (UPSERT de datos maestros sin tocar stock).
+- **Importación de stock (CSV y Excel)**: vista `/productos/importar-stock` que crea lotes y movimientos tipo `entrada` con trazabilidad completa. Si el número de lote ya existe, suma la cantidad (reposición). El stock global se actualiza como consecuencia del movimiento.
+- **Exportación CSV y Excel**: catálogo completo e historial de movimientos desde `/api/exportar/*`, con BOM UTF-8 (acentos perfectos en Excel) y anchos de columna optimizados.
+- **Plantillas descargables** en CSV y Excel, generadas desde una única fuente de verdad en `static/plantillas/`.
+- **Validación y seguridad**: límite de 10.000 filas, transacciones atómicas, reporte de errores con número de fila y motivo, endpoints restringidos a administradores y auditoría de cada importación y exportación.
+- **Rendimiento**: la librería SheetJS se carga de forma dinámica solo cuando el usuario sube un archivo Excel; los usuarios de CSV no pagan ese costo.
+
+### 🚧 Pendientes conocidos (se abordarán en fases futuras)
+- Refactorización y unificación arquitectónica del módulo de importación/exportación (tipos compartidos, componente de preview reutilizable, namespace de traducciones propio).
+- Guard de rol en las vistas de importación (hoy solo los endpoints lo aplican).
+- Web Push pendiente de despliegue con HTTPS (infraestructura base ya implementada en la Fase 10).
+
+---
+
 ## [1.7.0] - 2026-10-21
 
 ### ✨ Fase 10: Comunicación en Tiempo Real

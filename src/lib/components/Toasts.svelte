@@ -11,7 +11,9 @@
   const iconos: Record<string, string> = {
     success: '✅',
     info: 'ℹ️',
-    warning: '⚠️'
+    warning: '⚠️',
+    error: '❌',
+    loading: '⏳'
   };
 </script>
 
@@ -78,6 +80,18 @@
     border-left: 4px solid var(--accent-warning);
     background: var(--status-warning-bg);
     color: var(--status-warning-text);
+  }
+
+  .toast-error {
+    border-left: 4px solid var(--accent-danger);
+    background: var(--status-danger-bg);
+    color: var(--status-danger-text);
+  }
+
+  .toast-loading {
+    border-left: 4px solid var(--text-secondary);
+    background: var(--bg-secondary);
+    color: var(--text-primary);
   }
 
   .toast-icon {

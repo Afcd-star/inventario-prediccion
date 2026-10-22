@@ -1,0 +1,4 @@
+producto       , cantidad, numero_lote, fecha_caducidad, ubicacion
+Pan de molde   ,      100, L-2026-001 , 2026-12-31     , 
+Leche entera   ,       80, L-2026-002 , 2026-11-15     , 
+Aceite de oliva,       40, L-2026-003 ,                , 

@@ -2,9 +2,14 @@
 // Esquema semántico: MAYOR.MENOR.PARCHES
 // Regla: el cambio de versión viaja en el mismo commit que la funcionalidad.
 
-export const VERSION = '1.6.1';
+export const VERSION = '1.8.0';
 
 export const CHANGELOG = [
+  {
+    version: '1.8.0',
+    fecha: '2026-10-23',
+    resumen: 'Gestión masiva de datos: importación CSV/Excel con preview editable, importación de stock con lotes, y exportación completa con compatibilidad Excel.'
+  },
   {
     version: '1.6.1',
     fecha: '2026-10-18',
