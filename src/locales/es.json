@@ -684,5 +684,32 @@
     "productosExcel": "Productos (Excel)",
     "movimientosCSV": "Movimientos (CSV)",
     "movimientosExcel": "Movimientos (Excel)"
+  },
+  "reportes": {
+    "titulo": "Reporte completo de inventario",
+    "subtitulo": "Resumen ejecutivo, stock crítico, vencimientos, predicciones y actividad reciente",
+    "volver": "Volver a productos",
+    "descargarExcel": "Descargar Excel (6 hojas)",
+    "sinDatos": "Sin datos en este momento.",
+    "secResumen": "Resumen ejecutivo",
+    "secStockBajo": "Stock bajo",
+    "secLotes": "Lotes por vencer (90 días)",
+    "secPredicciones": "Predicciones",
+    "secAnomalias": "Anomalías activas",
+    "secMovimientos": "Movimientos recientes",
+    "kpiTotal": "Productos",
+    "kpiValor": "Valor inventario",
+    "kpiStockBajo": "Stock bajo",
+    "kpiLotes": "Lotes por vencer",
+    "kpiAnomalias": "Anomalías",
+    "colProducto": "Producto", "colStock": "Stock", "colMinimo": "Mínimo",
+    "colPrecio": "Precio", "colConsumo": "Consumo/día", "colDiasAgotar": "Días a agotar",
+    "colFechaReorden": "Fecha reorden", "colCompra": "Compra rec.", "colLote": "Lote",
+    "colCantidad": "Cantidad", "colCaducidad": "Caducidad", "colDiasRestantes": "Días rest.",
+    "colTipo": "Tipo", "colInicio": "Inicio", "colFin": "Fin",
+    "colDesviacion": "Desviación", "colZ": "Z-score", "colEstado": "Estado",
+    "colCreada": "Detectada", "colFecha": "Fecha", "colUbicacion": "Ubicación", "colNotas": "Notas",
+    "notaPredicciones": "Consumo calculado desde el historial de salidas. Los productos sin ventas muestran '—'.",
+    "notaMovimientos": "Mostrando las últimas {n} operaciones. Descarga el Excel para hasta 5.000 registros."
   }
 }

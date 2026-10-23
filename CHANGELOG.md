@@ -3,6 +3,27 @@
 Formato: versión semántica MAYOR.MENOR.PARCHES.
 Regla del proyecto: el cambio de versión viaja en el mismo commit que la funcionalidad.
 
+## [1.10.0] - 2026-10-23
+
+### ✨ Bloque 11.8 · Reporte avanzado multi-hoja (cierre de Fase 11)
+- **Vista `/reportes`** (solo admin): resumen ejecutivo con KPIs, stock bajo, lotes por vencer (FEFO), predicciones, anomalías activas y actividad reciente. El informe se *lee en pantalla* y el `.xlsx` pasa a ser una acción dentro de la vista, no un archivo a ciegas.
+- **Excel de 6 hojas** (`/api/exportar/reporte-completo`): un solo libro con pestañas Resumen / Stock bajo / Lotes por vencer / Predicciones / Anomalías / Movimientos, con anchos de columna adaptativos y hoja "Sin datos" graceful cuando una sección está vacía.
+- **Predicciones calculadas on-the-fly** desde `movimientos` (la tabla `productos` no las persiste), con fórmula transparente (consumo = salidas / días con venta) y nota honesta en la UI. Sustituible por un JOIN a la tabla real de predicciones del dashboard para paridad 1:1 (pendiente: confirmar esquema).
+- **Límite de memoria** en la vista (30 movimientos renderizados) vs el Excel (hasta 5.000), para no castigar el DOM en hardware modesto.
+
+### ♻️ Hardening de tipos (Fase 12 → 11.8)
+- `state_referenced_locally` corregido: `data.informe` se consume vía `$derived`, preservando la reactividad ante invalidaciones de `load`.
+- Los métodos del servicio de reporte devuelven **tipos concretos** (`FilaPrediccionReporte[]`, `FilaLoteReporte[]`, `FilaAnomaliaReporte[]`, `FilaMovimientoReporte[]`, `KPIsReporte`) con mapeo explícito `String()/Number()`, eliminando los casts `as` en el `load`.
+- Las constructoras de archivo (`construirXLSX`, `construirLibroMultiHoja`) operan sobre el tipo base `Array<object>`: compatible con toda interfaz y todo `Record`, sin el "cast de la muerte" `as unknown as`. El binario de Excel queda byte-idéntico.
+- `error()` sustituye a `fail()` en los endpoints de importación/exportación: los motivos reales (401/403/400/500) llegan al usuario en vez de colapsar en un 500 genérico.
+
+### 🚧 Deuda consciente (no bloqueante, agendada)
+- **i18n de moneda:** `Intl.NumberFormat('es-ES', {currency:'EUR'})` está hardcodeado en `/reportes`; debe derivarse del idioma activo (Fase 13/17).
+- **Cabeceras del Excel** usan las claves internas en snake_case (`stock_actual`, `dias_hasta_agotar`); un mapa clave→etiqueta las hará legibles para un contador (Fase 17, junto a los gráficos).
+- **Paridad 1:1 con el dashboard:** confirmar el esquema de la tabla de predicciones persistida para reemplazar el cálculo on-the-fly.
+
+---
+
 ## [1.9.0] - 2026-10-23
 
 ### ♻️ Fase 12: Refactorización y unificación del módulo de importación/exportación

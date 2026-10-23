@@ -17,6 +17,7 @@
   });
 
   const opcionesExportar = $derived([
+    { etiqueta: $_('reportes.titulo'), url: '/reportes' },
     { etiqueta: $_('exportacion.productosCSV'), url: '/api/exportar/productos' },
     { etiqueta: $_('exportacion.productosExcel'), url: '/api/exportar/productos?formato=xlsx' },
     { etiqueta: $_('exportacion.movimientosCSV'), url: '/api/exportar/movimientos' },

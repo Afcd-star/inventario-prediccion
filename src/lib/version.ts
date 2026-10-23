@@ -2,9 +2,14 @@
 // Esquema semántico: MAYOR.MENOR.PARCHES
 // Regla: el cambio de versión viaja en el mismo commit que la funcionalidad.
 
-export const VERSION = '1.9.0';
+export const VERSION = '1.10.0';
 
 export const CHANGELOG = [
+  {
+    version: '1.10.0',
+    fecha: '2026-10-23',
+    resumen: 'Cierre de Fase 11: reporte multi-hoja con vista /reportes, y hardening de tipos de punta a punta en el módulo de importación/exportación.'
+  },
   {
     version: '1.9.0',
     fecha: '2026-10-23',

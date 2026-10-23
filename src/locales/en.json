@@ -685,5 +685,32 @@
     "productosExcel": "Products (Excel)",
     "movimientosCSV": "Movements (CSV)",
     "movimientosExcel": "Movements (Excel)"
+  },
+  "reportes": {
+    "titulo": "Full inventory report",
+    "subtitulo": "Executive summary, critical stock, expirations, forecasts and recent activity",
+    "volver": "Back to products",
+    "descargarExcel": "Download Excel (6 sheets)",
+    "sinDatos": "No data at the moment.",
+    "secResumen": "Executive summary",
+    "secStockBajo": "Low stock",
+    "secLotes": "Lots expiring (90 days)",
+    "secPredicciones": "Forecasts",
+    "secAnomalias": "Active anomalies",
+    "secMovimientos": "Recent movements",
+    "kpiTotal": "Products",
+    "kpiValor": "Inventory value",
+    "kpiStockBajo": "Low stock",
+    "kpiLotes": "Expiring lots",
+    "kpiAnomalias": "Anomalies",
+    "colProducto": "Product", "colStock": "Stock", "colMinimo": "Min",
+    "colPrecio": "Price", "colConsumo": "Daily use", "colDiasAgotar": "Days to out",
+    "colFechaReorden": "Reorder date", "colCompra": "Rec. buy", "colLote": "Lot",
+    "colCantidad": "Qty", "colCaducidad": "Expiry", "colDiasRestantes": "Days left",
+    "colTipo": "Type", "colInicio": "Start", "colFin": "End",
+    "colDesviacion": "Deviation", "colZ": "Z-score", "colEstado": "Status",
+    "colCreada": "Detected", "colFecha": "Date", "colUbicacion": "Location", "colNotas": "Notes",
+    "notaPredicciones": "Consumption computed from sales history. Products without sales show '—'.",
+    "notaMovimientos": "Showing the last {n} operations. Download the Excel for up to 5,000 records."
   }
 }

@@ -83,3 +83,66 @@ export interface ColumnaPreview {
   placeholder?: string;
   paso?: string;          // step del input numérico (ej: '0.01' para precios)
 }
+
+// ============================================
+// Reporte completo (Bloque 11.8 · vista)
+// ============================================
+
+export interface KPIsReporte {
+  total: number;
+  valorInventario: number;
+  stockBajo: number;
+  lotesVencer30: number;
+  anomaliasPendientes: number;
+}
+
+export interface FilaPrediccionReporte {
+  producto: string;
+  stock_actual: number;
+  stock_minimo: number;
+  precio: number;
+  consumo_diario: number | null;
+  dias_hasta_agotar: number | null;
+  fecha_reorden: string | null;
+  compra_recomendada: number | null;
+}
+
+export interface FilaLoteReporte {
+  producto: string;
+  lote: string;
+  cantidad: number;
+  caducidad: string;
+  dias_restantes: number;
+}
+
+export interface FilaAnomaliaReporte {
+  producto: string;
+  tipo: string;
+  fecha_inicio: string;
+  fecha_fin: string;
+  dias_consecutivos: number;
+  desviacion_promedio: number;
+  z_score_max: number;
+  estado: string;
+  creada_en: string;
+}
+
+export interface FilaMovimientoReporte {
+  fecha: string;
+  producto: string;
+  lote: string | null;
+  tipo: string;
+  cantidad: number;
+  ubicacion: string | null;
+  notas: string | null;
+}
+
+export interface InformeCompleto {
+  kpis: KPIsReporte;
+  stockBajo: FilaPrediccionReporte[];
+  lotesPorVencer: FilaLoteReporte[];
+  predicciones: FilaPrediccionReporte[];
+  anomalias: FilaAnomaliaReporte[];
+  movimientos: FilaMovimientoReporte[];
+  movimientosTotales: number; // para la nota "mostrando X de Y"
+}
