@@ -1,29 +1,12 @@
 import db from '../database';
 import { auditoriaService } from './auditoria.service';
 
-export type ModoImportacion = 'crear' | 'actualizar';
-
-export interface FilaProducto {
-  nombre: string;
-  descripcion?: string;
-  precio: number | string;
-  stock_minimo: number | string;
-  // Ignoramos stock_actual intencionalmente para mantener la trazabilidad
-}
-
-export interface FilaStockInicial {
-  producto: string;
-  cantidad: number | string;
-  numero_lote?: string;
-  fecha_caducidad?: string;
-  ubicacion?: string;
-}
-
-export interface ResultadoImportacion {
-  exitosas: number;
-  actualizadas: number;
-  errores: Array<{ fila: number; nombre?: string; motivo: string }>;
-}
+import type {
+  ModoImportacion,
+  FilaProducto,
+  FilaStockInicial,
+  ResultadoImportacion
+} from '$lib/types';
 
 export const importacionService = {
   /**

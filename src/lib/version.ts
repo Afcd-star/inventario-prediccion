@@ -2,9 +2,14 @@
 // Esquema semántico: MAYOR.MENOR.PARCHES
 // Regla: el cambio de versión viaja en el mismo commit que la funcionalidad.
 
-export const VERSION = '1.8.0';
+export const VERSION = '1.9.0';
 
 export const CHANGELOG = [
+  {
+    version: '1.9.0',
+    fecha: '2026-10-23',
+    resumen: 'Refactorización y endurecimiento del módulo de importación/exportación: tipos compartidos, componentes reutilizables, parser robusto, guards de rol y hogar unificado de exportación.'
+  },
   {
     version: '1.8.0',
     fecha: '2026-10-23',

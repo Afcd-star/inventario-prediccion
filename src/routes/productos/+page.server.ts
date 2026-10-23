@@ -11,7 +11,7 @@ type ProductoListado = Producto & {
   fecha_caducidad: string | null;
 };
 
-export const load = (async ({ url }) => {
+export const load = (async ({ url, locals }) => {
   const busqueda = url.searchParams.get('q') || '';
 
   const consulta = `
@@ -43,7 +43,7 @@ export const load = (async ({ url }) => {
   const productos = db.prepare(consulta)
     .all(busqueda.trim() ? `%${busqueda}%` : '%') as ProductoListado[];
 
-  return { productos, busqueda };
+  return { productos, busqueda, rol: locals.usuario?.rol ?? null };
 }) satisfies PageServerLoad;
 
 export const actions = {

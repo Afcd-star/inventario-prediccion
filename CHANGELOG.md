@@ -3,6 +3,24 @@
 Formato: versión semántica MAYOR.MENOR.PARCHES.
 Regla del proyecto: el cambio de versión viaja en el mismo commit que la funcionalidad.
 
+## [1.9.0] - 2026-10-23
+
+### ♻️ Fase 12: Refactorización y unificación del módulo de importación/exportación
+- **Tipos compartidos:** los tipos de dominio (`ModoImportacion`, `FilaProducto`, `FilaStockInicial`, `ResultadoImportacion`, `ColumnaPreview`) migran a `lib/types.ts`. Ningún componente `.svelte` vuelve a importar desde `lib/server/`.
+- **Componentes reutilizables:** `TablaPreview` (tabla editable + paginación), `ResumenImportacion` (métricas + detalle de errores) y `MenuExportar` (dropdown accesible de exportación). Se elimina el parseo/paginación/resultados duplicados entre las dos vistas de importación.
+- **Parser unificado y robusto** (`lib/utils/parseoArchivos.ts`): detección de formato por *magic bytes* (no por extensión), normalización de encabezados (tildes/mayúsculas/espacios→guion bajo), rescate automático de "CSV pegado como texto en una celda de Excel", y corrección del bug de zona horaria en fechas `.xlsx` (`fechaLocalISO` en vez de `toISOString()` UTC).
+- **Namespace i18n propio:** `importacion.*` y `exportacion.*`. Se eliminan las claves cruzadas con `admin.*`/`productos.*` y las huérfanas.
+- **Seguridad:** guard de rol en las vistas de importación (`+page.server.ts` redirige a no-admins) y restricción de los endpoints de exportación a administradores (antes cualquier usuario logueado podía descargar el catálogo con precios y el historial global).
+- **Endpoints de importación** migrados de `fail()` a `error()`: los motivos reales (403/400/500) ahora llegan al usuario en vez de colapsar en un 500 genérico.
+- **Hogar unificado de exportación:** los botones sueltos de `/productos` se agrupan en un dropdown accesible (`aria-expanded`, cierre con Escape y click-fuera), coherente con el módulo de importación.
+
+### 🎨 UX
+- Scroll automático suave a la previsualización y al resultado en ambas importaciones.
+- Botón "Descargar reporte de errores (CSV)" con nombres de archivo distinguibles (`_catalogo` / `_stock`).
+- Badge de modalidad y pestañas activas para reforzar visualmente dónde está el usuario.
+
+---
+
 ## [1.8.0] - 2026-10-23
 
 ### ✨ Fase 11: Gestión Masiva de Datos

@@ -42,3 +42,44 @@ export interface PreferenciaNotificacion {
   tipo_evento: TipoNotificacion;
   activa: number;
 }
+
+// ============================================
+// Importación y exportación masiva (Fase 11/12)
+// ============================================
+
+export type ModoImportacion = 'crear' | 'actualizar';
+
+export interface FilaProducto {
+  nombre: string;
+  descripcion?: string;
+  precio: number | string;
+  stock_minimo: number | string;
+}
+
+export interface FilaStockInicial {
+  producto: string;
+  cantidad: number | string;
+  numero_lote?: string;
+  fecha_caducidad?: string;
+  ubicacion?: string;
+}
+
+export interface ErrorFilaImportacion {
+  fila: number;
+  nombre?: string;
+  motivo: string;
+}
+
+export interface ResultadoImportacion {
+  exitosas: number;
+  actualizadas: number;
+  errores: ErrorFilaImportacion[];
+}
+
+export interface ColumnaPreview {
+  clave: string;          // nombre de la columna en el archivo
+  etiqueta: string;       // texto visible en el encabezado (ya traducido)
+  tipo?: 'texto' | 'numero';
+  placeholder?: string;
+  paso?: string;          // step del input numérico (ej: '0.01' para precios)
+}

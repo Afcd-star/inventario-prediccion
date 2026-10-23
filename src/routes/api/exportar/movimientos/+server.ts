@@ -1,10 +1,14 @@
-import type { RequestHandler } from './$types';
+import { error } from '@sveltejs/kit';
 import { exportacionService } from '$lib/server/services/exportacion.service';
 import { auditoriaService } from '$lib/server/services/auditoria.service';
+import type { RequestHandler } from './$types';
 
 export const GET: RequestHandler = async ({ locals, url }) => {
   if (!locals.usuario) {
-    return new Response('No autorizado', { status: 401 });
+    throw error(401, { message: 'No autenticado' });
+  }
+  if (locals.usuario.rol !== 'admin') {
+    throw error(403, { message: 'Solo administradores pueden exportar datos masivos' });
   }
 
   const formato = url.searchParams.get('formato') === 'xlsx' ? 'xlsx' : 'csv';

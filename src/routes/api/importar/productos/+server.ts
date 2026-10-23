@@ -1,11 +1,12 @@
-import { json, fail } from '@sveltejs/kit';
-import { importacionService, type ModoImportacion } from '$lib/server/services/importacion.service';
+import { json, error } from '@sveltejs/kit';
+import type { ModoImportacion } from '$lib/types'; 
 import type { RequestHandler } from './$types';
+import { importacionService } from '$lib/server/services/importacion.service';
 
 export const POST: RequestHandler = async ({ request, locals }) => {
   // 1. Seguridad: Solo administradores pueden importar
   if (!locals.usuario || locals.usuario.rol !== 'admin') {
-    throw fail(403, { message: 'No autorizado' });
+    throw error(403, { message: 'No autorizado' });
   }
 
   try {
@@ -14,11 +15,11 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 
     // 2. Validación básica de la petición
     if (!Array.isArray(filas) || filas.length === 0) {
-      throw fail(400, { message: 'No se enviaron filas válidas para importar.' });
+      throw error(400, { message: 'No se enviaron filas válidas para importar.' });
     }
 
     if (modo !== 'crear' && modo !== 'actualizar') {
-      throw fail(400, { message: 'Modo de importación no válido.' });
+      throw error(400, { message: 'Modo de importación no válido.' });
     }
 
     // 3. Ejecutar la importación
@@ -38,6 +39,6 @@ export const POST: RequestHandler = async ({ request, locals }) => {
   } catch (error: any) {
     console.error('Error en importación:', error);
     const mensaje = error.message || 'Error interno al procesar la importación';
-    throw fail(500, { message: mensaje });
+    throw error(500, { message: mensaje });
   }
 };  
