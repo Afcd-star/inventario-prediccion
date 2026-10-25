@@ -1,3 +1,10 @@
+> 🗂️ **Referencia histórica.** Este árbol corresponde a una etapa temprana del proyecto
+> (≈ v1.0–v1.4). Desde entonces se han incorporado numerosas rutas, servicios y componentes;
+> la estructura actual del código es la del propio repositorio. Se conserva como referencia
+> del punto de partida.
+
+---
+
 src/
 ├── lib/
 │   ├── components/

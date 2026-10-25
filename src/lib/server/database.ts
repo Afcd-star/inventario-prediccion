@@ -1,3 +1,4 @@
+import bcrypt from 'bcryptjs';
 import { existsSync, readFileSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -86,6 +87,40 @@ migrarTiposMovimientoTransferencia(db);
 migrarApiWebhooks(db);
 migrarNotificaciones(db);
 migrarPushSuscripciones(db);
+
+// ── Semilla idempotente del administrador inicial ──────────────────────────────
+// Corre en cada arranque, pero solo actúa si la tabla `usuarios` está vacía
+// (primer arranque con BD nueva / clon del repo). En una BD con usuarios ya
+// creados —como la tuya, que tiene admin y empleado desde el Panel— es un no-op:
+// el guard de COUNT(*) > 0 lo salta y no duplica ni sobrescribe nada.
+function asegurarUsuarioInicial() {
+  const total = db.prepare('SELECT COUNT(*) AS n FROM usuarios').get() as { n: number };
+  if (total.n > 0) return;
+
+  const email = process.env.ADMIN_EMAIL ?? 'admin@stockpredict.local';
+  const password = process.env.ADMIN_PASSWORD ?? 'CHANGE_ME_admin';
+  const usarDefault = !process.env.ADMIN_EMAIL || !process.env.ADMIN_PASSWORD;
+
+  // hashSync (síncrono) encaja en la cascada de migraciones de este módulo;
+  // produce un hash compatible con el bcrypt.compare (async) del login.
+  const hash = bcrypt.hashSync(password, 12);
+
+  db.prepare(`
+    INSERT INTO usuarios (nombre, email, password_hash, rol)
+    VALUES (?, ?, ?, 'admin')
+  `).run('Administrador', email, hash);
+
+  console.log(`✅ Usuario administrador inicial creado (email: ${email})`);
+  if (usarDefault) {
+    console.warn(
+      '⚠️  El administrador se creó con credenciales por defecto. ' +
+      'Define ADMIN_EMAIL y ADMIN_PASSWORD en .env, o cámbialas desde /perfil, ' +
+      'antes de usar el sistema en un entorno real.'
+    );
+  }
+}
+asegurarUsuarioInicial();
+
 console.log('✅ Base de datos conectada y tablas inicializadas en:', db.name);
 
 export default db;

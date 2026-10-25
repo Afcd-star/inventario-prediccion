@@ -45,7 +45,7 @@ export const actions = {
       return fail(400, { error: 'login.errorCredenciales' });
     }
 
-        const esValida = await bcrypt.compare(password, usuario.password_hash);
+      const esValida = await bcrypt.compare(password, usuario.password_hash);
 
     if (!esValida) {
       rateLimiterService.registrarIntento('login', ip);

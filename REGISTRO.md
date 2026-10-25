@@ -1,3 +1,8 @@
+> 📜 **Registro histórico.** Este documento resume las fases 1–9, etapa temprana del proyecto.
+> La numeración y el estado vigentes de las fases se describen en [`ROADMAP.md`](./ROADMAP.md),
+> y el detalle de cada release en [`CHANGELOG.md`](./CHANGELOG.md). Se conserva como referencia
+> de la evolución inicial.
+
 ## 📋 Resumen Completo para Git
 
 ### **Fases Completadas:**

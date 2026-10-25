@@ -2,9 +2,14 @@
 // Esquema semántico: MAYOR.MENOR.PARCHES
 // Regla: el cambio de versión viaja en el mismo commit que la funcionalidad.
 
-export const VERSION = '1.10.0';
+export const VERSION = '1.11.0';
 
-export const CHANGELOG = [
+  export const CHANGELOG = [
+   {
+     version: '1.11.0',
+     fecha: '2026-10-25',
+     resumen: 'Fase 13 (Visualización Histórica): motor de series temporales rebobinado desde movimientos, componente de gráfico reutilizable y SSR-safe, dashboard reestructurado a pestañas accesibles, ficha de producto, y endurecimiento de la integridad de transferencias (recepción vacía/parcial, lote nulo, redirect PRG).'
+   },
   {
     version: '1.10.0',
     fecha: '2026-10-23',
@@ -20,6 +25,11 @@ export const CHANGELOG = [
     fecha: '2026-10-23',
     resumen: 'Gestión masiva de datos: importación CSV/Excel con preview editable, importación de stock con lotes, y exportación completa con compatibilidad Excel.'
   },
+  {
+     version: '1.7.0',
+     fecha: '2026-10-21',
+     resumen: 'Fase 10 (Comunicación en tiempo real): sistema de notificaciones con disparadores automáticos, streaming SSE con contador en vivo en el navbar, panel de notificaciones con filtros y paginación, preferencias por usuario y favicon profesional.'
+   },
   {
     version: '1.6.1',
     fecha: '2026-10-18',
