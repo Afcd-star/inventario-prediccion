@@ -11,7 +11,7 @@
 
 <main class="page-container">
   <header class="page-header">
-    <a href="/productos" class="btn-back">← {$_('productos.volver')}</a>
+    <a href="/productos/{data.producto?.id}" class="btn-back">← {$_('productos.volver')}</a>
     <h1>{$_('productos.lotesTitulo')}: {data.producto.nombre}</h1>
     <p class="text-secondary">{$_('productos.lotesDescripcion')}</p>
   </header>

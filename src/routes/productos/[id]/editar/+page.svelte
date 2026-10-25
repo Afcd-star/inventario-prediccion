@@ -13,7 +13,7 @@
 </svelte:head>
 
 <main class="form-page">
-  <a href="/productos" class="btn-back">← {$_('productos.volver')}</a>
+  <a href="/productos/{data.producto?.id}" class="btn-back">← {$_('productos.volver')}</a>
   {#if data.producto}
     <section class="card form-card">
       <h1>{$_('productos.editar')}</h1>

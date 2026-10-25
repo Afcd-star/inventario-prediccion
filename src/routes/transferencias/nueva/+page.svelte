@@ -7,22 +7,13 @@
   let { data, form }: { data: PageData; form?: { success?: string; error?: string } } = $props();
 
   let origenId = $state(0);
-  
-  // Filtrar productos que tengan stock en el origen seleccionado
+
   const productosDisponibles = $derived(
     data.productosConLotes.filter(p => p.ubicacion_id === origenId)
   );
 
-  // Estado reactivo para las filas de items
   type ItemRow = { producto_id: string; lote_id: string; cantidad: string };
   let items = $state<ItemRow[]>([{ producto_id: '', lote_id: '', cantidad: '1' }]);
-
-  // Mostrar toasts de éxito
-  $effect(() => {
-    if (form?.success === 'transferencias.creada') {
-      mostrarToast($_('transferencias.creada'), 'success');
-    }
-  });
 
   function agregarFila() {
     items = [...items, { producto_id: '', lote_id: '', cantidad: '1' }];
@@ -34,7 +25,6 @@
 
   function actualizarProducto(index: number, productoId: string) {
     items[index].producto_id = productoId;
-    // Auto-seleccionar el primer lote disponible de ese producto en ese origen
     const lote = data.productosConLotes.find(p => p.id === Number(productoId) && p.ubicacion_id === origenId);
     if (lote) {
       items[index].lote_id = String(lote.lote_id);
@@ -50,9 +40,9 @@
   <header class="page-header">
     <a href="/transferencias" class="btn-back">
       <span>←</span>
-      <span>{$_('transferencias.volver')}</span>
+      <span>{$_('transferencias.nueva.volver')}</span>
     </a>
-    <h1>{$_('transferencias.nueva')}</h1>
+    <h1>{$_('transferencias.nueva.nuevaTransferencia')}</h1>
   </header>
 
   {#if form?.error}
@@ -60,7 +50,18 @@
   {/if}
 
   <section class="card">
-    <form method="POST" action="?/crear" use:enhance class="form-stack">
+    <form
+      method="POST"
+      action="?/crear"
+      use:enhance={() => async ({ result, update }) => {
+        if (result.type === 'redirect') {
+          mostrarToast($_('transferencias.creada'), 'success');
+        }
+      
+        await update();
+      }}
+      class="form-stack"
+    >
       <div class="form-grid">
         <div class="input-group">
           <label for="origen_id" class="label">{$_('transferencias.origen')}</label>

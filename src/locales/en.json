@@ -46,7 +46,6 @@
     "registrarSalidas": "Register outputs to see the chart.",
     "exportarPDF": "Export Inventory",
     "tendencia": "Trend",
-    "tendenciaStock": "Stock Trend",
     "stockActual": "Current Stock",
     "stockMinimo": "Minimum Stock",
     "tendenciaCreciente": "Increasing",
@@ -71,7 +70,15 @@
     "transferenciasEnTransito": "Transfers in Transit",
     "verTodas": "View All",
     "sinTransferencias": "No active transfers.",
-    "diasParaVencer": "Expires in {dias} days"
+    "diasParaVencer": "Expires in {dias} days",
+    "stockVsMinimo": "Current vs minimum stock by product",
+    "unidadesVendidas": "Units sold",
+    "tabs": {
+      "operacion": "Operations",
+      "analisis": "Analytics",
+      "ubicaciones": "Locations",
+      "ariaTablist": "Dashboard sections"
+    }
   },
   "productos": {
     "titulo": "Product Management",
@@ -115,7 +122,7 @@
     "eliminar": "Delete",
     "confirmarEliminar": "Delete this product?",
     "sinProductos": "No products registered yet.",
-    "volver": "Back to products",
+    "volver": "Go back",
     "completarDatos": "Complete the data to add a product to inventory.",
     "actualizarInfo": "Update {nombre}'s information.",
     "noEncontrado": "Product not found.",
@@ -125,11 +132,12 @@
     "errorInventario": "Stock and minimum must be integers greater than or equal to zero.",
     "errorLote": "Provide a valid lot number and expiration date for the added stock.",
     "importar": "Import",
+    "detalles": "Details",
     "importarStock": "Import Stock"
   },
   "movimientos": {
     "titulo": "Movements",
-    "volver": "Back to products",
+    "volver": "Go back",
     "stockActual": "Current stock",
     "nuevoMovimiento": "New Movement",
     "historial": "History",
@@ -546,7 +554,8 @@
     "errorCampos": "You must select origin, destination and at least one product.",
     "errorCantidad": "The transfer quantity must be greater than 0.",
     "errorInterno": "Error processing the transfer.",
-    "sinActivas": "No pending or in-transit transfers."
+    "sinActivas": "No pending or in-transit transfers.",
+    "confirmarCancelar": "Cancel this transfer? The stock will return to the origin."
   },
   "integraciones": {
     "titulo": "Integrations & API",
@@ -712,5 +721,45 @@
     "colCreada": "Detected", "colFecha": "Date", "colUbicacion": "Location", "colNotas": "Notes",
     "notaPredicciones": "Consumption computed from sales history. Products without sales show '—'.",
     "notaMovimientos": "Showing the last {n} operations. Download the Excel for up to 5,000 records."
+  },
+  "tendencias": {
+    "tituloGlobal": "Inventory trend",
+    "tituloProducto": "Product trend",
+    "rango": { "7d": "7 d", "30d": "30 d", "90d": "90 d", "1y": "1 year" },
+    "serieStockReal": "Actual stock",
+    "serieStockPredicho": "Forecast stock",
+    "serieVentasReales": "Actual sales",
+    "serieVentasPredichas": "Forecast sales",
+    "ejeStock": "Stock (units)",
+    "ejeVentas": "Sales (units/day)",
+    "unidadStock": "units",
+    "unidadVenta": "sold",
+    "hoy": "Today",
+    "cargando": "Loading time series…",
+    "error": "Could not load the trend",
+    "reintentar": "Retry",
+    "resetZoom": "Reset zoom",
+    "exportarPNG": "Export image",
+    "ariaRangos": "Chart time range",
+    "ariaGrafico": "Trend chart: {titulo}",
+    "errorRegistro": "Could not register Chart.js (controllers/scales). Check the console.",
+    "errorCreacion": "Error drawing the chart",
+    "stale": "Could not refresh. Showing data loaded at {hora}.",
+    "notaExcel": "The interactive chart is not included in the downloadable Excel (tables only). Use \"Export image\" to save it as PNG.",
+    "notaModelo": "Forecast uses the range's average consumption (linear model). Historical stock is reconstructed from movements."
+  },
+  "producto": {
+    "volver": "Back to products",
+    "noEncontrado": "Product not found",
+    "badgeBajo": "Low stock",
+    "badgeOk": "Stock OK",
+    "precio": "Price",
+    "stock": "Current stock",
+    "minimo": "Minimum stock",
+    "acciones": "Actions",
+    "verMovimientos": "Movements",
+    "verLotes": "Lots",
+    "editar": "Edit",
+    "verQR": "QR code"
   }
 }

@@ -1,4 +1,4 @@
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { migrarSeriesTiempo } from './migrations/001_series_tiempo';
@@ -18,13 +18,22 @@ import { migrarNotificaciones } from './migrations/015_notificaciones';
 import { migrarPushSuscripciones } from './migrations/016_push_suscripciones';
 import db from './sqlite';
 
-
-
-// Cargar el schema con readFileSync: funciona igual en Vite y en Node puro,
-// a diferencia del import './schema.sql?raw' que solo entiende Vite.
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const schema = readFileSync(join(__dirname, 'schema.sql'), 'utf-8');
 
+// Ruta canónica: schema.sql junto a este módulo. Acierta en dev-Vite y en Node puro
+// (scripts de migración), donde __dirname apunta a src/lib/server/.
+let rutaSchema = join(__dirname, 'schema.sql');
+
+// En el BUILD de Vite este módulo se empaqueta en .svelte-kit/output/server/chunks/,
+// y schema.sql NO se copia ahí (no es un módulo JS): __dirname apunta al chunk y la
+// ruta de arriba falla con ENOENT. Como el proceso de build/preview corre desde la
+// raíz del proyecto, caemos a la ruta del source relativa a cwd. Así cubrimos los
+// tres entornos SIN recurrir a '?raw', que solo entiende Vite y rompería Node puro.
+if (!existsSync(rutaSchema)) {
+  rutaSchema = join(process.cwd(), 'src', 'lib', 'server', 'schema.sql');
+}
+
+const schema = readFileSync(rutaSchema, 'utf-8');
 db.exec(schema);
 
 // 🌟 MIGRACIÓN: Agregar columna 'dias_hasta_minimo' si no existe

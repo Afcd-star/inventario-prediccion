@@ -46,7 +46,6 @@
     "registrarSalidas": "Registra salidas para ver el gráfico.",
     "exportarPDF": "Exportar Inventario (PDF)",
     "tendencia": "Tendencia",
-    "tendenciaStock": "Tendencia de Stock",
     "stockActual": "Stock Actual",
     "stockMinimo": "Stock Mínimo",
     "tendenciaCreciente": "Creciente",
@@ -71,7 +70,15 @@
     "transferenciasEnTransito": "Transferencias en Tránsito",
     "verTodas": "Ver Todas",
     "sinTransferencias": "No hay transferencias activas.",
-    "diasParaVencer": "Vence en {dias} días"
+    "diasParaVencer": "Vence en {dias} días",
+    "stockVsMinimo": "Stock actual vs mínimo por producto",
+    "unidadesVendidas": "Unidades vendidas",
+    "tabs": {
+      "operacion": "Operación",
+      "analisis": "Análisis",
+      "ubicaciones": "Ubicaciones",
+      "ariaTablist": "Secciones del panel"
+    }
   },
   "productos": {
     "titulo": "Gestión de Productos",
@@ -115,7 +122,7 @@
     "eliminar": "Eliminar",
     "confirmarEliminar": "¿Eliminar este producto?",
     "sinProductos": "No hay productos registrados aún.",
-    "volver": "Volver a productos",
+    "volver": "Volver",
     "completarDatos": "Completa los datos para agregar un producto al inventario.",
     "actualizarInfo": "Actualiza la información de {nombre}.",
     "noEncontrado": "Producto no encontrado.",
@@ -125,11 +132,12 @@
     "errorInventario": "El stock y el mínimo deben ser números enteros iguales o mayores que cero.",
     "errorLote": "Indica un número de lote y una fecha de caducidad válidos para el stock agregado.",
     "importar": "Importar",
+    "detalles": "Detalles",
     "importarStock": "Importar Stock"
   },
   "movimientos": {
     "titulo": "Movimientos",
-    "volver": "Volver a productos",
+    "volver": "Volver",
     "stockActual": "Stock actual",
     "nuevoMovimiento": "Nuevo Movimiento",
     "historial": "Historial",
@@ -519,7 +527,6 @@
     "titulo": "Transferencias en Tránsito",
     "descripcion": "Gestiona los movimientos de stock entre ubicaciones.",
     "volver": "Volver al Dashboard",
-    "nueva": "Nueva Transferencia",
     "origen": "Origen",
     "destino": "Destino",
     "estado": "Estado",
@@ -545,7 +552,12 @@
     "errorCampos": "Debes seleccionar origen, destino y al menos un producto.",
     "errorCantidad": "La cantidad a transferir debe ser mayor a 0.",
     "errorInterno": "Error al procesar la transferencia.",
-    "sinActivas": "No hay transferencias pendientes o en tránsito."
+    "sinActivas": "No hay transferencias pendientes o en tránsito.",
+    "confirmarCancelar": "¿Cancelar esta transferencia? El stock regresará al origen.",
+    "nueva": {
+      "nuevaTransferencia": "Nueva Transferencia",
+      "volver": "Volver"
+    }
   },
   "integraciones": {
     "titulo": "Integraciones y API",
@@ -711,5 +723,45 @@
     "colCreada": "Detectada", "colFecha": "Fecha", "colUbicacion": "Ubicación", "colNotas": "Notas",
     "notaPredicciones": "Consumo calculado desde el historial de salidas. Los productos sin ventas muestran '—'.",
     "notaMovimientos": "Mostrando las últimas {n} operaciones. Descarga el Excel para hasta 5.000 registros."
+  },
+  "tendencias": {
+    "tituloGlobal": "Tendencia del inventario",
+    "tituloProducto": "Tendencia del producto",
+    "rango": { "7d": "7 d", "30d": "30 d", "90d": "90 d", "1y": "1 año" },
+    "serieStockReal": "Stock real",
+    "serieStockPredicho": "Stock predicho",
+    "serieVentasReales": "Ventas reales",
+    "serieVentasPredichas": "Ventas predichas",
+    "ejeStock": "Stock (unidades)",
+    "ejeVentas": "Ventas (unid./día)",
+    "unidadStock": "unid.",
+    "unidadVenta": "vendidas",
+    "hoy": "Hoy",
+    "cargando": "Cargando serie temporal…",
+    "error": "No se pudo cargar la tendencia",
+    "stale": "Datos desactualizados (actualizados el {hora})",
+    "reintentar": "Reintentar",
+    "resetZoom": "Restablecer zoom",
+    "exportarPNG": "Exportar imagen",
+    "ariaRangos": "Rango de tiempo del gráfico",
+    "ariaGrafico": "Gráfico de tendencia: {titulo}",
+    "errorRegistro": "No se pudo registrar Chart.js (controllers/escalas). Revisa la consola.",
+    "errorCreacion": "Error al dibujar el gráfico",
+    "notaExcel": "El gráfico interactivo no se incluye en el Excel descargable (que solo contiene tablas). Usa «Exportar imagen» para guardarlo como PNG.",
+    "notaModelo": "La predicción usa el consumo promedio del rango (modelo lineal). El stock histórico se reconstruye desde los movimientos."
+  },
+  "producto": {
+    "volver": "Volver a productos",
+    "noEncontrado": "Producto no encontrado",
+    "badgeBajo": "Stock bajo",
+    "badgeOk": "Stock suficiente",
+    "precio": "Precio",
+    "stock": "Stock actual",
+    "minimo": "Stock mínimo",
+    "acciones": "Acciones",
+    "verMovimientos": "Movimientos",
+    "verLotes": "Lotes",
+    "editar": "Editar",
+    "verQR": "Código QR"
   }
 }

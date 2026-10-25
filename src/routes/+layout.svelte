@@ -54,13 +54,15 @@
   void inicializarI18n();
 
   const esLogin = $derived($page.url.pathname === '/login');
+  
+  const esPerfil = $derived($page.url.pathname === '/perfil');
 
   onMount(async () => {
     await waitLocale();
   });
 </script>
 
-{#if !esLogin}
+{#if !esLogin && !esPerfil}
   <Navbar {data} />
 {/if}
 

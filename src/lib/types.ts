@@ -146,3 +146,20 @@ export interface InformeCompleto {
   movimientos: FilaMovimientoReporte[];
   movimientosTotales: number; // para la nota "mostrando X de Y"
 }
+
+// ============================================
+// Visualización histórica (Fase 13)
+// ============================================
+
+export type RangoSerie = '7d' | '30d' | '90d' | '1y';
+
+export interface SerieTemporal {
+  etiquetas: string[];                 // fechas AAAA-MM-DD contiguas (pasado + futuro)
+  stockReal: (number | null)[];        // valores hasta hoy, null en futuro
+  ventasReales: (number | null)[];     // valores hasta hoy, null en futuro
+  stockPredicho: (number | null)[];    // null en pasado, ancla en hoy + futuro
+  ventasPredichas: (number | null)[];  // null hasta hoy, futuro
+  hoyIndex: number;                    // posición de "hoy" en etiquetas
+  rango: RangoSerie;
+  ambito: 'global' | number;           // 'global' o productoId
+}

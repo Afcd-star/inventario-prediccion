@@ -72,14 +72,13 @@ export const transferenciasService = {
     return transferenciaId;
   },
 
-  completar: (
+    completar: (
     transferenciaId: number,
     completadoPor: number,
     ip: string | null,
     itemsRecibidos: Array<{ item_id: number; cantidad_recibida: number }>
   ) => {
     const completar = db.transaction(() => {
-      // Agregamos creado_por para saber a quién notificar
       const t = db.prepare('SELECT origen_id, destino_id, estado, creado_por FROM transferencias WHERE id = ?').get(transferenciaId) as { origen_id: number; destino_id: number; estado: string; creado_por: number } | undefined;
       if (!t || t.estado !== 'en_transito') {
         throw new Error('La transferencia no está en estado válido para completar');
@@ -94,50 +93,90 @@ export const transferenciasService = {
       const stmtUpdateItem = db.prepare(`UPDATE transferencia_items SET cantidad_recibida = ? WHERE id = ?`);
       const stmtUpdateTransf = db.prepare(`UPDATE transferencias SET estado = 'completada', completada_en = CURRENT_TIMESTAMP WHERE id = ?`);
 
+      let totalRecibido = 0;
+
       for (const item of items) {
         const recibido = itemsRecibidos.find(r => r.item_id === item.id);
-        const cantidad = recibido ? recibido.cantidad_recibida : 0;
+        const cantidad = recibido && recibido.cantidad_recibida != null ? recibido.cantidad_recibida : 0;
 
+        if (cantidad < 0) {
+          throw new Error(`Cantidad recibida negativa para el item ${item.id}`);
+        }
+        if (cantidad > item.cantidad_solicitada) {
+          throw new Error(`Se recibió más de lo solicitado en el item ${item.id} (${cantidad} > ${item.cantidad_solicitada})`);
+        }
+
+        totalRecibido += cantidad;
+
+        // 🆕 Devolución al ORIGEN de lo NO recibido (cierra el bug de recepción parcial).
+        // Corre SIEMPRE, antes de los branches: cubre cantidad===0 (devuelve todo) y
+        // 0<cantidad<solicitada (devuelve la diferencia). Si lote_id es null, 'crear' no
+        // decrementó ningún lote (UPDATE ... WHERE id=NULL = no-op), así que no hay fuga
+        // que cerrar y no devolvemos nada. Coherente.
+        const devolver = item.cantidad_solicitada - cantidad;
+        if (devolver > 0 && item.lote_id != null) {
+          db.prepare(`
+            INSERT INTO movimientos (producto_id, lote_id, tipo, cantidad, ubicacion_id, notas, fecha)
+            VALUES (?, ?, 'transferencia_cancelada', ?, ?, ?, CURRENT_TIMESTAMP)
+          `).run(
+            item.producto_id, item.lote_id, devolver, t.origen_id,
+            `Devolución por recepción parcial de transferencia #${transferenciaId} (no llegaron ${devolver} de ${item.cantidad_solicitada})`
+          );
+          db.prepare(`UPDATE lotes SET cantidad_actual = cantidad_actual + ? WHERE id = ?`).run(devolver, item.lote_id);
+        }
+
+        // Registro de lo recibido en DESTINO
         if (cantidad > 0) {
           stmtUpdateItem.run(cantidad, item.id);
 
-          // 1. Asegurar que el lote existe en el destino (si no, crearlo con stock 0)
-          let loteIdDestino = item.lote_id;
-          if (item.lote_id) {
-            const loteOrigen = db.prepare('SELECT numero_lote, fecha_caducidad FROM lotes WHERE id = ?').get(item.lote_id) as { numero_lote: string, fecha_caducidad: string } | undefined;
-            if (loteOrigen) {
-              const existente = db.prepare(`
-                SELECT id FROM lotes WHERE producto_id = ? AND numero_lote = ? AND ubicacion_id = ?
-              `).get(item.producto_id, loteOrigen.numero_lote, t.destino_id) as { id: number } | undefined;
-
-              if (existente) {
-                loteIdDestino = existente.id;
-              } else {
-                const res = db.prepare(`
-                  INSERT INTO lotes (producto_id, numero_lote, fecha_caducidad, cantidad_inicial, cantidad_actual, ubicacion_id)
-                  VALUES (?, ?, ?, 0, 0, ?)
-                `).run(item.producto_id, loteOrigen.numero_lote, loteOrigen.fecha_caducidad, t.destino_id);
-                loteIdDestino = res.lastInsertRowid as number;
-              }
-            }
+          if (item.lote_id == null) {
+            throw new Error(
+              `El item ${item.id} (producto ${item.producto_id}) no tiene lote de origen; ` +
+              `no se puede recibir stock sin lote. Corrige la transferencia o cancélala.`
+            );
           }
 
-          // 2. Registrar movimiento de entrada en destino
+          const loteOrigen = db.prepare('SELECT numero_lote, fecha_caducidad FROM lotes WHERE id = ?').get(item.lote_id) as { numero_lote: string; fecha_caducidad: string } | undefined;
+          if (!loteOrigen) {
+            throw new Error(`El lote de origen ${item.lote_id} del item ${item.id} ya no existe`);
+          }
+
+          const existente = db.prepare(`
+            SELECT id FROM lotes WHERE producto_id = ? AND numero_lote = ? AND ubicacion_id = ?
+          `).get(item.producto_id, loteOrigen.numero_lote, t.destino_id) as { id: number } | undefined;
+
+          const loteIdDestino = existente
+            ? existente.id
+            : (db.prepare(`
+                INSERT INTO lotes (producto_id, numero_lote, fecha_caducidad, cantidad_inicial, cantidad_actual, ubicacion_id)
+                VALUES (?, ?, ?, 0, 0, ?)
+              `).run(item.producto_id, loteOrigen.numero_lote, loteOrigen.fecha_caducidad, t.destino_id).lastInsertRowid as number);
+
           db.prepare(`
             INSERT INTO movimientos (producto_id, lote_id, tipo, cantidad, ubicacion_id, notas, fecha)
             VALUES (?, ?, 'transferencia_entrada', ?, ?, ?, CURRENT_TIMESTAMP)
           `).run(item.producto_id, loteIdDestino, cantidad, t.destino_id, `Recepción de transferencia #${transferenciaId}`);
 
-          // 3. Actualizar stock del lote en destino
           db.prepare(`UPDATE lotes SET cantidad_actual = cantidad_actual + ? WHERE id = ?`).run(cantidad, loteIdDestino);
+        } else {
+          // cantidad === 0: item procesado y no recibido → 0 explícito (no NULL).
+          // La devolución al origen YA corrió arriba (devolver === solicitada).
+          stmtUpdateItem.run(0, item.id);
         }
+      }
+
+      // 🚨 No se "completa" una transferencia donde no llegó nada: eso es una cancelación.
+      // Throw dentro de la transacción => rollback => la devolución parcial NO se persiste
+      // => el origen sigue decrementado (estado 'en_transito' honesto: stock aún viajando).
+      if (totalRecibido === 0) {
+        throw new Error('No se recibió ninguna cantidad. Cancela la transferencia o registra la recepción real.');
       }
 
       stmtUpdateTransf.run(transferenciaId);
       return { creado_por: t.creado_por, origen_id: t.origen_id, destino_id: t.destino_id };
     });
 
-    const resultado = completar();
+    const resultado = completar();   // si throwea arriba, NUNCA se dispara la notificación
 
     auditoriaService.registrar({
       usuarioId: completadoPor,
@@ -148,7 +187,6 @@ export const transferenciasService = {
       ip: ip || 'localhost'
     });
 
-    // Disparar notificación de transferencia completada
     const origen = db.prepare('SELECT nombre FROM ubicaciones WHERE id = ?').get(resultado.origen_id) as { nombre: string };
     const destino = db.prepare('SELECT nombre FROM ubicaciones WHERE id = ?').get(resultado.destino_id) as { nombre: string };
     dispararTransferenciaCompletada(transferenciaId, origen.nombre, destino.nombre, resultado.creado_por);

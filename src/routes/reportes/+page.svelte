@@ -1,12 +1,27 @@
 <script lang="ts">
-  import { _ } from 'svelte-i18n';
+  import { _, locale } from 'svelte-i18n';
   import type { PageData } from './$types';
+  import GraficoTendencias from '$lib/components/graficos/GraficoTendencias.svelte';
 
   let { data }: { data: PageData } = $props();
   const informe = $derived(data.informe);
 
+  // Mapeo EXPLÍCITO del código corto de svelte-i18n a un locale BCP-47 válido
+  // para Intl.NumberFormat / toLocaleString. 'es' -> 'es-ES', 'en' -> 'en-US'.
+  // Si el idioma activo no está en el mapa, caemos a 'es-ES' (doble fallback).
+  const MAPA_LOCALE_INTL: Record<string, string> = {
+    es: 'es-ES',
+    en: 'en-US'
+  };
+
+  // $locale puede ser null/undefined en SSR (store aún sin inicializar):
+  // por eso el `?? 'es'` antes de indexar, y el `?? 'es-ES'` después.
+  const localeIntl = $derived(
+    MAPA_LOCALE_INTL[$locale ?? 'es'] ?? 'es-ES'
+  );
+
   const moneda = $derived(
-    new Intl.NumberFormat($_('app.locale') ?? 'es-ES', {
+    new Intl.NumberFormat(localeIntl, {
       style: 'currency',
       currency: 'EUR'
     })
@@ -14,7 +29,10 @@
 
   function fmtNum(n: number | null, decimales = 0): string {
     if (n == null) return '—';
-    return n.toLocaleString('es-ES', { minimumFractionDigits: decimales, maximumFractionDigits: decimales });
+    return n.toLocaleString(localeIntl, {
+      minimumFractionDigits: decimales,
+      maximumFractionDigits: decimales
+    });
   }
 </script>
 
@@ -36,6 +54,8 @@
       </a>
     </div>
   </header>
+
+  <GraficoTendencias ambito="global" titulo={$_('tendencias.tituloGlobal')} rangoInicial="30d" />
 
   <!-- 1 · KPIs -->
   <section class="card">

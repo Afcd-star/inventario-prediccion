@@ -30,7 +30,7 @@ export const load = (async ({ locals }) => {
 
 export const actions = {
   crear: async ({ request, locals, getClientAddress }) => {
-    if (!locals.usuario) throw fail(401);
+    if (!locals.usuario) return fail(401);
 
     const data = await request.formData();
     const origenId = Number(data.get('origen_id'));
@@ -58,9 +58,9 @@ export const actions = {
 
     try {
       transferenciasService.crear(origenId, destinoId, locals.usuario.id, notas, items, getClientAddress());
-      return { success: 'transferencias.creada' };
     } catch (e: any) {
       return fail(400, { error: e.message || 'transferencias.errorInterno' });
     }
+    throw redirect(303, '/transferencias');
   }
 } satisfies Actions;

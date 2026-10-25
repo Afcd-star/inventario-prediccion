@@ -18,7 +18,7 @@
     <div class="header-actions">
       <h1>{$_('transferencias.titulo')}</h1>
       <a href="/transferencias/nueva" class="btn btn-primary">
-        {$_('transferencias.nueva')}
+        {$_('transferencias.nueva.nuevaTransferencia')}
       </a>
     </div>
     <p class="text-secondary">{$_('transferencias.descripcion')}</p>

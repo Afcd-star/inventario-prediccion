@@ -32,7 +32,7 @@ export const load = (async ({ locals, cookies }) => {
     FROM auditoria
     WHERE usuario_id = ?
     ORDER BY creada_en DESC
-    LIMIT 20
+    LIMIT 5
   `).all(locals.usuario.id) as Array<{
     accion: string;
     detalles: string;

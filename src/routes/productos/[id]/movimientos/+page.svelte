@@ -35,7 +35,7 @@
 
 <main class="page-container page-container--narrow">
   <header class="page-header">
-    <a href="/productos" class="btn-back">
+    <a href="/productos/{data.producto?.id}" class="btn-back">
       <span>←</span>
       <span>{$_('movimientos.volver')}</span>
     </a>

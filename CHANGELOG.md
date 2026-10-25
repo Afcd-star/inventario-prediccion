@@ -3,6 +3,78 @@
 Formato: versión semántica MAYOR.MENOR.PARCHES.
 Regla del proyecto: el cambio de versión viaja en el mismo commit que la funcionalidad.
 
+## [v1.11.0] - 2026-10-25
+
+### Añadido — Fase 13: Visualización Histórica
+- **Motor de series temporales** (`series.service.ts`): reconstruye el stock histórico rebobinando
+  desde `movimientos` (sin tabla de snapshots) y proyecta el futuro con el modelo lineal de consumo
+  promedio. Endpoints `/api/series/global` y `/api/series/producto/[id]`.
+- **`GraficoTendencias.svelte`**: componente reutilizable (Chart.js + zoom por rueda/arrastre,
+  exportar PNG, línea "hoy", stale-while-error honesto, repintado al cambiar de tema). SSR-safe
+  (carga dinámica de Chart.js y el plugin de zoom dentro de `$effect`; sin `hammerjs`).
+- **Incrustación** en `/reportes` (bonus), **dashboard** (pestaña Análisis) y **ficha de producto**
+  (`/productos/[id]`, nueva: hub de navegación + tendencia por ítem).
+- **Dashboard con pestañas** accesibles (Operación / Análisis / Ubicaciones, roving tabindex +
+  navegación por flechas), KPIs fijos fuera de las pestañas, charts migrados de `onMount` a
+  `$effect` (lazy por pestaña, destroy+create al cambiar), y ranking "Top vendidos" convertido de
+  donut a **barras horizontales** (lectura por longitud, no por ángulo).
+- **Ficha de producto** (`/productos/[id]`): cierra el 500 por `+page.svelte` ausente; expone
+  `rol` y valida el id; enlaza a las subrutas existentes sin duplicar su lógica.
+- Tabla de `/productos` simplificada de 5 botones/fila a **Detalles + Eliminar**.
+
+### Corregido
+- **Reactividad/render (Fase 13):** `state_descriptors_fixed` al pasar nodos DOM (`canvas`,
+  `contenedor`) y arrays de datos (`serie`) de `$state` a **`$state.raw`** (proxy profundo de Svelte
+  chocaba con los property descriptors no-configurables del DOM y con los que Chart.js instrumenta).
+- **Lienzo blanco al cambiar de rango:** el `<canvas>` dejaba de existir dentro de la rama
+  `{#if cargando}` (lo desmontaba y huérfanaba la instancia `chart`). Ahora el canvas **persiste**
+  mientras exista `serie` y `cargando` es un **overlay superpuesto** (`pointer-events:none`, conserva
+  el zoom activo).
+- **Transferencias (integridad):** `completar` ya no marca "completada" una recepción vacía
+  (guard `totalRecibido === 0` con rollback), devuelve al origen la recepción parcial
+  (`solicitada - recibida`), valida `lote_id = NULL` y cantidades negativas/exceso. Se reabrió y
+  resolvió la transferencia #3 (fuga de stock por el bug anterior).
+- **Formulario de recepción** (`/transferencias/[id]`): inputs y botón ahora comparten un único
+  `<form>` (antes vivían en forms hermanos y `FormData` no recogía las cantidades).
+- **`/transferencias/nueva` (crear):** de retornar `{ success }` (quedarse pegado en el formulario y
+  exponerse a duplicar la transferencia con un F5) a **redirect PRG** (`303 → /transferencias`), con
+  el toast de éxito disparado desde el callback interior de `use:enhance`.
+- **`/reportes`:** `Intl` ahora lee el idioma real del store (`$locale`) con mapeo BCP-47 y doble
+  fallback, en vez de una clave inexistente (`app.locale`) que causaba `RangeError` en SSR.
+- **Build de producción (`ENOENT: schema.sql`):** `database.ts` leía el esquema con `readFileSync`
+  relativo al módulo, que falla en el bundle de Vite (los `.sql` no se copian al directorio de
+  chunks). Añadido **fallback a la ruta del source vía `process.cwd()`**, cubriendo dev-Vite, Node
+  puro (migraciones) y build-Vite **sin** recurrir a `?raw` (que solo entiende Vite y rompería los
+  scripts de migración, restricción documentada en el propio archivo).
+- **`use:enhance` (TS2339 `result` no existe):** el callback que inspecciona `result` debe ser el
+  **interior** (retorno del exterior), no leer `result` del argumento exterior (fase pre-submit);
+  añadido `await update()` para que el redirect/failure se aplique.
+- **Firmas de actions:** `throw fail(401)` → `return fail(401)` (`fail` retorna, no lanza; el `throw`
+  producía 500) y `throw redirect(...)` sacado del `try` (el `catch` lo atrapaba y lo convertía en
+  `fail(400)`, bloqueando la navegación).
+
+### Eliminado
+- Action `editar` huérfana en `/productos/[id]` (la subruta `/editar` es el único camino vivo).
+- Clave `dashboard.tendenciaStock` de los locales (sustituida por `stockVsMinimo`; sin consumidores).
+- `$effect` de `form.success` muerto en `/transferencias/nueva` (el action ahora redirige, no retorna
+  `{ success }`).
+
+### Deuda técnica agendada (no bloqueante)
+- **Seguridad/roles (fase por definir):** guard de rol + transacción en `productos.eliminar` (hoy
+  cualquier autenticado borra y `DELETE`+auditoría no son atómicos).
+- **Despliegue (D16):** `adapter-auto` no emite artefacto desplegable sin plataforma; elegir
+  `adapter-node`/`adapter-cloudflare`/`adapter-vercel`. Si se opta por serverless, la carga de
+  `schema.sql` vía `cwd` fallará en runtime y deberá inlinearse como string. **Prerequisito de la
+  Fase 14 (PWA/Offline):** el Service Worker y el "instalar como app" exigen HTTPS en producción,
+  y el Web Push pendiente desde 1.7.0 también.
+- **Fase 17/18:** job de reconciliación `productos.stock_actual` ↔ `SUM(lotes.cantidad_actual)`;
+  unificación de la carga de Chart.js (`auto` estático vs `chart-setup` dinámico); tipo dedicado
+  `transferencia_devuelta`; paridad 1:1 gráfico ↔ tabla `predicciones` persistida.
+- **Decisión de dominio pendiente:** política de `lote_id = NULL` en transferencias (hoy error) y
+  recepción parcial vs total obligatoria (hoy parcial permitida).
+
+---
+
 ## [1.10.0] - 2026-10-23
 
 ### ✨ Bloque 11.8 · Reporte avanzado multi-hoja (cierre de Fase 11)

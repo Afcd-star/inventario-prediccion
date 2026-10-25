@@ -7,7 +7,7 @@
   let { data, form }: { data: PageData; form?: { success?: string; error?: string } } = $props();
   const t = $derived(data.transferencia);
 
-  // Mostrar toasts de éxito
+  // Toasts de éxito (el $effect lee `form`, que enhance actualiza tras el submit)
   $effect(() => {
     if (form?.success === 'transferencias.completada') {
       mostrarToast($_('transferencias.completada'), 'success');
@@ -15,6 +15,14 @@
       mostrarToast($_('transferencias.cancelada'), 'info');
     }
   });
+
+  // Confirmación nativa i18n para el botón Cancelar.
+  // e.preventDefault() en el click detiene el submit ANTES de que enhance lo intercepte.
+  function confirmarCancelar(e: MouseEvent) {
+    if (!confirm($_('transferencias.confirmarCancelar'))) {
+      e.preventDefault();
+    }
+  }
 </script>
 
 <svelte:head>
@@ -41,7 +49,7 @@
         <h2>{t.origen_nombre} → {t.destino_nombre}</h2>
       </div>
       <span class="badge" class:badge-warning={t.estado !== 'completada'} class:badge-success={t.estado === 'completada'}>
-        {t.estado === 'en_transito' ? $_('transferencias.estadoTransito') : 
+        {t.estado === 'en_transito' ? $_('transferencias.estadoTransito') :
          t.estado === 'completada' ? $_('transferencias.estadoCompletada') : $_('transferencias.estadoPendiente')}
       </span>
     </div>
@@ -52,63 +60,82 @@
       </div>
     {/if}
 
-    <div class="table-container" style="margin-top: 1.5rem;">
-      <table class="data-table">
-        <thead>
-          <tr>
-            <th>{$_('transferencias.producto')}</th>
-            <th>{$_('transferencias.lote')}</th>
-            <th>{$_('transferencias.solicitado')}</th>
-            {#if t.estado !== 'completada'}
-              <th>{$_('transferencias.recibido')}</th>
-            {:else}
-              <th>{$_('transferencias.recibido')}</th>
-            {/if}
-          </tr>
-        </thead>
-        <tbody>
-          {#each t.items as item}
-            <tr>
-              <td>{item.producto_nombre}</td>
-              <td>{item.numero_lote || 'N/A'}</td>
-              <td>{item.cantidad_solicitada}</td>
-              <td>
-                {#if t.estado !== 'completada'}
-                  <form method="POST" action="?/completar" use:enhance style="display: flex; gap: 0.5rem; align-items: center;">
-                    <input type="hidden" name="transferencia_id" value={t.id} />
-                    <input 
-                      type="number" 
-                      name="recibido_{item.id}" 
-                      min="0" 
-                      max={item.cantidad_solicitada} 
-                      value={item.cantidad_solicitada} 
-                      class="input-field" 
+    {#if t.estado !== 'completada'}
+      <!-- 🎯 UN SOLO form: envuelve la tabla (inputs recibido_X) Y los botones.
+           Así el FormData del submit incluye las cantidades recibidas.
+           El botón Cancelar apunta a ?/cancelar vía formaction (enhance lo respeta). -->
+      <form method="POST" action="?/completar" use:enhance>
+        <div class="table-container" style="margin-top: 1.5rem;">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>{$_('transferencias.producto')}</th>
+                <th>{$_('transferencias.lote')}</th>
+                <th>{$_('transferencias.solicitado')}</th>
+                <th>{$_('transferencias.recibido')}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {#each t.items as item}
+                <tr>
+                  <td>{item.producto_nombre}</td>
+                  <td>{item.numero_lote || 'N/A'}</td>
+                  <td>{item.cantidad_solicitada}</td>
+                  <td>
+                    <input
+                      type="number"
+                      name={`recibido_${item.id}`}
+                      min="0"
+                      max={item.cantidad_solicitada}
+                      value={item.cantidad_solicitada}
+                      class="input-field"
                       style="width: 80px;"
                       required
                     />
-                  </form>
-                {:else}
-                  {item.cantidad_recibida || 0}
-                {/if}
-              </td>
-            </tr>
-          {/each}
-        </tbody>
-      </table>
-    </div>
+                  </td>
+                </tr>
+              {/each}
+            </tbody>
+          </table>
+        </div>
 
-    {#if t.estado !== 'completada'}
-      <div class="transferencia-actions">
-        <form method="POST" action="?/completar" use:enhance style="display: inline;">
+        <div class="transferencia-actions">
           <button type="submit" class="btn btn-primary">
             ✅ {$_('transferencias.confirmarRecepcion')}
           </button>
-        </form>
-        <form method="POST" action="?/cancelar" use:enhance style="display: inline;">
-          <button type="submit" class="btn btn-danger" onclick={(event) => { if (!confirm('¿Cancelar esta transferencia? El stock regresará al origen.')) event.preventDefault(); }}>
+          <button
+            type="submit"
+            class="btn btn-danger"
+            formaction="?/cancelar"
+            onclick={confirmarCancelar}
+          >
             ❌ {$_('transferencias.cancelar')}
           </button>
-        </form>
+        </div>
+      </form>
+    {:else}
+      <!-- Estado completada: tabla de solo lectura (sin inputs, sin form) -->
+      <div class="table-container" style="margin-top: 1.5rem;">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>{$_('transferencias.producto')}</th>
+              <th>{$_('transferencias.lote')}</th>
+              <th>{$_('transferencias.solicitado')}</th>
+              <th>{$_('transferencias.recibido')}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {#each t.items as item}
+              <tr>
+                <td>{item.producto_nombre}</td>
+                <td>{item.numero_lote || 'N/A'}</td>
+                <td>{item.cantidad_solicitada}</td>
+                <td>{item.cantidad_recibida || 0}</td>
+              </tr>
+            {/each}
+          </tbody>
+        </table>
       </div>
     {/if}
   </section>

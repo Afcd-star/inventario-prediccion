@@ -74,18 +74,12 @@
               {/if}
             </td>
             <td>
+              <!-- 🔧 Opción A: de 5 botones a 2. "Detalles" navega a la ficha; el form de
+                   eliminar queda INTACTO (misma action ?/eliminar, mismo hidden, mismo confirm),
+                   solo cambia de posición (ahora es el 2º y último control de la celda). -->
               <div class="row-actions">
-                <a href="/productos/{producto.id}/qr" class="btn btn-small btn-secondary">
-                  QR
-                </a>
-                <a href="/productos/{producto.id}/movimientos" class="action-button action-primary">
-                  {$_('productos.movimientos')}
-                </a>
-                <a href="/productos/{producto.id}/lotes" class="action-button action-secondary">
-                  {$_('productos.verLotes')}
-                </a>
-                <a href="/productos/{producto.id}/editar" class="action-button action-secondary">
-                  {$_('productos.editar')}
+                <a href="/productos/{producto.id}" class="action-button action-primary">
+                  {$_('productos.detalles')}
                 </a>
                 <form method="POST" action="?/eliminar" onsubmit={confirmarEliminacion}>
                   <input type="hidden" name="id" value={producto.id} />
@@ -205,17 +199,6 @@
   .action-primary:hover {
     background: var(--accent-purple);
     color: var(--text-on-accent);
-  }
-
-  .action-secondary {
-    background: var(--bg-secondary);
-    border-color: var(--border-color);
-    color: var(--text-primary);
-  }
-
-  .action-secondary:hover {
-    border-color: var(--accent-primary);
-    color: var(--accent-primary);
   }
 
   .action-danger {
