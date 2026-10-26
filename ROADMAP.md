@@ -11,7 +11,7 @@ y qué queda por hacer.
 | 1–12 | Internacionalización, series de tiempo, lotes/FEFO, simulación, anomalías, auditoría, multi-ubicación, API/webhooks, notificaciones, import/export, reportes y refactorización del módulo de datos. | Completadas (hasta v1.10.0) |
 | 13 | Visualización histórica: motor de series, componente de gráfico reutilizable, dashboard a pestañas, ficha de producto e integridad de transferencias. | Completada (v1.11.0) |
 | 14 | Resiliencia offline / PWA. | En pausa (ver habilitadores) |
-| 15 | Ecosistema de proveedores y órdenes de compra. | Planificada |
+| 15 | Ecosistema de proveedores y órdenes de compra. | Parcial (v1.12.0): gestión y asociación. Pendiente 15.4 (sugerencias) y 15.5 (exportación OC). |
 | 16 | Identidad visual y sistema de iconos SVG (refactorización). | Planificada |
 | 17 | Reportes avanzados y analítica de negocio. | Planificada |
 | 18 | Mejora del modelo predictivo (estadística clásica, sin GPU). | Planificada |
@@ -47,6 +47,10 @@ revisar el flujo de sesión y los endpoints de movimientos antes de implementarl
 | D9 | Tipo de movimiento dedicado para devoluciones parciales (`transferencia_devuelta`). | 17 |
 | D10 | Paridad entre el gráfico y la tabla de predicciones persistida. | 17 |
 | D16 | Elegir adapter de producción y validar la carga del esquema en ese entorno. | 14 (habilitador) |
+| D17 | Auditar el CRUD de `ubicaciones` (sin rastro en auditoría). | 16 / pulido |
+| D19 | Reubicar `/proveedores` bajo `/admin` con layout centralizado. | 16.6 |
+| D20 | Semántica de asociar producto a proveedor inactivo (permitir / bloquear / avisar). | Decisión de dominio |
+| D21 | Tipos de fila inline restantes de `proveedores.service.ts` → `types.ts`. | 16 / pulido |
 
 D3 y D4 son decisiones de negocio (cómo debe comportarse una transferencia en casos límite), no
 defectos; se resolverán cuando se defina la política de lotes del proyecto.

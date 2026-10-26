@@ -2,9 +2,14 @@
 // Esquema semántico: MAYOR.MENOR.PARCHES
 // Regla: el cambio de versión viaja en el mismo commit que la funcionalidad.
 
-export const VERSION = '1.11.0';
+export const VERSION = '1.12.0';
 
   export const CHANGELOG = [
+   {
+     version: '1.12.0',
+     fecha: '2026-10-27',
+     resumen: 'Fase 15 (parte 1): ecosistema de proveedores — esquema con intermedia fina (costo obligatorio, lead-time y MOQ por par con override-nullable), service CRUD con auditoría y reasociación idempotente, lista y ficha de gestión con multiselección, y conexión con la ficha de producto y el navbar.'
+   },
    {
      version: '1.11.0',
      fecha: '2026-10-25',

@@ -163,3 +163,41 @@ export interface SerieTemporal {
   rango: RangoSerie;
   ambito: 'global' | number;           // 'global' o productoId
 }
+
+// ============================================
+// Proveedores y órdenes de compra (Fase 15)
+// ============================================
+
+export interface Proveedor {
+  id: number;
+  nombre: string;
+  contacto: string | null;
+  email: string | null;
+  telefono: string | null;
+  tiempo_entrega_dias: number | null;   // default global del proveedor
+  notas: string | null;
+  activa: number;                        // 0/1, patrón SQLite del proyecto
+  created_at: string;
+}
+
+export interface ProductoProveedor {
+  id: number;
+  producto_id: number;
+  proveedor_id: number;
+  costo_unitario: number;               // por par (NOT NULL en schema)
+  tiempo_entrega_dias: number | null;   // override del global (NULL = hereda)
+  pedido_minimo: number | null;         // MOQ por par (NULL = sin mínimo)
+  created_at: string;
+}
+
+export interface ProductoAsociado {
+  asociacion_id: number;
+  producto_id: number;
+  producto_nombre: string;
+  stock_actual: number;
+  stock_minimo: number;
+  costo_unitario: number;
+  tiempo_entrega_override: number | null;  // pp.tiempo_entrega_dias crudo (NULL = hereda)
+  tiempo_entrega_efectivo: number | null;  // COALESCE(override, global)
+  pedido_minimo: number | null;
+}

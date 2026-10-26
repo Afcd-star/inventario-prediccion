@@ -17,6 +17,7 @@ import { migrarTiposMovimientoTransferencia } from './migrations/013_tipos_movim
 import { migrarApiWebhooks } from './migrations/014_api_webhooks';
 import { migrarNotificaciones } from './migrations/015_notificaciones';
 import { migrarPushSuscripciones } from './migrations/016_push_suscripciones';
+import { migrarProveedores } from './migrations/017_proveedores';
 import db from './sqlite';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -87,6 +88,7 @@ migrarTiposMovimientoTransferencia(db);
 migrarApiWebhooks(db);
 migrarNotificaciones(db);
 migrarPushSuscripciones(db);
+migrarProveedores(db);
 
 // ── Semilla idempotente del administrador inicial ──────────────────────────────
 // Corre en cada arranque, pero solo actúa si la tabla `usuarios` está vacía

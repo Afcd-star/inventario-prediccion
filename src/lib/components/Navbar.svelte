@@ -143,6 +143,7 @@
   const enlaces = [
     { href: '/dashboard', texto: 'nav.dashboard', icono: '📊' },
     { href: '/productos', texto: 'nav.productos', icono: '📦' },
+    { href: '/proveedores', texto: 'nav.proveedores', icono: '🏭' },
     { href: '/transferencias', texto: 'nav.transferencias', icono: '🚚' },
     { href: '/escanear', texto: 'nav.escanear', icono: '📱' },
     { href: '/simulacion', texto: 'nav.simulacion', icono: '🧪' }

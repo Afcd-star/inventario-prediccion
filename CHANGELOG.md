@@ -3,6 +3,96 @@
 Formato: versión semántica MAYOR.MENOR.PARCHES.
 Regla del proyecto: el cambio de versión viaja en el mismo commit que la funcionalidad.
 
+## [v1.12.0] - 2026-10-27
+
+### Añadido — Fase 15 (parte 1): gestión de proveedores y asociación por producto
+- **Migración 017** (`017_proveedores.ts`): tabla `proveedores` (datos maestros + `tiempo_entrega_dias`
+  global como default + `activa` soft-disable, patrón de `api_keys`/`webhooks`) y tabla intermedia
+  `producto_proveedor` con la relación muchos-a-muchos **fina**: `costo_unitario REAL NOT NULL`
+  (inherentemente por par), `tiempo_entrega_dias` **override-nullable** (`NULL` = hereda el global del
+  proveedor, evitando redundancia) y `pedido_minimo` (MOQ por par). El `lead-time` va por par — no
+  global como planteaba el plan original — porque es término directo de la cantidad sugerida de
+  reposición (`Q = consumo × (lead-time + revisión) + seguridad − stock`): un global subestimaría el
+  pedido de los productos lentos y sobrestimaría el de los rápidos. Se descarta el campo
+  `productos_suministrados` del plan (lista de productos como texto: imposible de consultar con JOIN,
+  sin FK, sin costo/plazo por producto) en favor de la intermedia.
+- **`proveedores.service.ts`**: CRUD con auditoría en los métodos mutantes (precedente de
+  productos/transferencias, no de ubicaciones que no audita), `eliminar` con guard que **lanza si hay
+  productos asociados** (no deja que el `CASCADE` borre el historial de costos/plazos en silencio),
+  `reasociarProductos` **idempotente** (transacción + diff insert/update/delete por `producto_id`,
+  validación de invariants y de existencia de productos antes de mutar, auditoría agregada del diff),
+  `obtenerProveedoresDelProducto` (filtra `activa = 1`, para la ficha de producto) y
+  `obtenerProductosDelProveedor` (expone **tanto** el override crudo como el efectivo resuelto por
+  `COALESCE`, para distinguir "hereda" de "hardcodeado" en el pre-rellenado).
+- **Vista `/proveedores`** (lista): tabla con conteo de productos asociados, modal accesible de
+  alta/edición, eliminar como form action con toast, y asimetría de permisos **lectura abierta /
+  escritura solo admin** (`exigirAdmin` en los actions + botones ocultos por `data.rol`).
+- **Vista `/proveedores/[id]`** (ficha): hub de asociaciones en **multiselección** (borrador local +
+  `each` keyed por `producto_id` para no perder ediciones al añadir/quitar + inputs leídos del
+  `FormData` al submit, patrón de `transferencias/nueva`), cabecera editable (modal), 3 métricas
+  derivadas (productos, stock a costo de reposición, plazo promedio) y **pre-rellenado** de las
+  asociaciones desde el server.
+- **Conectores**: sección "Proveedores" (read-only, solo activos, con click-through) en
+  `/products/[id]`, y enlace `/proveedores` en el navbar visible para todos los autenticados
+  (coherente con la lectura abierta; la escritura sigue blindada en los actions).
+- **Claves i18n** (`es`/`en`): bloque `proveedores.*` completo (lista + ficha + errores),
+  `producto.proveedores` / `producto.proveedoresVacio`, y `nav.proveedores`.
+
+### Corregido
+- **PRG en `crear` de `/proveedores`**: retornar `{ success }` dejaba el POST pendiente y, como
+  `proveedores.nombre` **no** es `UNIQUE` (a diferencia de `productos.nombre`), un F5 **duplicaba** el
+  proveedor. Cambiado a `redirect(303, '/proveedores')` (fuera del `try`) con el toast disparado desde
+  el callback interior de `use:enhance`. `actualizar`/`eliminar` se quedan con `{ success }` a
+  propósito: son idempotentes por `id`, así que un reenvío es no-op.
+- **Modal que cortaba los botones** (`/proveedores` y `/proveedores/[id]`): sin `max-height` ni
+  `overflow`, en pantallas de ~700 px útiles el contenido desbordaba y Cancelar/Guardar quedaban
+  fuera sin forma de scrollear. Reestructurado a header fijo + cuerpo scrolleable + footer fijo
+  (`flex` + `max-height: calc(100vh - 2rem)` + `min-height: 0` en los flex items, que es lo que activa
+  el scroll). El mismo bug preexistente en `admin/ubicaciones` se deja para la Fase 16 (no es de esta
+  fase).
+- **`const` → `let` en `productoAElegir`** (`$state` reasignable por `bind:value` y por
+  `agregarFila`; el compilador lo marcó como `constant_assignment`).
+- **Tipo `ProductoAsociado` duplicado**: existía inline en el service **y** en `types.ts`, y la vista
+  consumía el inline (sin `tiempo_entrega_override`) → TS2339. El inline se elimina y el service
+  importa el de `types.ts` (una sola fuente); el `SELECT` añade la columna `tiempo_entrega_override`
+  (cruda) junto al `tiempo_entrega_efectivo` (resuelto).
+- **TS2322 en el `$effect` de resincronización**: `a.tiempo_entrega_override ?? ''` devolvía
+  `string | number` (el `??` no convierte a string), incompatible con `FilaBorrador`. Alineado con el
+  patrón de `pedido_minimo`: `!= null ? String(...) : ''`.
+- **`placeholder` del plazo** miraba `fila.tiempo_entrega_dias` (un `string`, siempre `!= null`) en vez
+  de `p.tiempo_entrega_dias` (el global, `number | null`): decía "hereda global" aunque el proveedor no
+  tuviera global que heredar.
+- **Métrica renombrada** "Valor a costo" → "Stock a costo de reposición": la fórmula usa el costo
+  vigente (`stock_actual × costo_unitario`), no el costo histórico FIFO de lo que ya hay en estantería;
+  el nombre nuevo describe el proxy con honestidad.
+- **Hint de "Pedido mín."**: campo nullable que aún no tiene consumidor de cálculo (lo tendrá en 15.4),
+  se documenta en la UI para que no parezca ruido al llenar el formulario.
+
+### Eliminado
+- `type ProductoAsociado` inline en `proveedores.service.ts` (duplicado del de `types.ts`).
+
+### Deuda técnica agendada (no bloqueante)
+- **D17** — auditar el CRUD de `ubicaciones` (hoy crear/editar/eliminar no deja rastro en auditoría,
+  incoherente con productos/transferencias/proveedores).
+- **D19** — reubicar `/proveedores` bajo `/admin` cuando la 16.6 (hoy el guard de rol va inline por
+  vista, como `admin/ubicaciones`, en vez de un layout centralizado).
+- **D20** — semántica de asociar un producto a un proveedor **inactivo** (hoy se permite y la asociación
+  queda oculta en la ficha del producto hasta reactivar; decidir entre permitir / bloquear / permitir
+  con aviso). Decisión de dominio, no bug.
+- **D21** — migrar los tipos de fila inline restantes del service (`ProveedorConConteo`,
+  `ProveedorDelProducto`) a `types.ts`, para que el service sea 100% "importa tipos, no los declara"
+  (coherente con el hardening de 11.8/12).
+- **Duplicación de adaptador** `actualizar` (lista + ficha llaman al mismo `service.actualizar`):
+  uniformizable con un componente de form de cabecera compartido.
+- **Modal sin scroll en `admin/ubicaciones`** (preexistente de la fase 7) y **favicon relativo**
+  (`/productos/N/favicon.ico`, residuo del scaffold) → Fase 16.
+- **Lo que falta de la Fase 15** (otro release de la misma fase, no deudado aquí): **15.4** sugerencias
+  de orden de compra (cruce `predicciones` × `producto_proveedor`, donde `lead-time` por par y `MOQ`
+  empiezan a trabajar juntos en `Q_sugerida`) y **15.5** exportación de OC a PDF (reuso del pipeline de
+  `reportes.service`).
+
+---
+
 ## [v1.11.0] - 2026-10-25
 
 ### Añadido — Fase 13: Visualización Histórica

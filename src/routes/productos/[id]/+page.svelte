@@ -67,6 +67,48 @@
       </div>
     </section>
 
+    <!-- Proveedores que surten ESTE producto (solo activos). La asociación se gestiona
+    desde la ficha del proveedor (/proveedores/[id]); aquí es lectura + click-through. -->
+    <section class="card proveedores-ficha">
+      <h2>{$_('producto.proveedores')}</h2>
+      {#if data.proveedores.length === 0}
+        <p class="text-secondary">{$_('producto.proveedoresVacio')}</p>
+      {:else}
+        <div class="table-container">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>{$_('proveedores.nombre')}</th>
+                <th>{$_('proveedores.contacto')}</th>
+                <th>{$_('proveedores.costoUnitario')}</th>
+                <th>{$_('proveedores.plazo')}</th>
+                <th>{$_('proveedores.pedidoMinimo')}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {#each data.proveedores as prov}
+                <tr>
+                  <td>
+                    <a href="/proveedores/{prov.proveedor_id}" class="product-name">{prov.nombre}</a>
+                  </td>
+                  <td class="text-secondary">
+                    {prov.email || prov.telefono || prov.contacto || '—'}
+                  </td>
+                  <td>{moneda.format(prov.costo_unitario)}</td>
+                  <td>
+                    {prov.tiempo_entrega_efectivo != null
+                      ? $_('proveedores.plazoDias', { values: { dias: prov.tiempo_entrega_efectivo } })
+                      : '—'}
+                  </td>
+                  <td>{prov.pedido_minimo != null ? prov.pedido_minimo : '—'}</td>
+                </tr>
+              {/each}
+            </tbody>
+          </table>
+        </div>
+      {/if}
+    </section>
+
     <!-- Tendencia temporal de ESTE producto (cierre Fase 13). Fetch lazy al montar la ficha. -->
     <GraficoTendencias
       ambito={p.id}
@@ -77,12 +119,34 @@
 </main>
 
 <style>
-  .page-header { margin-bottom: 1.5rem; }
-  .estado-vacio { text-align: center; padding: 3rem 1.5rem; display: grid; gap: 1rem; justify-items: center; }
+  .page-header { 
+    margin-bottom: 1.5rem; 
+  }
 
-  .ficha-header { margin-bottom: 1.5rem; }
-  .ficha-titulo { display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap; margin-bottom: 1.25rem; }
-  .ficha-titulo h1 { margin: 0; font-size: 1.6rem; }
+  .estado-vacio { 
+    text-align: center; 
+    padding: 3rem 1.5rem; 
+    display: grid; 
+    gap: 1rem; 
+    justify-items: center; 
+  }
+
+  .ficha-header { 
+    margin-bottom: 1.5rem; 
+  }
+
+  .ficha-titulo { 
+    display: flex; 
+    align-items: center; 
+    gap: 0.75rem; 
+    flex-wrap: wrap; 
+    margin-bottom: 1.25rem; 
+  }
+
+  .ficha-titulo h1 { 
+    margin: 0; 
+    font-size: 1.6rem; 
+  }
 
   .ficha-metricas {
     display: grid;
@@ -98,9 +162,20 @@
     background: var(--bg-secondary);
     border: 1px solid var(--border-color);
   }
-  .metrica-label { font-size: var(--font-size-sm); color: var(--text-secondary); }
-  .metrica-valor { font-size: 1.4rem; font-weight: var(--font-weight-bold); color: var(--text-primary); }
-  .text-danger { color: var(--status-danger-text, var(--accent-danger)); }
+  .metrica-label { 
+    font-size: var(--font-size-sm); 
+    color: var(--text-secondary); 
+  }
+
+  .metrica-valor { 
+    font-size: 1.4rem; 
+    font-weight: var(--font-weight-bold); 
+    color: var(--text-primary); 
+  }
+
+  .text-danger { 
+    color: var(--status-danger-text, var(--accent-danger)); 
+  }
 
   .acciones-grid {
     display: flex;
@@ -111,5 +186,41 @@
 
   .subrutas {
     margin-bottom: 1.5rem;
+  }
+
+  .proveedores-ficha { 
+    margin-bottom: 1.5rem; 
+  }
+
+  .table-container { 
+    overflow-x: auto; 
+    margin-top: 0.75rem; 
+  }
+
+  .data-table { 
+    width: 100%; 
+    border-collapse: collapse; 
+  }
+
+  .data-table th, .data-table td { 
+    padding: 0.6rem 0.75rem; 
+    text-align: left; 
+    border-bottom: 1px solid var(--border-color); 
+  }
+
+  .data-table th { 
+    font-weight: var(--font-weight-semibold); 
+    color: var(--text-secondary); 
+    font-size: var(--font-size-sm); 
+  }
+
+  .product-name { 
+    font-weight: var(--font-weight-semibold); 
+    color: var(--accent-primary); 
+    text-decoration: none; 
+  }
+
+  .product-name:hover { 
+    text-decoration: underline; 
   }
 </style>
