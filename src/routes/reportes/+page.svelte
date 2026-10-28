@@ -102,7 +102,7 @@
             </tr>
           </thead>
           <tbody>
-            {#each informe.stockBajo as p (p.producto)}
+            {#each informe.stockBajo as p, i (`${p.producto}-${i}`)}
               <tr>
                 <td>{p.producto}</td>
                 <td>{p.stock_actual}</td>
@@ -135,7 +135,7 @@
             </tr>
           </thead>
           <tbody>
-            {#each informe.lotesPorVencer as l (`${l.lote}-${l.producto}`)}
+            {#each informe.lotesPorVencer as l, i (`${l.lote}-${l.producto}-${i}`)}
               <tr class:l-critico={l.dias_restantes <= 7}>
                 <td>{l.producto}</td>
                 <td>{l.lote}</td>
@@ -166,7 +166,7 @@
           </tr>
         </thead>
         <tbody>
-          {#each informe.predicciones as p (p.producto)}
+          {#each informe.predicciones as p, i (`${p.producto}-${i}`)}
             <tr>
               <td>{p.producto}</td>
               <td>{p.stock_actual}</td>
@@ -201,7 +201,7 @@
             </tr>
           </thead>
           <tbody>
-            {#each informe.anomalias as a (`${a.producto}-${a.fecha_inicio}`)}
+            {#each informe.anomalias as a, i (`${a.producto}-${a.fecha_inicio}-${i}`)}
               <tr>
                 <td>{a.producto}</td>
                 <td><span class="badge badge-warning">{a.tipo}</span></td>
@@ -232,7 +232,7 @@
           </tr>
         </thead>
         <tbody>
-          {#each informe.movimientos as m (`${m.fecha}-${m.producto}-${m.tipo}`)}
+          {#each informe.movimientos as m, i (`${m.fecha}-${m.producto}-${m.tipo}-${i}`)}
             <tr>
               <td>{m.fecha}</td>
               <td>{m.producto}</td>

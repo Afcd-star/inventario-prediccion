@@ -1,5 +1,6 @@
 import { fail, redirect } from '@sveltejs/kit';
 import { proveedoresService } from '$lib/server/services/proveedores.service';
+import { sugerenciasService } from '$lib/server/services/sugerencias.service';
 import type { PageServerLoad, Actions } from './$types';
 
 export const load = (async ({ locals }) => {
@@ -7,8 +8,15 @@ export const load = (async ({ locals }) => {
 
   // Lectura: cualquier autenticado. El rol viaja a la UI para ocultar los botones de gestión.
   const proveedores = proveedoresService.obtenerTodas();
-  return { proveedores, rol: locals.usuario.rol };
+  
+  // Contador de reposición para el botón-badge de la lista (paridad total con la vista
+  // /proveedores/reposicion: mismo motor, mismo número). Micro-coste aceptable: JOIN
+  // indexado sobre volumen pequeño (~6 filas típicas). Ver B5/opción A.
+  const conteoReposicion = sugerenciasService.obtenerSugerencias().length;
+  
+  return { proveedores, rol: locals.usuario.rol, conteoReposicion };
 }) satisfies PageServerLoad;
+
 
 // Guard de escritura: solo admin. Defensa en profundidad (la UI ya oculta los botones).
 function exigirAdmin(locals: { usuario?: { rol: string } | null }) {

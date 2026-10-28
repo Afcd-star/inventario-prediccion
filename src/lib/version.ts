@@ -2,9 +2,14 @@
 // Esquema semántico: MAYOR.MENOR.PARCHES
 // Regla: el cambio de versión viaja en el mismo commit que la funcionalidad.
 
-export const VERSION = '1.12.0';
+export const VERSION = '1.13.0';
 
   export const CHANGELOG = [
+    {
+     version: '1.13.0',
+     fecha: '2026-10-28',
+     resumen: 'Fase 15 (parte 2, completa la fase): motor de sugerencias de reposición (fuente única en la tabla predicciones, ranking por lead-time, bordes B2/B3, R=0 documentado), vista subordinada /proveedores/reposicion con botón-contador, y exportación de órdenes de compra a PDF (una página por OC, validación server-side de cantidades contra MOQ/BD, auditoría de emisión). Fixes: asociaciones de la ficha no refrescaban (bind each-arg → índice) y each_key_duplicate en /reportes (keys no-únicas → -${i}).'
+   },
    {
      version: '1.12.0',
      fecha: '2026-10-27',

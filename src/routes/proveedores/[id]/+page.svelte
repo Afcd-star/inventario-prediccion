@@ -160,7 +160,7 @@
                 </tr>
               </thead>
               <tbody>
-                {#each filas as fila (fila.producto_id)}
+                {#each filas as fila, i (fila.producto_id)}
                   <tr>
                     <td>
                       <strong>{fila.producto_nombre}</strong>
@@ -168,18 +168,18 @@
                     </td>
                     <td>
                       <input type="number" name="costo_unitario[]" min="0" step="0.01"
-                             bind:value={fila.costo_unitario} class="input-field campo-num" required
+                             bind:value={filas[i].costo_unitario} class="input-field campo-num" required
                              aria-label={$_('proveedores.costoUnitario')} />
                     </td>
                     <td>
                       <input type="number" name="tiempo_entrega_dias[]" min="0" step="1"
-                             bind:value={p.tiempo_entrega_dias} class="input-field campo-num"
+                             bind:value={filas[i].tiempo_entrega_dias} class="input-field campo-num"
                              placeholder={p.tiempo_entrega_dias != null ? $_('proveedores.heredaGlobal') : '—'}
                              aria-label={$_('proveedores.plazoOverride')} />
                     </td>
                     <td>
                       <input type="number" name="pedido_minimo[]" min="0" step="1"
-                             bind:value={fila.pedido_minimo} class="input-field campo-num" aria-label={$_('proveedores.pedidoMinimo')} />
+                             bind:value={filas[i].pedido_minimo} class="input-field campo-num" aria-label={$_('proveedores.pedidoMinimo')} />
                     </td>
                     <td>
                       <button type="button" class="btn btn-sm btn-danger"

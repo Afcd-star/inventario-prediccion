@@ -1,6 +1,6 @@
 import db from '../database';
 import { auditoriaService } from './auditoria.service';
-import type { Proveedor, ProductoProveedor, ProductoAsociado } from '../../types';
+import type { Proveedor, ProductoAsociado, ParActivo } from '../../types';
 
 // Fila de lista: proveedor + cuántos productos tiene asociados (para la grilla de 15.3)
 type ProveedorConConteo = Proveedor & { productos_asociados: number };
@@ -387,5 +387,29 @@ export const proveedoresService = {
       },
       ip: ip || 'localhost'
     });
+  },
+
+  // Resuelve un par (producto, proveedor) ACTIVO con todo lo que la OC necesita para
+  // validar y pintar. Devuelve null si el par no existe o el proveedor está inactivo
+  // (WHERE prov.activa = 1). El server lo usa como autoridad: el cliente nunca envía
+  // costos ni garantiza que el par exista (D6). Indexado por idx_pp_producto + idx_pp_proveedor.
+  obtenerParActivo: (productoId: number, proveedorId: number): ParActivo | null => {
+    return db.prepare(`
+      SELECT
+        pp.producto_id,
+        prod.nombre        AS producto_nombre,
+        pv.id              AS proveedor_id,
+        pv.nombre          AS proveedor_nombre,
+        pv.contacto        AS proveedor_contacto,
+        pv.email           AS proveedor_email,
+        pv.telefono        AS proveedor_telefono,
+        pp.costo_unitario,
+        pp.pedido_minimo,
+        COALESCE(pp.tiempo_entrega_dias, pv.tiempo_entrega_dias) AS tiempo_entrega_efectivo
+      FROM producto_proveedor pp
+      JOIN productos prod ON prod.id = pp.producto_id
+      JOIN proveedores pv ON pv.id = pp.proveedor_id AND pv.activa = 1
+      WHERE pp.producto_id = ? AND pp.proveedor_id = ?
+    `).get(productoId, proveedorId) as ParActivo | null;
   },
 };

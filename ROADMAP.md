@@ -11,7 +11,7 @@ y qué queda por hacer.
 | 1–12 | Internacionalización, series de tiempo, lotes/FEFO, simulación, anomalías, auditoría, multi-ubicación, API/webhooks, notificaciones, import/export, reportes y refactorización del módulo de datos. | Completadas (hasta v1.10.0) |
 | 13 | Visualización histórica: motor de series, componente de gráfico reutilizable, dashboard a pestañas, ficha de producto e integridad de transferencias. | Completada (v1.11.0) |
 | 14 | Resiliencia offline / PWA. | En pausa (ver habilitadores) |
-| 15 | Ecosistema de proveedores y órdenes de compra. | Parcial (v1.12.0): gestión y asociación. Pendiente 15.4 (sugerencias) y 15.5 (exportación OC). |
+| 15 | Ecosistema de proveedores y órdenes de compra. | Completada (v1.12.0 + v1.13.0) |
 | 16 | Identidad visual y sistema de iconos SVG (refactorización). | Planificada |
 | 17 | Reportes avanzados y analítica de negocio. | Planificada |
 | 18 | Mejora del modelo predictivo (estadística clásica, sin GPU). | Planificada |
@@ -51,6 +51,11 @@ revisar el flujo de sesión y los endpoints de movimientos antes de implementarl
 | D19 | Reubicar `/proveedores` bajo `/admin` con layout centralizado. | 16.6 |
 | D20 | Semántica de asociar producto a proveedor inactivo (permitir / bloquear / avisar). | Decisión de dominio |
 | D21 | Tipos de fila inline restantes de `proveedores.service.ts` → `types.ts`. | 16 / pulido |
+| D22 | Ciclo de vida de OCs (tabla `ordenes_compra` + estado) para descontar pedidos emitidos y dar historial de compras. | Evolución 15 (opción B) |
+| D23 | Keys por índice en `/reportes`; migrar a `id` real si la vista gana sort/filter en cliente. | 16 / pulido |
+| D24 | Paridad 11.8: que `/reportes` consuma 15.4 y retire su `compra_recomendada` on-the-fly. | 17 |
+| D25 | i18n de documentos PDF (moneda/idioma hardcodeados, `$`/`€` mezclados entre generadores). | 16 / 17 |
+| D26 | Uniformizar `BotonPDF` (GET) y `BotonOC` (POST) en un componente de descarga genérico. | 16 / pulido |
 
 D3 y D4 son decisiones de negocio (cómo debe comportarse una transferencia en casos límite), no
 defectos; se resolverán cuando se defina la política de lotes del proyecto.

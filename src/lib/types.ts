@@ -201,3 +201,83 @@ export interface ProductoAsociado {
   tiempo_entrega_efectivo: number | null;  // COALESCE(override, global)
   pedido_minimo: number | null;
 }
+
+// ── Sugerencias de reposición (Fase 15.4) ──
+// Un elemento = un producto que necesita reponerse (Q_bruta > 0) o que no tiene
+// proveedor activo (caso B2). Los proveedores del producto van en `proveedores`,
+// ordenados de mejor a peor (lead-time ASC, costo desempate); [0] es el recomendado.
+export interface SugerenciaReposicion {
+  producto_id: number;
+  producto_nombre: string;
+  stock_actual: number;
+  stock_minimo: number;
+  // De la tabla `predicciones` (fuente única, unificación 15.4). null = sin fila/historial.
+  consumo_diario: number | null;
+  dias_hasta_agotar: number | null;
+  bajo_minimo: boolean;            // señal secundaria (badge), no criterio de entrada
+  // Proveedor recomendado = proveedores[0]. null si no hay ninguno activo (B2).
+  proveedor_recomendado_id: number | null;
+  proveedor_recomendado_nombre: string | null;
+  lead_time_efectivo: number | null;   // del recomendado; null = "plazo no registrado" (B3)
+  costo_unitario: number | null;       // del recomendado
+  pedido_minimo: number | null;        // del recomendado
+  q_sugerida: number | null;           // redondeada al MOQ del recomendado; null si sin proveedor
+  proveedores: ProveedorRanking[];     // ranking completo para el modal "Ver otros"
+}
+
+// Una opción de proveedor dentro del ranking de un producto. El Q es POR PAR:
+// cambiar de proveedor cambia el lead-time, la necesidad y por tanto la cantidad.
+export interface ProveedorRanking {
+  proveedor_id: number;
+  proveedor_nombre: string;
+  lead_time_efectivo: number | null;
+  costo_unitario: number;
+  pedido_minimo: number | null;
+  q_sugerida: number;              // Q recalculada para este par (siempre > 0 si entra en el ranking)
+}
+
+// ── Exportación de OC (Fase 15.5) ──
+// Payload que envía el cliente desde /proveedores/reposicion. Solo ids + cantidad:
+// el server regenera costos/plazos desde BD (D6), nunca confía en lo que manda el cliente.
+export interface LineaOCPayload {
+  producto_id: number;
+  proveedor_id: number;
+  cantidad: number;
+}
+
+// Par producto-proveedor activo, resuelto por el server para validar y construir la OC.
+// null = el par no existe o el proveedor está inactivo (→ 400, no manipulable).
+export interface ParActivo {
+  producto_id: number;
+  producto_nombre: string;
+  proveedor_id: number;
+  proveedor_nombre: string;
+  proveedor_contacto: string | null;
+  proveedor_email: string | null;
+  proveedor_telefono: string | null;
+  costo_unitario: number;
+  pedido_minimo: number | null;
+  tiempo_entrega_efectivo: number | null;   // COALESCE(override, global)
+}
+
+// Línea ya resuelta para el PDF (con subtotal calculado en server).
+export interface LineaOC {
+  producto_nombre: string;
+  cantidad: number;
+  costo_unitario: number;
+  subtotal: number;
+  plazo_dias: number | null;                // lead-time efectivo de ESTE par (columna por línea, M1)
+}
+
+// Una OC = una página del PDF (D2). Agrupada por proveedor.
+export interface OrdenCompraExportable {
+  numero: string;                           // OC-YYYYMMDD-HHmm-{proveedorId} (M2)
+  proveedor_nombre: string;
+  proveedor_contacto: string | null;
+  proveedor_email: string | null;
+  proveedor_telefono: string | null;
+  plazo_entrega_dias: number | null;        // MAX de los lead-times del grupo (M1)
+  fecha_estimada: string;                   // hoy + plazo, o "Por confirmar" si null
+  lineas: LineaOC[];
+  total: number;                            // Σ subtotales (sin IVA, D4)
+}

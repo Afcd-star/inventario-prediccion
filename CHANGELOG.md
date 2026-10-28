@@ -3,6 +3,92 @@
 Formato: versión semántica MAYOR.MENOR.PARCHES.
 Regla del proyecto: el cambio de versión viaja en el mismo commit que la funcionalidad.
 
+## [v1.13.0] - 2026-10-28
+
+### Añadido — Fase 15 (parte 2): reposición y órdenes de compra (completa la fase iniciada en v1.12.0)
+- **Motor de sugerencias (`sugerencias.service.ts`, 15.4)**: calcula on-the-fly la cantidad de
+  reposición cruzando la tabla `predicciones` (**fuente única**, JOIN por `producto_id` — no recalcula
+  el consumo inflado de 11.8, que divide solo entre días con venta) con `producto_proveedor`
+  (lead-time efectivo por `COALESCE`, MOQ, costo). Fórmula `Q = stock_minimo + consumo × (lead-time + R)
+  − stock_actual − pendientes`, con **`R = 0`** (revisión continua) y **`pendientes = 0`** (A+ no
+  registra OCs), ambos documentados en el service como constantes nombradas. Filtro de entrada
+  **`Q_bruta > 0`** (unifica cobertura y bajo-mínimo sin huecos: un producto en mínimo exacto sin gasto
+  no entra; uno bajo mínimo sin ventas sí). Ranking de proveedores por **lead-time ASC, costo desempate,
+  nulls al fondo** (Opción 2: el criterio de orden coincide con lo que el modal destaca, así el usuario
+  entiende por qué están ordenados así). Bordes: **B2** (sin proveedor activo → `Q = null` + aviso, no
+  se descarta en silencio) y **B3** (plazo no registrado → degrada a reponer al mínimo, sin asumir
+  entrega inmediata).
+- **Vista `/proveedores/reposicion` (15.4)**: página propia **subordinada** a `/proveedores` (ruta hija,
+  **sin** enlace en el navbar: reposición es vista derivada de proveedores, no dominio primario — se
+  decidió no saturar la barra y preservar la subordinación conceptual). Tabla de 8 columnas con
+  lead-time destacado (criterio de orden), costo secundario, badge "Bajo mínimo" (señal secundaria, no
+  de entrada), avisos A+/B2/B3, y el modal "Ver otros proveedores" **read-only** (todos los pares, el
+  recomendado en primera posición por **posición, no badge** interpretativo; scroll soldado: header fijo
+  + `modal-body` con `overflow-y:auto` + `min-height:0` + footer fijo; nace con `max-width: 720px` por
+  ser tabla, no 500px de formulario).
+- **Botón-contador "📦 Reposición N"** junto a "Nuevo proveedor" en `/proveedores` (patrón campana de
+  notificaciones), alimentado por el `load` (`obtenerSugerencias().length`, **paridad total** badge↔vista,
+  **sin** SSE: dato estático entre cargas). Las dos acciones del header se agrupan a la derecha
+  (`.header-acciones-grupo`) para que el contador no flote en el medio al haber tres elementos.
+- **Exportación de OC a PDF (15.5)**: `generarOrdenCompraPDF()` en `reportes.service.ts` (patrón branded
+  de `generarReporteInventario`: header rect + autoTable + total + footer global con `VERSION`; **una
+  página por OC**, opción iii — imprimir por página = imprimir una OC). Endpoint `POST
+  /api/exportar/orden-compra` que agrupa por proveedor (**D2: una OC = un proveedor**), **valida cada
+  cantidad contra MOQ/entero/>0 y resuelve costos y plazos desde BD** (**D6**: el server es autoridad, el
+  cliente solo manda `ids + cantidad`; rechaza pares inexistentes o proveedores inactivos con 400 y
+  motivo, nunca reescribe la cantidad aprobada), numera `OC-YYYYMMDD-HHmm-{proveedorId}` (único por
+  batch) y audita la emisión (`oc_generada`). Plazo de la OC = **máximo** de los lead-times del grupo
+  (se satisface cuando llega todo), con plazo por línea en la tabla. Moneda `€` en el PDF nuevo (no
+  replica el `$` heredado del reporte de inventario). Componente `BotonOC.svelte` (hermano de `BotonPDF`
+  con POST, self-contained para no tocar `BotonPDF` en uso) + checkboxes de selección en `/reposicion`
+  (patrón `/notificaciones`: estado local inmutable + `confirm` nativo con resumen "N OCs a generar: …").
+- **`obtenerParActivo`** en `proveedores.service.ts`: resuelve un par (producto, proveedor) **activo**
+  desde BD (`WHERE prov.activa = 1`) como autoridad de validación de la OC.
+- **Tipos nuevos** (`types.ts`): `SugerenciaReposicion`, `ProveedorRanking` (15.4) y `LineaOCPayload`,
+  `ParActivo`, `LineaOC`, `OrdenCompraExportable` (15.5).
+- **Claves i18n** (`es`/`en`): namespaces propios `reposicion.*` (vista de sugerencias) y `oc.*`
+  (selección + generación), sin claves cruzadas (hardening de la Fase 12).
+- **`static/app.css`**: `.page-container--wide` generalizado (el aprieto de las tablas de la 15 es por
+  **densidad de datos** — nombres largos + 5–8 columnas — no por acumulación; cada vista de tabla densa
+  hereda un contenedor más ancho sin tocar el `max-width` global de 1200px de las demás rutas).
+
+### Corregido
+- **Asociaciones no refrescaban tras guardar** (`/proveedores/[id]`, bug de la ficha de v1.12.0
+  descubierto al integrar 15.4): el `each` bindeaba los inputs a propiedades del argumento
+  (`bind:value={fila.costo_unitario}`) y el `$effect` de resincronización reasignaba `filas` vía `.map()`
+  — zona gris "buggy and unpredictable" de runes mode que dejaba la fila nueva sin pintar pese al toast
+  (el server **sí** persistía). Migrado al patrón canónico de índice (`{#each filas as fila, i}` +
+  `bind:value={filas[i].x}`). De paso, el plazo del par estaba bindeado por error al global del proveedor
+  (`bind:value={p.tiempo_entrega_dias}`, un `$derived` read-only); corregido a `filas[i].tiempo_entrega_dias`.
+  El `placeholder` sí usa `p` (refleja si hay global que heredar).
+- **`each_key_duplicate` en `/reportes`** (bug de 11/13 descubierto al probar la 15): cuatro `each` usaban
+  keys concatenando campos no-únicos (`${lote}-${producto}`, `${fecha}-${producto}-${tipo}`,
+  `p.producto`), colisionando cuando dos filas compartían esos valores (p. ej. dos lotes "423" del mismo
+  producto → `"423-Laptop"` duplicado → crash de runtime y DOM cruzado al filtrar). Como **ningún** tipo
+  de reporte tiene `id` primario, no se pudo usar `(x.id)`; y añadir `id` al `SELECT` habría metido una
+  columna "id" en el `.xlsx` (rompiendo la garantía *byte-idéntico* de 1.10.0). Fix en la vista: se
+  mantiene la key semántica y se añade `-${i}` (índice) a los cinco `each`, garantizando unicidad por
+  construcción sin tocar service, types ni el binario Excel.
+
+### Deuda técnica agendada (no bloqueante)
+- **D22** — ciclo de vida de órdenes de compra: tabla `ordenes_compra` + estado (emitida/recibida/
+  cancelada) para descontar "pedidos ya emitidos" de la fórmula de `Q` y dar historial de compras.
+  Consecuencia consciente de elegir A+ (OC efímera, sin persistencia); mientras tanto la UI avisa de su
+  límite. Es la opción B descartada por alcance, no un olvido.
+- **D23** — keys por índice en `/reportes`: estables mientras la vista no tenga sort/filter en cliente
+  (hoy no lo tiene). Si lo gana, migrar a `id` real añadiendo la columna al `SELECT` **y** excluyéndola
+  del Excel (SELECTs separados vista-vs-descarga).
+- **D24** — paridad 11.8 → 15.4: que `/reportes` consuma el motor de sugerencias y retire su
+  `compra_recomendada` on-the-fly (horizonte 30 fijo, sin lead-time, sin margen), cerrando la deuda de
+  paridad que el propio 1.10.0 marcaba como "pendiente: confirmar esquema" (esquema ya confirmado).
+- **D25** — i18n de documentos PDF: los cuatro generadores hardcodean ES y mezclan `$` (inventario) y
+  `€` (OC nueva); unificar moneda/idioma derivándolos del locale activo.
+- **D26** — uniformizar `BotonPDF` (GET) y `BotonOC` (POST) en un componente de descarga genérico que
+  acepte método + body, eliminando la duplicación de las ~8 líneas de blob→download.
+- *(las deudas D17/D19/D20/D21 de v1.12.0 siguen vigentes; no se repiten aquí)*.
+
+---
+
 ## [v1.12.0] - 2026-10-27
 
 ### Añadido — Fase 15 (parte 1): gestión de proveedores y asociación por producto

@@ -1,11 +1,18 @@
 <script lang="ts">
   import { enhance } from '$app/forms';
   import type { SubmitFunction } from '@sveltejs/kit';
-  import { _ } from 'svelte-i18n';
+  import { _, locale } from 'svelte-i18n';
   import type { PageData } from './$types';
   import { mostrarToast } from '$lib/stores/toasts';
+  import type { SugerenciaReposicion } from '$lib/types';
 
   let { data, form }: { data: PageData; form?: { success?: string; error?: string } } = $props();
+
+  // Formatter de moneda coherente con la ficha de proveedor y /reportes (Intl lee $locale,
+  // no una clave inexistente — lección del RangeError de SSR en 1.11.0).
+  const MAPA_LOCALE_INTL: Record<string, string> = { es: 'es-ES', en: 'en-US' };
+  const localeIntl = $derived(MAPA_LOCALE_INTL[$locale ?? 'es'] ?? 'es-ES');
+  const moneda = $derived(new Intl.NumberFormat(localeIntl, { style: 'currency', currency: 'EUR' }));
 
   let modalAbierto = $state(false);
   let modoEdicion = $state(false);
@@ -17,6 +24,18 @@
   let tiempoEntrega = $state('');
   let notas = $state('');
   let activa = $state(true);
+
+ // ── Modal "Ver otros proveedores" (Fase 15.4). Read-only: guarda la sugerencia completa
+ //    para acceder a su ranking (.proveedores) sin round-trip. No hay bind en el each del
+ //    modal, así que no aplica each_item_invalid_assignment de runes mode. ──
+ let modalOtrosAbierto = $state(false);
+ let sugerenciasSeleccionada = $state<SugerenciaReposicion | null>(null);
+
+ function abrirOtros(sugerencia: SugerenciaReposicion) {
+   sugerenciasSeleccionada = sugerencia;   // LEE el item del each, escribe en otra variable: válido
+   modalOtrosAbierto = true;
+ }
+ function cerrarOtros() { modalOtrosAbierto = false; }
 
   $effect(() => {
     if (form?.success === 'proveedores.creado') mostrarToast($_('proveedores.creado'), 'success');
@@ -70,9 +89,17 @@
     <div class="header-actions">
       <h1>{$_('proveedores.titulo')}</h1>
       {#if data.rol === 'admin'}
-        <button class="btn btn-primary" type="button" onclick={abrirModalCrear}>
-          {$_('proveedores.nuevo')}
-        </button>
+        <div class="header-acciones-grupo">
+          <a href="/proveedores/reposicion" class="btn btn-secondary reposicion-badge-btn">
+            📦 {$_('reposicion.tituloCorto')}
+            {#if data.conteoReposicion > 0}
+              <span class="alerta-contador">{data.conteoReposicion > 99 ? '99+' : data.conteoReposicion}</span>
+            {/if}
+          </a>
+          <button class="btn btn-primary" type="button" onclick={abrirModalCrear}>
+            {$_('proveedores.nuevo')}
+          </button>
+        </div>
       {/if}
     </div>
     <p class="text-secondary">{$_('proveedores.descripcion')}</p>
@@ -230,6 +257,69 @@
   </div>
 {/if}
 
+{#if modalOtrosAbierto && sugerenciasSeleccionada}
+  <div
+    class="modal-backdrop"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="otros-title"
+    onclick={(e) => { if (e.target === e.currentTarget) cerrarOtros(); }}
+    onkeydown={(e) => { if (e.key === 'Escape') cerrarOtros(); }}
+    tabindex="-1"
+  >
+    <div class="modal-content">
+      <header class="modal-header">
+        <h2 id="otros-title">
+          {$_('proveedores.sugerencias.modalTitulo', { values: { producto: sugerenciasSeleccionada.producto_nombre } })}
+        </h2>
+        <button class="modal-close" type="button" aria-label={$_('botones.cancelar')} onclick={cerrarOtros}>×</button>
+      </header>
+
+      <div class="modal-body">
+        <p class="text-secondary text-sm">{$_('proveedores.sugerencias.modalHint')}</p>
+        <div class="table-container">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>{$_('proveedores.nombre')}</th>
+                <th>{$_('proveedores.plazoOverride')}</th>
+                <th>{$_('proveedores.costoUnitario')}</th>
+                <th>{$_('proveedores.sugerencias.colCantidad')}</th>
+                <th>{$_('proveedores.pedidoMinimo')}</th>
+              </tr>
+            </thead>
+            <tbody>
+              <!-- Orden ya traído por el service: lead-time ASC, costo desempate, nulls al fondo.
+                   El recomendado es la primera fila (posición, no badge — sin interpretación). -->
+              {#each sugerenciasSeleccionada.proveedores as prov (prov.proveedor_id)}
+                <tr>
+                  <td>
+                    <a href="/proveedores/{prov.proveedor_id}" class="product-name">{prov.proveedor_nombre}</a>
+                  </td>
+                  <td class="plazo-destacado">
+                    {#if prov.lead_time_efectivo != null}
+                      {$_('proveedores.plazoDias', { values: { dias: prov.lead_time_efectivo } })}
+                    {:else}
+                      <span class="text-secondary">{$_('proveedores.sugerencias.plazoNoRegistrado')}</span>
+                    {/if}
+                  </td>
+                  <td class="text-secondary">{moneda.format(prov.costo_unitario)}</td>
+                  <td><strong>{prov.q_sugerida}</strong></td>
+                  <td>{prov.pedido_minimo != null ? prov.pedido_minimo : '—'}</td>
+                </tr>
+              {/each}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="modal-actions">
+        <button type="button" class="btn btn-secondary" onclick={cerrarOtros}>{$_('botones.cancelar')}</button>
+      </div>
+    </div>
+  </div>
+{/if}
+
 <style>
   .page-header { 
     margin-bottom: 2rem; 
@@ -382,5 +472,18 @@
     gap: 0.75rem; 
     cursor: pointer; 
     font-weight: var(--font-weight-medium); 
+  }
+
+  .reposicion-badge-btn {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+ }
+
+  .header-acciones-grupo {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
   }
 </style>

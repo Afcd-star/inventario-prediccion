@@ -1,7 +1,7 @@
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import db from '../database';
-import type { Producto } from '../../types';
+import type { Producto, OrdenCompraExportable } from '../../types';
 import { VERSION } from '$lib/version';
 import { auditoriaService } from './auditoria.service';
 
@@ -426,5 +426,137 @@ export const reportesService = {
     );
 
     return new Uint8Array(doc.output('arraybuffer'));
-  }
+  },
+
+  // Genera UN PDF con N páginas, una por OC (opción iii + tu matiz "cada OC una hoja").
+  // Patrón branded de generarReporteInventario: header rect azul + info + autoTable +
+  // resumen roundedRect + footer global (Página X de Y + VERSION). Moneda € (M3, no
+  // replico el "$" heredado del reporte de inventario). Strings en ES fijo, coherente
+  // con los otros tres generadores PDF (i18n de documentos = deuda 1.10.0, no se abre aquí).
+  generarOrdenCompraPDF: (ocs: OrdenCompraExportable[]) => {
+    const doc = new jsPDF();
+    const fmtEur = (n: number) => `${n.toFixed(2)} €`;
+
+    ocs.forEach((oc, idx) => {
+      if (idx > 0) doc.addPage();   // cada OC en su propia página
+
+      // ===== HEADER CON BRANDING =====
+      doc.setFillColor(...COLORES.primario);
+      doc.rect(0, 0, 210, 45, 'F');
+      doc.setTextColor(...COLORES.blanco);
+      doc.setFontSize(26);
+      doc.setFont('helvetica', 'bold');
+      doc.text('StockPredict Pro', 14, 22);
+      doc.setFontSize(13);
+      doc.setFont('helvetica', 'normal');
+      doc.text('Orden de Compra', 14, 32);
+      doc.setFontSize(9);
+      doc.text(`Nº ${oc.numero}`, 14, 39);
+
+      // ===== INFO DE LA OC =====
+      doc.setTextColor(...COLORES.textoClaro);
+      doc.setFontSize(10);
+      const hoy = new Date().toLocaleDateString('es-ES', {
+        year: 'numeric', month: 'long', day: 'numeric'
+      });
+      doc.text(`Fecha de emisión: ${hoy}`, 14, 55);
+
+      // Bloque de proveedor (izquierda) y plazo (derecha)
+      doc.setTextColor(...COLORES.texto);
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(11);
+      doc.text('Proveedor', 14, 66);
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(10);
+      doc.setTextColor(...COLORES.textoClaro);
+      doc.text(oc.proveedor_nombre, 14, 73);
+      const contacto = oc.proveedor_contacto || oc.proveedor_email || oc.proveedor_telefono;
+      if (contacto) doc.text(contacto, 14, 79);
+      const telEmail = [oc.proveedor_email, oc.proveedor_telefono].filter(Boolean).join(' · ');
+      if (telEmail && telEmail !== contacto) doc.text(telEmail, 14, 85);
+
+      doc.setTextColor(...COLORES.texto);
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(11);
+      doc.text('Entrega estimada', 120, 66);
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(10);
+      doc.setTextColor(...COLORES.textoClaro);
+      doc.text(oc.fecha_estimada, 120, 73);
+      if (oc.plazo_entrega_dias != null) {
+        doc.text(`Plazo: ${oc.plazo_entrega_dias} día(s)`, 120, 79);
+      } else {
+        doc.text('Plazo: por confirmar', 120, 79);
+      }
+
+      // ===== TABLA DE LÍNEAS =====
+      const datosTabla = oc.lineas.map(l => [
+        l.producto_nombre,
+        l.cantidad.toString(),
+        fmtEur(l.costo_unitario),
+        fmtEur(l.subtotal),
+        l.plazo_dias != null ? `${l.plazo_dias} d` : '—'
+      ]);
+
+      autoTable(doc, {
+        startY: 92,
+        head: [['Producto', 'Cantidad', 'Costo unit.', 'Subtotal', 'Plazo']],
+        body: datosTabla,
+        theme: 'striped',
+        headStyles: {
+          fillColor: COLORES.primario,
+          textColor: COLORES.blanco,
+          fontStyle: 'bold',
+          fontSize: 10
+        },
+        styles: { fontSize: 9, cellPadding: 3 },
+        alternateRowStyles: { fillColor: COLORES.fondo },
+        columnStyles: {
+          0: { cellWidth: 80 },
+          1: { cellWidth: 25, halign: 'center' },
+          2: { cellWidth: 30, halign: 'right' },
+          3: { cellWidth: 30, halign: 'right' },
+          4: { cellWidth: 17, halign: 'center' }
+        }
+      });
+
+      // ===== TOTAL DE LA OC (sin IVA, D4) =====
+      const finalY = doc.lastAutoTable.finalY + 12;
+      doc.setFillColor(...COLORES.fondo);
+      doc.setDrawColor(...COLORES.primario);
+      doc.roundedRect(120, finalY - 5, 76, 22, 3, 3, 'FD');
+      doc.setTextColor(...COLORES.texto);
+      doc.setFontSize(11);
+      doc.setFont('helvetica', 'bold');
+      doc.text('Total', 126, finalY + 4);
+      doc.setFontSize(13);
+      doc.text(fmtEur(oc.total), 190, finalY + 4, { align: 'right' });
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(8);
+      doc.setTextColor(...COLORES.textoClaro);
+      doc.text('Importe sin impuestos', 190, finalY + 11, { align: 'right' });
+    });
+
+    // ===== FOOTER EN TODAS LAS PÁGINAS =====
+    const pageCount = doc.getNumberOfPages();
+    for (let i = 1; i <= pageCount; i++) {
+      doc.setPage(i);
+      doc.setFontSize(8);
+      doc.setTextColor(...COLORES.textoClaro);
+      doc.text(`Página ${i} de ${pageCount}`, 14, 290);
+      doc.text(
+        `StockPredict Pro v${VERSION} - Sistema de Gestión de Inventario`,
+        105, 290, { align: 'center' }
+      );
+      doc.text(
+        `Emitido el ${new Date().toLocaleDateString('es-ES')}`,
+        196, 290, { align: 'right' }
+      );
+      doc.setDrawColor(...COLORES.primario);
+      doc.setLineWidth(0.3);
+      doc.line(14, 285, 196, 285);
+    }
+
+    return doc;
+  },
 };
